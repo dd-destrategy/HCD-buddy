@@ -116,7 +116,7 @@ final class ConnectionQualityMonitor: ObservableObject {
     }
 
     deinit {
-        stop()
+        pathMonitor.cancel()
     }
 
     // MARK: - Public Methods

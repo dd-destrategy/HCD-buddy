@@ -12,11 +12,11 @@ import SwiftUI
 
 /// Respects the system-wide Reduce Motion preference
 /// Disables or reduces animations when the user has requested it
-struct MotionSafeAnimation: ViewModifier {
+struct MotionSafeAnimation<V: Equatable>: ViewModifier {
 
     @Environment(\.accessibilityReduceMotion) var reduceMotion
     let animation: Animation
-    let value: some Equatable
+    let value: V
 
     func body(content: Content) -> some View {
         content

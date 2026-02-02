@@ -385,6 +385,7 @@ final class SessionCoordinator: ObservableObject {
 // MARK: - Coordinator Factory
 
 /// Factory for creating session coordinators with proper dependencies
+@MainActor
 struct SessionCoordinatorFactory {
     /// Creates a coordinator with real dependencies
     static func createProduction(

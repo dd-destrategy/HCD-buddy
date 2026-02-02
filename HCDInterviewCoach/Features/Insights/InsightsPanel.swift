@@ -68,35 +68,31 @@ struct InsightsPanel: View {
         .focused($isPanelFocused)
         // Global keyboard shortcut for flagging
         .keyboardShortcut("i", modifiers: .command)
-        .onKeyPress(.init("i"), modifiers: .command) { _ in
-            handleQuickFlag()
-            return .handled
-        }
         // Navigation keyboard shortcuts
-        .onKeyPress(.downArrow) { _ in
+        .onKeyPress(.downArrow) {
             viewModel.selectNext()
             return .handled
         }
-        .onKeyPress(.upArrow) { _ in
+        .onKeyPress(.upArrow) {
             viewModel.selectPrevious()
             return .handled
         }
-        .onKeyPress(.return) { _ in
+        .onKeyPress(.return) {
             viewModel.navigateToSelectedInsight()
             return .handled
         }
-        .onKeyPress(.delete) { _ in
+        .onKeyPress(.delete) {
             if viewModel.selectedInsight != nil {
                 insightToDelete = viewModel.selectedInsight
                 showDeleteConfirmation = true
             }
             return .handled
         }
-        .onKeyPress("e", modifiers: .command) { _ in
+        .onKeyPress("e") {
             viewModel.editSelectedInsight()
             return .handled
         }
-        .onKeyPress("z", modifiers: .command) { _ in
+        .onKeyPress("z") {
             viewModel.undoLastFlag()
             return .handled
         }
@@ -506,6 +502,7 @@ struct FlaggingStatusBadge: View {
 // MARK: - Insights Panel Factory
 
 /// Convenience factory for creating InsightsPanel
+@MainActor
 struct InsightsPanelFactory {
 
     /// Creates an InsightsPanel with all dependencies configured
@@ -542,10 +539,6 @@ struct InsightKeyboardShortcuts: ViewModifier {
     func body(content: Content) -> some View {
         content
             .keyboardShortcut("i", modifiers: .command)
-            .onKeyPress(.init("i"), modifiers: .command) { _ in
-                onFlagInsight()
-                return .handled
-            }
     }
 }
 
@@ -595,17 +588,26 @@ struct InsightsPanel_Previews: PreviewProvider {
 
 // Mock types for preview
 private class MockAudioCapturer: AudioCapturing {
-    var isCapturing: Bool = false
-    func startCapture() throws {}
-    func stopCapture() {}
-    func pauseCapture() {}
-    func resumeCapture() {}
+    var audioStream: AsyncStream<AudioChunk> {
+        AsyncStream { _ in }
+    }
+    var audioLevels: AudioLevels { .silence }
+    func start() throws {}
+    func stop() {}
+    func pause() {}
+    func resume() {}
 }
 
 private class MockRealtimeAPIClient: RealtimeAPIConnecting {
-    var isConnected: Bool = false
-    func connect(apiKey: String) async throws {}
+    var connectionState: ConnectionState { .disconnected }
+    var transcriptionStream: AsyncStream<TranscriptionEvent> {
+        AsyncStream { _ in }
+    }
+    var functionCallStream: AsyncStream<FunctionCallEvent> {
+        AsyncStream { _ in }
+    }
+    func connect(with config: SessionConfig) async throws {}
     func disconnect() async {}
-    func send(audioData: Data) async throws {}
+    func send(audio: AudioChunk) async throws {}
 }
 #endif

@@ -9,6 +9,7 @@
 import Foundation
 import Combine
 import SwiftData
+import SwiftUI
 
 // MARK: - Topic Awareness ViewModel
 
@@ -68,9 +69,9 @@ final class TopicAwarenessViewModel: ObservableObject {
 
     // MARK: - Initialization
 
-    init(sessionManager: SessionManager? = nil, analyzer: TopicAnalyzer = TopicAnalyzer()) {
+    init(sessionManager: SessionManager? = nil, analyzer: TopicAnalyzer? = nil) {
         self.sessionManager = sessionManager
-        self.analyzer = analyzer
+        self.analyzer = analyzer ?? TopicAnalyzer()
 
         setupBindings()
     }

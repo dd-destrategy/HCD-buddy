@@ -2,6 +2,7 @@ import Foundation
 import SwiftData
 
 /// Manages SwiftData persistence with custom container location and encryption
+@MainActor
 final class DataManager {
     static let shared = DataManager()
 
@@ -24,10 +25,10 @@ final class DataManager {
             ])
 
             let configuration = ModelConfiguration(
+                "HCDInterviewCoach",
                 schema: schema,
                 url: Self.customStoreURL,
                 allowsSave: true,
-                groupContainer: .none,
                 cloudKitDatabase: .none
             )
 
@@ -232,7 +233,7 @@ final class DataManager {
 
             // Generate cryptographically secure random data
             let result = SecRandomCopyBytes(kSecRandomDefault, bytesToWrite, &randomBytes)
-            guard result == errSecSuccess else {
+            if result != errSecSuccess {
                 // Fallback to less secure but still random data
                 randomBytes = (0..<bytesToWrite).map { _ in UInt8.random(in: 0...255) }
             }

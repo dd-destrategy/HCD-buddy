@@ -22,19 +22,15 @@ extension View {
     ) -> some View {
         self
             .focusable()
-            .onKeyPress(.tab) { press in
-                if press.modifiers.contains(.shift) {
-                    onShiftTab?()
-                } else {
-                    onTab?()
-                }
+            .onKeyPress(.tab) {
+                onTab?()
                 return .handled
             }
-            .onKeyPress(.return) { _ in
+            .onKeyPress(.return) {
                 onReturn?()
                 return .handled
             }
-            .onKeyPress(.escape) { _ in
+            .onKeyPress(.escape) {
                 onEscape?()
                 return .handled
             }
@@ -52,27 +48,27 @@ extension View {
     ) -> some View {
         self
             .focusable()
-            .onKeyPress(.upArrow) { _ in
+            .onKeyPress(.upArrow) {
                 onUp?()
                 return .handled
             }
-            .onKeyPress(.downArrow) { _ in
+            .onKeyPress(.downArrow) {
                 onDown?()
                 return .handled
             }
-            .onKeyPress(.leftArrow) { _ in
+            .onKeyPress(.leftArrow) {
                 onLeft?()
                 return .handled
             }
-            .onKeyPress(.rightArrow) { _ in
+            .onKeyPress(.rightArrow) {
                 onRight?()
                 return .handled
             }
-            .onKeyPress(.return) { _ in
+            .onKeyPress(.return) {
                 onReturn?()
                 return .handled
             }
-            .onKeyPress(.escape) { _ in
+            .onKeyPress(.escape) {
                 onEscape?()
                 return .handled
             }
@@ -83,8 +79,8 @@ extension View {
     /// - Parameter onEscape: Optional closure called when Escape is pressed to exit the container
     func keyboardFocusContainer(onEscape: (() -> Void)? = nil) -> some View {
         self
-            .onKeyPress(.tab) { _ in .handled }
-            .onKeyPress(.escape) { _ in
+            .onKeyPress(.tab) { .handled }
+            .onKeyPress(.escape) {
                 onEscape?()
                 return .handled
             }
@@ -102,11 +98,11 @@ extension View {
     func keyboardActivatable(action: @escaping () -> Void) -> some View {
         self
             .focusable()
-            .onKeyPress(.space) { _ in
+            .onKeyPress(.space) {
                 action()
                 return .handled
             }
-            .onKeyPress(.return) { _ in
+            .onKeyPress(.return) {
                 action()
                 return .handled
             }
@@ -126,28 +122,28 @@ extension View {
     ) -> some View {
         self
             .focusable()
-            .onKeyPress(.downArrow) { _ in
+            .onKeyPress(.downArrow) {
                 onNext()
                 return .handled
             }
-            .onKeyPress(.upArrow) { _ in
+            .onKeyPress(.upArrow) {
                 onPrevious()
                 return .handled
             }
-            .onKeyPress(.return) { _ in
+            .onKeyPress(.return) {
                 onSelect()
                 return .handled
             }
-            .onKeyPress(.space) { _ in
+            .onKeyPress(.space) {
                 onSelect()
                 return .handled
             }
             // Vim-style navigation
-            .onKeyPress("j") { _ in
+            .onKeyPress("j") {
                 onNext()
                 return .handled
             }
-            .onKeyPress("k") { _ in
+            .onKeyPress("k") {
                 onPrevious()
                 return .handled
             }
@@ -165,7 +161,7 @@ struct KeyboardShortcuts {
 
     // Coaching shortcuts
     static let toggleCoaching = KeyEquivalent("m")
-    static let dismissPrompt = KeyEquivalent(.escape)
+    static let dismissPrompt = KeyEquivalent.escape
 
     // Insight shortcuts
     static let flagInsight = KeyEquivalent("i")

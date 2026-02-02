@@ -13,7 +13,7 @@ final class TranscriptionEventHandler {
     // MARK: - Properties
 
     /// Current partial transcription being built
-    private var currentPartialTranscription: PartialTranscription?
+    private var currentPartialTranscription: HandlerPartialTranscription?
 
     /// Session start time for timestamp calculation
     private let sessionStartTime: Date
@@ -55,7 +55,7 @@ final class TranscriptionEventHandler {
 
         // Update or create partial transcription
         if currentPartialTranscription == nil {
-            currentPartialTranscription = PartialTranscription(
+            currentPartialTranscription = HandlerPartialTranscription(
                 text: deltaText,
                 speaker: speaker,
                 startTime: timestamp
@@ -162,8 +162,8 @@ final class TranscriptionEventHandler {
 
 // MARK: - Supporting Types
 
-/// Tracks partial transcription being built from deltas
-private struct PartialTranscription {
+/// Tracks partial transcription being built from deltas (local to this handler)
+private struct HandlerPartialTranscription {
     var text: String
     var speaker: Speaker?
     let startTime: TimeInterval
@@ -297,10 +297,10 @@ struct TranscriptionQualityAnalyzer {
     }
 }
 
-// MARK: - Transcription Buffer
+// MARK: - Transcription Event Buffer
 
 /// Manages buffering of transcription events for smooth display
-final class TranscriptionBuffer {
+final class TranscriptionEventBuffer {
     private var buffer: [TranscriptionEvent] = []
     private let maxBufferSize = 100
 

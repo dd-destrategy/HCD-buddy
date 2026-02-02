@@ -8,7 +8,26 @@
 
 import SwiftUI
 
-// MARK: - Topic Awareness Status
+// MARK: - Topic Awareness Status for Accessibility Display
+
+/// Simplified topic status for accessibility-focused UI components
+enum TopicAwarenessStatus {
+    case untouched
+    case touched
+    case explored
+
+    /// Convert from the main TopicAwareness type
+    init(from awareness: TopicAwareness) {
+        switch awareness {
+        case .notCovered:
+            self = .untouched
+        case .partialCoverage:
+            self = .touched
+        case .fullyCovered, .skipped:
+            self = .explored
+        }
+    }
+}
 
 extension TopicAwarenessStatus {
 
@@ -46,6 +65,18 @@ extension TopicAwarenessStatus {
             return "Mentioned"
         case .explored:
             return "Explored"
+        }
+    }
+
+    /// Accessibility description for VoiceOver
+    var accessibilityDescription: String {
+        switch self {
+        case .untouched:
+            return "Topic not yet discussed"
+        case .touched:
+            return "Topic briefly mentioned"
+        case .explored:
+            return "Topic explored in depth"
         }
     }
 }

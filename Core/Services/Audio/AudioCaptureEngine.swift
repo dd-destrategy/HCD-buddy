@@ -81,10 +81,12 @@ class AudioCaptureEngine {
         // Attach mixer node
         audioEngine.attach(mixerNode)
 
-        // Create audio stream
+        // Create audio stream with continuation stored separately
+        var capturedContinuation: AsyncStream<AudioChunk>.Continuation?
         self.audioStream = AsyncStream<AudioChunk> { continuation in
-            self.streamContinuation = continuation
+            capturedContinuation = continuation
         }
+        self.streamContinuation = capturedContinuation
     }
 
     deinit {

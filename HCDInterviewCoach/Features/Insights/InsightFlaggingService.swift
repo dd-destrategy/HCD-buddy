@@ -516,6 +516,7 @@ struct AutoFlagRecommendation {
 // MARK: - Insight Flagging Service Factory
 
 /// Factory for creating InsightFlaggingService instances
+@MainActor
 struct InsightFlaggingServiceFactory {
 
     /// Creates a flagging service for the given session

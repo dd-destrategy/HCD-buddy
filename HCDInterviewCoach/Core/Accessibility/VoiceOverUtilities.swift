@@ -142,7 +142,7 @@ extension View {
             .accessibilityValue("Session is \(state.accessibilityDescription)")
             .accessibilityHint(isEnabled ? "Double tap to \(action.lowercased())" : "Not available")
             .accessibilityAddTraits(.isButton)
-            .accessibilityAddTraits(isEnabled ? [] : .notEnabled)
+            .disabled(!isEnabled)
     }
 
     /// Configures accessibility for coaching prompts
@@ -227,7 +227,6 @@ struct LiveRegion<Content: View>: View {
     var body: some View {
         content
             .accessibilityAddTraits(.updatesFrequently)
-            .accessibilityLiveRegion(priority)
     }
 }
 

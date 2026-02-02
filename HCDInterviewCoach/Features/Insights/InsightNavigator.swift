@@ -397,6 +397,7 @@ extension View {
 // MARK: - Insight Navigator Factory
 
 /// Factory for creating InsightNavigator instances
+@MainActor
 struct InsightNavigatorFactory {
 
     /// Creates a navigator for the given session

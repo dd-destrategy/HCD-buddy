@@ -399,6 +399,7 @@ enum InsightSortOrder: String, CaseIterable, Identifiable {
 // MARK: - Insights ViewModel Factory
 
 /// Factory for creating InsightsViewModel instances
+@MainActor
 struct InsightsViewModelFactory {
 
     /// Creates a view model for the given session

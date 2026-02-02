@@ -279,18 +279,7 @@ extension Speaker {
             return "UNK"
         }
     }
-
-    /// Icon name for this speaker
-    var icon: String {
-        switch self {
-        case .interviewer:
-            return "person.fill"
-        case .participant:
-            return "person.circle.fill"
-        case .unknown:
-            return "questionmark.circle.fill"
-        }
-    }
+    // Note: icon property is defined in Core/Models/Speaker.swift
 
     /// Color for this speaker
     var color: Color {

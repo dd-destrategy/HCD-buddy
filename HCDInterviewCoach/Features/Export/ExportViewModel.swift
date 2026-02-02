@@ -53,14 +53,14 @@ final class ExportViewModel: ObservableObject {
 
     init(
         session: Session,
-        exportService: ExportService = ExportService(),
-        markdownExporter: MarkdownExporter = MarkdownExporter(),
-        jsonExporter: JSONExporter = JSONExporter()
+        exportService: ExportService? = nil,
+        markdownExporter: MarkdownExporter? = nil,
+        jsonExporter: JSONExporter? = nil
     ) {
         self.session = session
-        self.exportService = exportService
-        self.markdownExporter = markdownExporter
-        self.jsonExporter = jsonExporter
+        self.exportService = exportService ?? ExportService()
+        self.markdownExporter = markdownExporter ?? MarkdownExporter()
+        self.jsonExporter = jsonExporter ?? JSONExporter()
     }
 
     // MARK: - Computed Properties

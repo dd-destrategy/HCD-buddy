@@ -138,7 +138,6 @@ struct SessionSetupView: View {
                 }
             }
             .navigationTitle("Session Setup")
-            .navigationBarTitleDisplayMode(.inline)
         }
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Session Setup")

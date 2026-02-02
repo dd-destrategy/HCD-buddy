@@ -327,11 +327,10 @@ final class TopicAnalyzer: ObservableObject {
 
         for topicWord in topicWords {
             for textWord in textWords {
-                if let distance = embedding.distance(between: topicWord, and: textWord.lowercased()) {
-                    // Convert distance to similarity (distance of 0 = similarity of 1)
-                    let similarity = max(0, 1.0 - distance)
-                    maxSimilarity = max(maxSimilarity, similarity)
-                }
+                let distance = embedding.distance(between: topicWord, and: textWord.lowercased())
+                // Convert distance to similarity (distance of 0 = similarity of 1)
+                let similarity = max(0, 1.0 - distance)
+                maxSimilarity = max(maxSimilarity, similarity)
             }
         }
 

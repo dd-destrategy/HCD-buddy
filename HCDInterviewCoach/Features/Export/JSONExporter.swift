@@ -36,7 +36,7 @@ final class JSONExporter {
 
     // MARK: - JSON Schema Version
 
-    private static let schemaVersion = "1.0.0"
+    fileprivate static let schemaVersion = "1.0.0"
 
     // MARK: - Properties
 

@@ -39,11 +39,11 @@ final class CoachingEventTracker: ObservableObject {
     // MARK: - Initialization
 
     init(
-        dataManager: DataManager = .shared,
-        preferences: CoachingPreferences = .shared
+        dataManager: DataManager? = nil,
+        preferences: CoachingPreferences? = nil
     ) {
-        self.dataManager = dataManager
-        self.preferences = preferences
+        self.dataManager = dataManager ?? .shared
+        self.preferences = preferences ?? .shared
     }
 
     // MARK: - Session Management

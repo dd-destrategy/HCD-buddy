@@ -125,10 +125,10 @@ final class CoachingViewModel: ObservableObject {
 
     init(
         coachingService: CoachingService,
-        preferences: CoachingPreferences = .shared
+        preferences: CoachingPreferences? = nil
     ) {
         self.coachingService = coachingService
-        self.preferences = preferences
+        self.preferences = preferences ?? .shared
 
         setupBindings()
     }

@@ -612,10 +612,10 @@ private struct SessionExportData: Codable {
     let durationSeconds: Double
     let reflection: String?
     let researcherNotes: String?
-    let statistics: ExportStatistics
-    let topicCoverage: [ExportTopicStatus]
-    let insights: [ExportInsight]
-    let transcript: [ExportUtterance]
+    let statistics: SessionExportStatistics
+    let topicCoverage: [SessionExportTopicStatus]
+    let insights: [SessionExportInsight]
+    let transcript: [SessionExportUtterance]
 
     init(session: Session, reflection: String?, notes: String?) {
         self.sessionId = session.id.uuidString
@@ -628,28 +628,28 @@ private struct SessionExportData: Codable {
         self.reflection = reflection
         self.researcherNotes = notes
 
-        self.statistics = ExportStatistics(
+        self.statistics = SessionExportStatistics(
             utteranceCount: session.utterances.count,
             insightCount: session.insights.count,
             topicsCovered: session.topicStatuses.filter { $0.isCovered }.count,
             totalTopics: session.topicStatuses.count
         )
 
-        self.topicCoverage = session.topicStatuses.map { ExportTopicStatus(from: $0) }
-        self.insights = session.insights.map { ExportInsight(from: $0) }
+        self.topicCoverage = session.topicStatuses.map { SessionExportTopicStatus(from: $0) }
+        self.insights = session.insights.map { SessionExportInsight(from: $0) }
         self.transcript = session.utterances.sorted { $0.timestampSeconds < $1.timestampSeconds }
-            .map { ExportUtterance(from: $0) }
+            .map { SessionExportUtterance(from: $0) }
     }
 }
 
-private struct ExportStatistics: Codable {
+private struct SessionExportStatistics: Codable {
     let utteranceCount: Int
     let insightCount: Int
     let topicsCovered: Int
     let totalTopics: Int
 }
 
-private struct ExportTopicStatus: Codable {
+private struct SessionExportTopicStatus: Codable {
     let topicId: String
     let topicName: String
     let status: String
@@ -663,7 +663,7 @@ private struct ExportTopicStatus: Codable {
     }
 }
 
-private struct ExportInsight: Codable {
+private struct SessionExportInsight: Codable {
     let id: String
     let timestampSeconds: Double
     let quote: String
@@ -681,7 +681,7 @@ private struct ExportInsight: Codable {
     }
 }
 
-private struct ExportUtterance: Codable {
+private struct SessionExportUtterance: Codable {
     let id: String
     let speaker: String
     let text: String
@@ -697,17 +697,3 @@ private struct ExportUtterance: Codable {
     }
 }
 
-// MARK: - Session Mode Extension
-
-extension SessionMode {
-    var displayName: String {
-        switch self {
-        case .full:
-            return "Full Session"
-        case .transcriptionOnly:
-            return "Transcription Only"
-        case .observerOnly:
-            return "Observer Mode"
-        }
-    }
-}

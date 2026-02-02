@@ -164,13 +164,14 @@ class MultiOutputDetector {
 
     /// Checks if a device is an aggregate device (includes Multi-Output devices)
     private static func isAggregateDevice(deviceID: AudioDeviceID) -> Bool {
+        // Check transport type - aggregate devices have a specific transport type
         var propertyAddress = AudioObjectPropertyAddress(
-            mSelector: kAudioDevicePropertyDeviceIsAggregateDevice,
+            mSelector: kAudioDevicePropertyTransportType,
             mScope: kAudioObjectPropertyScopeGlobal,
             mElement: kAudioObjectPropertyElementMain
         )
 
-        var isAggregate: UInt32 = 0
+        var transportType: UInt32 = 0
         var propertySize = UInt32(MemoryLayout<UInt32>.size)
 
         let status = AudioObjectGetPropertyData(
@@ -179,12 +180,13 @@ class MultiOutputDetector {
             0,
             nil,
             &propertySize,
-            &isAggregate
+            &transportType
         )
 
         guard status == noErr else { return false }
 
-        return isAggregate == 1
+        // kAudioDeviceTransportTypeAggregate = 'aggr' = 0x61676772
+        return transportType == 0x61676772
     }
 
     /// Gets the sub-devices of an aggregate device

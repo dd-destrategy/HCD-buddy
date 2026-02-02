@@ -81,12 +81,12 @@ final class TranscriptViewModel: ObservableObject {
 
     init(
         sessionManager: SessionManager? = nil,
-        virtualizationManager: TranscriptVirtualizationManager = TranscriptVirtualizationManager(),
-        dataManager: DataManager = .shared
+        virtualizationManager: TranscriptVirtualizationManager? = nil,
+        dataManager: DataManager? = nil
     ) {
         self.sessionManager = sessionManager
-        self.virtualizationManager = virtualizationManager
-        self.dataManager = dataManager
+        self.virtualizationManager = virtualizationManager ?? TranscriptVirtualizationManager()
+        self.dataManager = dataManager ?? .shared
 
         setupBindings()
     }

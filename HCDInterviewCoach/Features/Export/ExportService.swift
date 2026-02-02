@@ -19,6 +19,8 @@ enum ExportFormat: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
+    var displayName: String { rawValue }
+
     var fileExtension: String {
         switch self {
         case .markdown: return "md"

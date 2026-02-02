@@ -498,7 +498,7 @@ private struct ExportSuccessBanner: View {
 
 // MARK: - Preview
 
-#Preview("Post-Session Summary") {
+private func makePreviewSession() -> Session {
     let session = Session(
         participantName: "Jane Smith",
         projectName: "User Research Q1",
@@ -508,7 +508,6 @@ private struct ExportSuccessBanner: View {
         totalDurationSeconds: 3600
     )
 
-    // Add sample data
     session.utterances = [
         Utterance(speaker: .interviewer, text: "Can you tell me about your experience with the product?", timestampSeconds: 0),
         Utterance(speaker: .participant, text: "Sure, I've been using it for about 3 months now.", timestampSeconds: 5),
@@ -528,8 +527,12 @@ private struct ExportSuccessBanner: View {
         TopicStatus(topicId: "5", topicName: "Integration Needs", status: .notCovered)
     ]
 
+    return session
+}
+
+#Preview("Post-Session Summary") {
     PostSessionSummaryView(
-        session: session,
+        session: makePreviewSession(),
         onExport: { format in print("Exported as \(format.displayName)") },
         onDismiss: { print("Dismissed") }
     )

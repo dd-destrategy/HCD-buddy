@@ -286,7 +286,7 @@ struct SessionError: LocalizedError, Identifiable, Sendable {
     /// Suggested recovery action
     var recoveryAction: RecoveryAction {
         switch kind {
-        case .connectionLost, .reconnectionFailed:
+        case .connectionFailed, .connectionLost, .reconnectionFailed:
             return .reconnect
         case .audioCaptureFailed, .audioDeviceUnavailable:
             return .restartAudio

@@ -291,7 +291,6 @@ private struct CreateCustomTemplateView: View {
                 .padding(16)
             }
             .navigationTitle("Create Template")
-            .navigationBarTitleDisplayMode(.inline)
         }
     }
 

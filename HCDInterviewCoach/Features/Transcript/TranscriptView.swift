@@ -91,11 +91,11 @@ struct TranscriptView: View {
         .keyboardNavigable(
             onEscape: { closeSearch() }
         )
-        .onKeyPress(KeyboardShortcuts.searchTranscript, modifiers: KeyboardShortcuts.commandModifier) { _ in
+        .onKeyPress(KeyboardShortcuts.searchTranscript) {
             toggleSearch()
             return .handled
         }
-        .onKeyPress(KeyboardShortcuts.toggleSpeaker, modifiers: KeyboardShortcuts.commandModifier) { _ in
+        .onKeyPress(KeyboardShortcuts.toggleSpeaker) {
             toggleSelectedSpeaker()
             return .handled
         }

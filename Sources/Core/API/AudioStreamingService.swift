@@ -299,8 +299,8 @@ extension AudioChunk {
             data: pcmData,
             timestamp: timestamp,
             sampleRate: 24000,
-            bitsPerSample: 16,
-            channels: 1
+            channels: 1,
+            bitsPerSample: 16
         )
     }
 

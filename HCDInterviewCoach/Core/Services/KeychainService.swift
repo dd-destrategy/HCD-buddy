@@ -109,4 +109,21 @@ final class KeychainService: KeychainServiceProtocol {
     func deleteOpenAIKey() throws {
         try delete(key: "openai_api_key")
     }
+
+    // MARK: - Generic API Key Methods (alias for OpenAI key)
+
+    /// Save API key (alias for saveOpenAIKey)
+    func saveAPIKey(_ key: String) throws {
+        try saveOpenAIKey(key)
+    }
+
+    /// Retrieve API key (alias for retrieveOpenAIKey)
+    func retrieveAPIKey() throws -> String? {
+        try retrieveOpenAIKey()
+    }
+
+    /// Delete API key (alias for deleteOpenAIKey)
+    func deleteAPIKey() throws {
+        try deleteOpenAIKey()
+    }
 }

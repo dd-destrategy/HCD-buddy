@@ -114,12 +114,12 @@ final class CoachingService: ObservableObject {
     // MARK: - Initialization
 
     init(
-        preferences: CoachingPreferences = .shared,
-        eventTracker: CoachingEventTracker = CoachingEventTracker()
+        preferences: CoachingPreferences? = nil,
+        eventTracker: CoachingEventTracker? = nil
     ) {
-        self.preferences = preferences
-        self.eventTracker = eventTracker
-        self.thresholds = preferences.effectiveThresholds
+        self.preferences = preferences ?? .shared
+        self.eventTracker = eventTracker ?? CoachingEventTracker()
+        self.thresholds = self.preferences.effectiveThresholds
 
         setupPreferencesBinding()
     }
@@ -513,6 +513,7 @@ final class CoachingService: ObservableObject {
 // MARK: - Coaching Service Factory
 
 /// Factory for creating coaching service instances
+@MainActor
 struct CoachingServiceFactory {
 
     /// Creates a production coaching service

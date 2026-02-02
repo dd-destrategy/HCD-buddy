@@ -266,7 +266,7 @@ enum AudioSetupInvalidReason {
 // MARK: - Environment Key
 
 private struct AudioSetupCoordinatorKey: EnvironmentKey {
-    static let defaultValue: AudioSetupCoordinator = AudioSetupCoordinator()
+    @MainActor static let defaultValue: AudioSetupCoordinator = AudioSetupCoordinator()
 }
 
 extension EnvironmentValues {
@@ -284,9 +284,13 @@ extension View {
         coordinator: AudioSetupCoordinator,
         onComplete: @escaping () -> Void = {}
     ) -> some View {
-        self.sheet(isPresented: coordinator.$isWizardPresented) {
+        let isPresentedBinding = Binding(
+            get: { coordinator.isWizardPresented },
+            set: { coordinator.isWizardPresented = $0 }
+        )
+        return self.sheet(isPresented: isPresentedBinding) {
             AudioSetupWizardView(
-                isPresented: coordinator.$isWizardPresented,
+                isPresented: isPresentedBinding,
                 onComplete: {
                     coordinator.completeAndDismiss()
                     onComplete()

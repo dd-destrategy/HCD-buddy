@@ -44,17 +44,19 @@ struct AudioSetupWizardView: View {
         .keyboardNavigable(
             onEscape: { dismissWizard() }
         )
-        .onKeyPress(.leftArrow, modifiers: .command) { _ in
+        .onKeyPress(.leftArrow) {
             if viewModel.canGoBack {
                 viewModel.previousStep()
+                return .handled
             }
-            return .handled
+            return .ignored
         }
-        .onKeyPress(.rightArrow, modifiers: .command) { _ in
+        .onKeyPress(.rightArrow) {
             if viewModel.canProceed {
                 viewModel.nextStep()
+                return .handled
             }
-            return .handled
+            return .ignored
         }
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Audio Setup Wizard")

@@ -46,12 +46,16 @@ struct AudioChunk: Sendable {
     /// Number of channels (always 1 for mono)
     let channels: Int // 1 (mono)
 
+    /// Bits per sample (always 16 for OpenAI Realtime API)
+    let bitsPerSample: Int // 16
+
     /// Creates a new audio chunk
-    init(data: Data, timestamp: TimeInterval, sampleRate: Int = 24000, channels: Int = 1) {
+    init(data: Data, timestamp: TimeInterval, sampleRate: Int = 24000, channels: Int = 1, bitsPerSample: Int = 16) {
         self.data = data
         self.timestamp = timestamp
         self.sampleRate = sampleRate
         self.channels = channels
+        self.bitsPerSample = bitsPerSample
     }
 }
 

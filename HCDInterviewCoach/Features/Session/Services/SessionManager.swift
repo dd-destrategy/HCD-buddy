@@ -85,15 +85,15 @@ final class SessionManager: ObservableObject {
     init(
         audioCapturerProvider: @escaping () -> AudioCapturing,
         apiClientProvider: @escaping () -> RealtimeAPIConnecting,
-        connectionMonitor: ConnectionQualityMonitor = ConnectionQualityMonitor(),
-        recoveryService: SessionRecoveryService = SessionRecoveryService(),
-        dataManager: DataManager = .shared
+        connectionMonitor: ConnectionQualityMonitor? = nil,
+        recoveryService: SessionRecoveryService? = nil,
+        dataManager: DataManager? = nil
     ) {
         self.audioCapturerProvider = audioCapturerProvider
         self.apiClientProvider = apiClientProvider
-        self.connectionMonitor = connectionMonitor
-        self.recoveryService = recoveryService
-        self.dataManager = dataManager
+        self.connectionMonitor = connectionMonitor ?? ConnectionQualityMonitor()
+        self.recoveryService = recoveryService ?? SessionRecoveryService()
+        self.dataManager = dataManager ?? .shared
 
         setupConnectionMonitorBinding()
     }
@@ -485,7 +485,7 @@ final class SessionManager: ObservableObject {
         }
     }
 
-    private func executeRecoveryAction(_ action: RecoveryAction) async throws {
+    private func executeRecoveryAction(_ action: SessionRecoveryAction) async throws {
         switch action {
         case .reconnect:
             guard let config = currentConfig else {
@@ -602,6 +602,7 @@ struct SessionStatistics: Sendable {
 // MARK: - Session Manager Factory
 
 /// Factory for creating session managers with proper dependencies
+@MainActor
 struct SessionManagerFactory {
     /// Creates a production session manager
     static func createProduction(
