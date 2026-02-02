@@ -336,15 +336,7 @@ final class SessionManager: ObservableObject {
 
     /// Formatted elapsed time string (MM:SS or HH:MM:SS)
     var formattedElapsedTime: String {
-        let hours = Int(elapsedTime) / 3600
-        let minutes = (Int(elapsedTime) % 3600) / 60
-        let seconds = Int(elapsedTime) % 60
-
-        if hours > 0 {
-            return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
-        } else {
-            return String(format: "%02d:%02d", minutes, seconds)
-        }
+        TimeFormatting.formatDuration(elapsedTime)
     }
 
     /// Gets session statistics
@@ -603,15 +595,7 @@ struct SessionStatistics: Sendable {
 
     /// Formatted duration string
     var formattedDuration: String {
-        let hours = Int(duration) / 3600
-        let minutes = (Int(duration) % 3600) / 60
-        let seconds = Int(duration) % 60
-
-        if hours > 0 {
-            return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
-        } else {
-            return String(format: "%02d:%02d", minutes, seconds)
-        }
+        TimeFormatting.formatDuration(duration)
     }
 }
 

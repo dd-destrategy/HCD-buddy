@@ -240,9 +240,7 @@ struct ResearcherNotesEditor: View {
     }
 
     private func insertTimestamp() {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
-        let timestamp = "[\(formatter.string(from: Date()))] "
+        let timestamp = "[\(TimeFormatting.timeFormatter.string(from: Date()))] "
         notes.append(notes.isEmpty ? timestamp : "\n\(timestamp)")
     }
 

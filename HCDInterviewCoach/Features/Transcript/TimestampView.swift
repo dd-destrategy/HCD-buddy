@@ -35,27 +35,11 @@ struct TimestampView: View {
     // MARK: - Computed Properties
 
     private var formattedTime: String {
-        let hours = Int(timestampSeconds) / 3600
-        let minutes = (Int(timestampSeconds) % 3600) / 60
-        let seconds = Int(timestampSeconds) % 60
-
-        if hours > 0 {
-            return String(format: "%d:%02d:%02d", hours, minutes, seconds)
-        }
-        return String(format: "%d:%02d", minutes, seconds)
+        TimeFormatting.formatDuration(timestampSeconds)
     }
 
     private var accessibilityTime: String {
-        let hours = Int(timestampSeconds) / 3600
-        let minutes = (Int(timestampSeconds) % 3600) / 60
-        let seconds = Int(timestampSeconds) % 60
-
-        if hours > 0 {
-            return "\(hours) hour\(hours > 1 ? "s" : ""), \(minutes) minute\(minutes > 1 ? "s" : ""), \(seconds) second\(seconds > 1 ? "s" : "")"
-        } else if minutes > 0 {
-            return "\(minutes) minute\(minutes > 1 ? "s" : ""), \(seconds) second\(seconds > 1 ? "s" : "")"
-        }
-        return "\(seconds) second\(seconds > 1 ? "s" : "")"
+        TimeFormatting.formatDurationVerbose(timestampSeconds)
     }
 
     // MARK: - Body
@@ -174,37 +158,14 @@ enum TimestampFormatter {
     /// - Parameter seconds: Time in seconds
     /// - Returns: Formatted time string
     static func format(_ seconds: TimeInterval) -> String {
-        let hours = Int(seconds) / 3600
-        let minutes = (Int(seconds) % 3600) / 60
-        let secs = Int(seconds) % 60
-
-        if hours > 0 {
-            return String(format: "%d:%02d:%02d", hours, minutes, secs)
-        }
-        return String(format: "%d:%02d", minutes, secs)
+        TimeFormatting.formatDuration(seconds)
     }
 
     /// Format timestamp for VoiceOver
     /// - Parameter seconds: Time in seconds
     /// - Returns: Accessible time string
     static func formatAccessible(_ seconds: TimeInterval) -> String {
-        let hours = Int(seconds) / 3600
-        let minutes = (Int(seconds) % 3600) / 60
-        let secs = Int(seconds) % 60
-
-        var parts: [String] = []
-
-        if hours > 0 {
-            parts.append("\(hours) hour\(hours > 1 ? "s" : "")")
-        }
-        if minutes > 0 {
-            parts.append("\(minutes) minute\(minutes > 1 ? "s" : "")")
-        }
-        if secs > 0 || parts.isEmpty {
-            parts.append("\(secs) second\(secs > 1 ? "s" : "")")
-        }
-
-        return parts.joined(separator: ", ")
+        TimeFormatting.formatDurationVerbose(seconds)
     }
 
     /// Parse a timestamp string to seconds

@@ -453,15 +453,7 @@ struct ExportView: View {
     // MARK: - Helpers
 
     private func formatDuration(_ seconds: Double) -> String {
-        let hours = Int(seconds) / 3600
-        let minutes = (Int(seconds) % 3600) / 60
-        let secs = Int(seconds) % 60
-
-        if hours > 0 {
-            return String(format: "%d:%02d:%02d", hours, minutes, secs)
-        } else {
-            return String(format: "%d:%02d", minutes, secs)
-        }
+        TimeFormatting.formatDuration(seconds)
     }
 }
 

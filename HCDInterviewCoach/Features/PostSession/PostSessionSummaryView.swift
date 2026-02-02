@@ -206,10 +206,7 @@ struct PostSessionSummaryView: View {
     }
 
     private var formattedDate: String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .short
-        return formatter.string(from: session.startedAt)
+        session.startedAt.formattedDateTime
     }
 
     // MARK: - Export Section

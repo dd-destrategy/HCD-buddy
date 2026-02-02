@@ -107,15 +107,7 @@ struct PostSessionStatistics {
 
     /// Formatted duration string
     var formattedDuration: String {
-        let hours = Int(duration) / 3600
-        let minutes = (Int(duration) % 3600) / 60
-        let seconds = Int(duration) % 60
-
-        if hours > 0 {
-            return String(format: "%d:%02d:%02d", hours, minutes, seconds)
-        } else {
-            return String(format: "%d:%02d", minutes, seconds)
-        }
+        TimeFormatting.formatDuration(duration)
     }
 
     /// Topic coverage percentage
@@ -370,7 +362,7 @@ final class AIReflectionService {
         // Add participant info
         context += "Participant: \(session.participantName)\n"
         context += "Project: \(session.projectName)\n"
-        context += "Duration: \(formatDuration(session.totalDurationSeconds))\n\n"
+        context += "Duration: \(TimeFormatting.formatDurationVerbose(session.totalDurationSeconds))\n\n"
 
         // Add key utterances
         context += "Key Conversation Points:\n"
@@ -402,7 +394,7 @@ final class AIReflectionService {
         var reflection = ""
 
         // First paragraph: Overview
-        let duration = formatDuration(session.totalDurationSeconds)
+        let duration = TimeFormatting.formatDurationVerbose(session.totalDurationSeconds)
         let participantName = session.participantName
 
         reflection += "This \(duration) interview with \(participantName) "
@@ -478,16 +470,6 @@ final class AIReflectionService {
         return reflection
     }
 
-    private func formatDuration(_ seconds: Double) -> String {
-        let hours = Int(seconds) / 3600
-        let minutes = (Int(seconds) % 3600) / 60
-
-        if hours > 0 {
-            return "\(hours) hour\(hours > 1 ? "s" : "") and \(minutes) minute\(minutes != 1 ? "s" : "")"
-        } else {
-            return "\(minutes) minute\(minutes != 1 ? "s" : "")"
-        }
-    }
 }
 
 // MARK: - Export Service
@@ -646,21 +628,11 @@ final class ExportService {
     }
 
     private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.string(from: date)
+        String(TimeFormatting.fileNameFormatter.string(from: date).prefix(10))
     }
 
     private func formatDuration(_ seconds: Double) -> String {
-        let hours = Int(seconds) / 3600
-        let minutes = (Int(seconds) % 3600) / 60
-        let secs = Int(seconds) % 60
-
-        if hours > 0 {
-            return String(format: "%d:%02d:%02d", hours, minutes, secs)
-        } else {
-            return String(format: "%d:%02d", minutes, secs)
-        }
+        TimeFormatting.formatDuration(seconds)
     }
 }
 

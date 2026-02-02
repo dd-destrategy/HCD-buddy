@@ -481,9 +481,7 @@ struct SearchResult: Identifiable {
     let timestamp: TimeInterval
 
     var formattedTimestamp: String {
-        let minutes = Int(timestamp) / 60
-        let seconds = Int(timestamp) % 60
-        return String(format: "%02d:%02d", minutes, seconds)
+        TimeFormatting.formatDuration(timestamp)
     }
 }
 
@@ -521,23 +519,14 @@ struct UtteranceViewModel: Identifiable, Equatable {
         self.createdAt = Date()
     }
 
-    /// Formatted timestamp string (MM:SS)
+    /// Formatted timestamp string (MM:SS or HH:MM:SS for long sessions)
     var formattedTimestamp: String {
-        let minutes = Int(timestampSeconds) / 60
-        let seconds = Int(timestampSeconds) % 60
-        return String(format: "%02d:%02d", minutes, seconds)
+        TimeFormatting.formatDuration(timestampSeconds)
     }
 
     /// Long formatted timestamp string (HH:MM:SS)
     var formattedTimestampLong: String {
-        let hours = Int(timestampSeconds) / 3600
-        let minutes = (Int(timestampSeconds) % 3600) / 60
-        let seconds = Int(timestampSeconds) % 60
-
-        if hours > 0 {
-            return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
-        }
-        return String(format: "%02d:%02d", minutes, seconds)
+        TimeFormatting.formatDuration(timestampSeconds)
     }
 
     /// Whether this utterance has high confidence

@@ -399,9 +399,7 @@ final class ExportService: ObservableObject {
     ///   - format: The export format
     /// - Returns: A suggested filename (without extension)
     func suggestedFilename(for session: Session, format: ExportFormat) -> String {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-        let dateString = dateFormatter.string(from: session.startedAt)
+        let dateString = String(TimeFormatting.fileNameFormatter.string(from: session.startedAt).prefix(10))
 
         let sanitizedProjectName = session.projectName
             .replacingOccurrences(of: " ", with: "-")

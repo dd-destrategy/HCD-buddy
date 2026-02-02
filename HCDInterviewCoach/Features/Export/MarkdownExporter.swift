@@ -239,23 +239,12 @@ final class MarkdownExporter {
 
     /// Formats a date for display
     private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .long
-        formatter.timeStyle = .short
-        return formatter.string(from: date)
+        TimeFormatting.formatDateTime(date)
     }
 
     /// Formats duration in seconds to HH:MM:SS format
     private func formatDuration(_ seconds: Double) -> String {
-        let hours = Int(seconds) / 3600
-        let minutes = (Int(seconds) % 3600) / 60
-        let secs = Int(seconds) % 60
-
-        if hours > 0 {
-            return String(format: "%02d:%02d:%02d", hours, minutes, secs)
-        } else {
-            return String(format: "%02d:%02d", minutes, secs)
-        }
+        TimeFormatting.formatDuration(seconds)
     }
 
     /// Truncates a quote if it exceeds the maximum length
