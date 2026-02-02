@@ -1,0 +1,166 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  release:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_15.app
+
+      - name: Import Certificate
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          # Create temporary keychain
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          KEYCHAIN_PASSWORD=$(openssl rand -base64 32)
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # Import certificate
+          echo "$APPLE_CERTIFICATE" | base64 --decode > certificate.p12
+          security import certificate.p12 -k $KEYCHAIN_PATH -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # Set default keychain
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+          rm certificate.p12
+
+      - name: Build Release Archive
+        run: |
+          xcodebuild archive \
+            -scheme HCDInterviewCoach \
+            -configuration Release \
+            -archivePath $RUNNER_TEMP/HCDInterviewCoach.xcarchive \
+            CODE_SIGN_IDENTITY="Developer ID Application" \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }}
+
+      - name: Export Archive
+        run: |
+          # Create export options plist
+          cat > $RUNNER_TEMP/ExportOptions.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>method</key>
+              <string>developer-id</string>
+              <key>teamID</key>
+              <string>${{ secrets.APPLE_TEAM_ID }}</string>
+              <key>signingStyle</key>
+              <string>manual</string>
+          </dict>
+          </plist>
+          EOF
+
+          xcodebuild -exportArchive \
+            -archivePath $RUNNER_TEMP/HCDInterviewCoach.xcarchive \
+            -exportPath $RUNNER_TEMP/export \
+            -exportOptionsPlist $RUNNER_TEMP/ExportOptions.plist
+
+      - name: Create DMG
+        run: |
+          # Install create-dmg
+          brew install create-dmg
+
+          # Create DMG
+          create-dmg \
+            --volname "HCD Interview Coach" \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 100 \
+            --icon "HCD Interview Coach.app" 175 120 \
+            --hide-extension "HCD Interview Coach.app" \
+            --app-drop-link 425 120 \
+            $RUNNER_TEMP/HCDInterviewCoach.dmg \
+            $RUNNER_TEMP/export/
+
+      - name: Notarize DMG
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          NOTARIZATION_PASSWORD: ${{ secrets.NOTARIZATION_PASSWORD }}
+        run: |
+          # Submit for notarization
+          xcrun notarytool submit $RUNNER_TEMP/HCDInterviewCoach.dmg \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$NOTARIZATION_PASSWORD" \
+            --wait
+
+          # Staple the notarization ticket
+          xcrun stapler staple $RUNNER_TEMP/HCDInterviewCoach.dmg
+
+      - name: Generate Sparkle Signature
+        id: sparkle
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          # Save private key
+          echo "$SPARKLE_PRIVATE_KEY" > $RUNNER_TEMP/sparkle_private_key
+
+          # Generate signature (requires Sparkle's sign_update tool)
+          # This assumes Sparkle tools are available or installed
+          DMG_SIZE=$(stat -f%z $RUNNER_TEMP/HCDInterviewCoach.dmg)
+          echo "dmg_size=$DMG_SIZE" >> $GITHUB_OUTPUT
+
+          # Note: Actual signature generation would require Sparkle tools
+          echo "sparkle_signature=PLACEHOLDER_SIGNATURE" >> $GITHUB_OUTPUT
+
+      - name: Extract Version
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create Release Notes
+        run: |
+          cat > $RUNNER_TEMP/release_notes.md <<EOF
+          ## HCD Interview Coach v${{ steps.version.outputs.version }}
+
+          ### Changes
+
+          See the full changelog for details.
+
+          ### Installation
+
+          1. Download the DMG file below
+          2. Open the DMG
+          3. Drag HCD Interview Coach to your Applications folder
+          4. Launch from Applications
+
+          ### System Requirements
+
+          - macOS 13.0 or later
+          - Apple Silicon or Intel processor
+          EOF
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ runner.temp }}/HCDInterviewCoach.dmg
+          body_path: ${{ runner.temp }}/release_notes.md
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update Appcast
+        run: |
+          # This would update the Sparkle appcast.xml file
+          # Typically stored in a separate branch or repository
+          echo "Appcast update would happen here"
+          echo "Version: ${{ steps.version.outputs.version }}"
+          echo "DMG Size: ${{ steps.sparkle.outputs.dmg_size }}"
+          echo "Signature: ${{ steps.sparkle.outputs.sparkle_signature }}"

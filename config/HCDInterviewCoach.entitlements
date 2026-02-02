@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Required for audio recording functionality -->
+    <key>com.apple.security.device.audio-input</key>
+    <true/>
+
+    <!-- Required for network access (API calls, updates) -->
+    <key>com.apple.security.network.client</key>
+    <true/>
+
+    <!-- Required for user-selected file operations -->
+    <key>com.apple.security.files.user-selected.read-write</key>
+    <true/>
+
+    <!-- Hardened Runtime - required for notarization -->
+    <key>com.apple.security.app-sandbox</key>
+    <false/>
+
+    <!-- Allow DYLD environment variables (development only) -->
+    <!-- Remove this for production builds -->
+    <key>com.apple.security.cs.allow-dyld-environment-variables</key>
+    <false/>
+
+    <!-- Disable library validation for development -->
+    <!-- Remove this for production builds -->
+    <key>com.apple.security.cs.disable-library-validation</key>
+    <false/>
+</dict>
+</plist>
