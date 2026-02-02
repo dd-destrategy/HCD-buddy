@@ -70,7 +70,7 @@ extension View {
             .accessibilityValue("Session is \(state.accessibilityDescription)")
             .accessibilityHint(isEnabled ? "Double tap to \(action.lowercased())" : "Not available")
             .accessibilityAddTraits(.isButton)
-            .accessibilityAddTraits(isEnabled ? [] : .isHeader)
+            .accessibilityAddTraits(isEnabled ? [] : .notEnabled)
     }
 
     /// Configures accessibility for coaching prompts

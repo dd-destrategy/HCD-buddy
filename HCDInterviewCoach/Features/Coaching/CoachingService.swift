@@ -292,13 +292,12 @@ final class CoachingService: ObservableObject {
         // Determine prompt type from function name
         guard let type = CoachingFunctionType(rawValue: event.name) else {
             // Try to infer type from name
-            let inferredType = inferPromptType(from: event.name)
-            guard inferredType != nil else {
+            guard let inferredType = inferPromptType(from: event.name) else {
                 AppLogger.shared.debug("Unknown function type: \(event.name)")
                 return nil
             }
             return createPrompt(
-                type: inferredType!,
+                type: inferredType,
                 arguments: event.arguments,
                 timestamp: event.timestamp
             )

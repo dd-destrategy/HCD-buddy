@@ -14,9 +14,24 @@ struct HCDInterviewCoachApp: App {
         .commands {
             CommandGroup(replacing: .appInfo) {
                 Button("About HCD Interview Coach") {
-                    // TODO: Show about window
+                    showAboutWindow()
                 }
             }
         }
+    }
+
+    private func showAboutWindow() {
+        NSApplication.shared.orderFrontStandardAboutPanel(options: [
+            .applicationName: "HCD Interview Coach",
+            .applicationVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0",
+            .version: Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "1",
+            .credits: NSAttributedString(
+                string: "A real-time interview coaching tool for HCD researchers.",
+                attributes: [
+                    .font: NSFont.systemFont(ofSize: 11),
+                    .foregroundColor: NSColor.secondaryLabelColor
+                ]
+            )
+        ])
     }
 }

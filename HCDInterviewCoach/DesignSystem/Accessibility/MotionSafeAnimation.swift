@@ -69,9 +69,19 @@ struct MotionSafeTransitionModifier: ViewModifier {
 
 // MARK: - Common Motion-Safe Animations
 
+/// Provides motion-safe animation helpers that respect the Reduce Motion preference.
+/// NOTE: @Environment only works in Views/ViewModifiers, so this struct receives
+/// the reduceMotion value as a parameter.
 struct MotionSafeAnimations {
 
-    @Environment(\.accessibilityReduceMotion) var reduceMotion
+    /// Whether the user has requested reduced motion
+    let reduceMotion: Bool
+
+    /// Creates a MotionSafeAnimations instance
+    /// - Parameter reduceMotion: The current state of accessibilityReduceMotion
+    init(reduceMotion: Bool) {
+        self.reduceMotion = reduceMotion
+    }
 
     /// Gentle spring animation or instant when motion reduced
     var gentleSpring: Animation? {
@@ -91,6 +101,40 @@ struct MotionSafeAnimations {
     /// Quick fade or instant when motion reduced
     var quickFade: Animation? {
         reduceMotion ? nil : .easeIn(duration: 0.1)
+    }
+}
+
+// MARK: - Motion-Safe Animation View Extension
+
+extension View {
+    /// Creates a MotionSafeAnimations helper bound to the current environment's reduce motion setting.
+    /// Usage: Use within a View body with the @Environment property.
+    ///
+    /// Example:
+    /// ```swift
+    /// struct MyView: View {
+    ///     @Environment(\.accessibilityReduceMotion) var reduceMotion
+    ///
+    ///     var body: some View {
+    ///         let animations = MotionSafeAnimations(reduceMotion: reduceMotion)
+    ///         // Use animations.gentleSpring, etc.
+    ///     }
+    /// }
+    /// ```
+    func withMotionSafeAnimations<Content: View>(
+        @ViewBuilder content: @escaping (MotionSafeAnimations) -> Content
+    ) -> some View {
+        MotionSafeAnimationsContainer(content: content)
+    }
+}
+
+/// A container view that provides MotionSafeAnimations to its content
+private struct MotionSafeAnimationsContainer<Content: View>: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    let content: (MotionSafeAnimations) -> Content
+
+    var body: some View {
+        content(MotionSafeAnimations(reduceMotion: reduceMotion))
     }
 }
 

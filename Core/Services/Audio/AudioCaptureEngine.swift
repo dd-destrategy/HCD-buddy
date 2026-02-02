@@ -36,7 +36,7 @@ class AudioCaptureEngine {
     private var streamContinuation: AsyncStream<AudioChunk>.Continuation?
 
     /// Audio stream for captured chunks
-    private(set) var audioStream: AsyncStream<AudioChunk>!
+    private(set) var audioStream: AsyncStream<AudioChunk>
 
     /// Session start time for timestamps
     private var sessionStartTime: TimeInterval = 0
@@ -283,8 +283,11 @@ class AudioCaptureEngine {
     /// Convert PCM buffer to Data
     private func bufferToData(_ buffer: AVAudioPCMBuffer) -> Data {
         let audioBuffer = buffer.audioBufferList.pointee.mBuffers
+        guard let mData = audioBuffer.mData else {
+            return Data()
+        }
         let data = Data(
-            bytes: audioBuffer.mData!,
+            bytes: mData,
             count: Int(audioBuffer.mDataByteSize)
         )
         return data

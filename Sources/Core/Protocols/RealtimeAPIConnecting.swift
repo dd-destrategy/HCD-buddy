@@ -103,12 +103,8 @@ struct TranscriptionEvent: Equatable {
     }
 }
 
-/// Represents a speaker in the conversation
-enum Speaker: String, Codable, Equatable {
-    case interviewer
-    case participant
-    case unknown
-}
+// Note: Speaker is defined in HCDInterviewCoach/Core/Models/Speaker.swift
+// This file uses that canonical definition which includes displayName and icon properties
 
 // MARK: - Function Call Event
 
@@ -168,17 +164,8 @@ struct SessionConfig {
     }
 }
 
-/// Session mode determining what features are active
-enum SessionMode: String, Codable {
-    /// Full features: transcription + coaching + insights
-    case full
-
-    /// Transcription only, no AI coaching
-    case transcriptionOnly
-
-    /// Observer mode, no recording
-    case observerOnly
-}
+// Note: SessionMode is defined in HCDInterviewCoach/Core/Models/SessionMode.swift
+// This file uses that canonical definition which includes displayName, description, and feature flags
 
 /// Optional metadata about the session
 struct SessionMetadata {
@@ -205,37 +192,8 @@ struct SessionMetadata {
 
 // MARK: - Audio Types
 
-/// Represents a chunk of audio data for streaming
-struct AudioChunk {
-    /// PCM audio data (16-bit, 24kHz, mono)
-    let data: Data
-
-    /// Timestamp of this chunk in seconds
-    let timestamp: TimeInterval
-
-    /// Sample rate in Hz
-    let sampleRate: Int
-
-    /// Bits per sample
-    let bitsPerSample: Int
-
-    /// Number of channels (1 for mono)
-    let channels: Int
-
-    init(
-        data: Data,
-        timestamp: TimeInterval,
-        sampleRate: Int = 24000,
-        bitsPerSample: Int = 16,
-        channels: Int = 1
-    ) {
-        self.data = data
-        self.timestamp = timestamp
-        self.sampleRate = sampleRate
-        self.bitsPerSample = bitsPerSample
-        self.channels = channels
-    }
-}
+// Note: AudioChunk is defined in Core/Protocols/AudioCapturing.swift
+// This file uses that canonical definition which includes data, timestamp, sampleRate, and channels
 
 // MARK: - Errors
 

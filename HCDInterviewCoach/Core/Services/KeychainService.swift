@@ -9,6 +9,15 @@ final class KeychainService: KeychainServiceProtocol {
 
     private init() {}
 
+    /// Redact key name for secure logging - shows only first 3 characters
+    /// This prevents sensitive key identifiers from appearing in logs
+    private func redactedKey(_ key: String) -> String {
+        guard key.count > 3 else {
+            return String(repeating: "*", count: key.count)
+        }
+        return String(key.prefix(3)) + "***"
+    }
+
     // MARK: - KeychainServiceProtocol
 
     func save(key: String, value: String) throws {
@@ -34,7 +43,7 @@ final class KeychainService: KeychainServiceProtocol {
             throw HCDError.keychain(.saveFailed(status))
         }
 
-        AppLogger.shared.debug("Successfully saved to keychain: \(key)")
+        AppLogger.shared.debug("Successfully saved to keychain: \(redactedKey(key))")
     }
 
     func retrieve(key: String) throws -> String? {
@@ -63,7 +72,7 @@ final class KeychainService: KeychainServiceProtocol {
             throw HCDError.keychain(.decodingFailed)
         }
 
-        AppLogger.shared.debug("Successfully retrieved from keychain: \(key)")
+        AppLogger.shared.debug("Successfully retrieved from keychain: \(redactedKey(key))")
         return string
     }
 
@@ -81,7 +90,7 @@ final class KeychainService: KeychainServiceProtocol {
             throw HCDError.keychain(.deleteFailed(status))
         }
 
-        AppLogger.shared.debug("Successfully deleted from keychain: \(key)")
+        AppLogger.shared.debug("Successfully deleted from keychain: \(redactedKey(key))")
     }
 
     // MARK: - Convenience Methods

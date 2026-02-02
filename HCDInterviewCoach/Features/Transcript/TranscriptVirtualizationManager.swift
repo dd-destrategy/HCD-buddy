@@ -362,7 +362,7 @@ final class TranscriptVirtualizationManager: ObservableObject {
             }
         } catch {
             // Log error but don't crash
-            print("Failed to fetch utterance: \(error)")
+            AppLogger.shared.logData("Failed to fetch utterance: \(error)", level: .error)
         }
 
         return nil
@@ -428,7 +428,7 @@ final class TranscriptVirtualizationManager: ObservableObject {
             allUtteranceIds = utterances.map { $0.id }
             totalUtteranceCount = allUtteranceIds.count
         } catch {
-            print("Failed to refresh utterance index: \(error)")
+            AppLogger.shared.logData("Failed to refresh utterance index: \(error)", level: .error)
         }
     }
 

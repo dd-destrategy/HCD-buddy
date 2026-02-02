@@ -78,13 +78,23 @@ extension View {
             }
     }
 
-    /// Marks a view as a keyboard trap boundary
-    /// Focus cannot escape this boundary without explicit action
+    /// Creates a keyboard focus container that manages Tab navigation within its boundary.
+    /// WCAG 2.1.2 Compliant: Provides Escape key as exit mechanism to prevent keyboard traps.
+    /// - Parameter onEscape: Optional closure called when Escape is pressed to exit the container
+    func keyboardFocusContainer(onEscape: (() -> Void)? = nil) -> some View {
+        self
+            .onKeyPress(.tab) { _ in .handled }
+            .onKeyPress(.escape) { _ in
+                onEscape?()
+                return .handled
+            }
+    }
+
+    /// DEPRECATED: Use keyboardFocusContainer(onEscape:) instead.
+    /// This method creates a keyboard trap which violates WCAG 2.1.2.
+    @available(*, deprecated, message: "Use keyboardFocusContainer(onEscape:) instead to provide an escape mechanism")
     func keyboardTrapBoundary() -> some View {
-        self.onKeyPress(.tab) { press in
-            // Prevent tab from leaving this boundary
-            return .handled
-        }
+        keyboardFocusContainer(onEscape: nil)
     }
 
     /// Makes a button activatable via keyboard

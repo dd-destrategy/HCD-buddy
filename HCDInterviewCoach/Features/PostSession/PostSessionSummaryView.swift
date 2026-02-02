@@ -499,6 +499,7 @@ private struct ExportSuccessBanner: View {
 // MARK: - Keyboard Navigation Helper
 
 /// Helper for keyboard navigation accessibility
+@MainActor
 final class KeyboardNavigationHelper: ObservableObject {
     @Published var shouldShowEnhancedFocus: Bool = false
 

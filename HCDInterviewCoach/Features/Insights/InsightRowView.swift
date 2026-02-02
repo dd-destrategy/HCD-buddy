@@ -263,10 +263,19 @@ struct CompactInsightRowView: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            // Source indicator dot
-            Circle()
-                .fill(insight.isUserAdded ? Color.hcdPrimary : Color.hcdInsight)
-                .frame(width: 8, height: 8)
+            // Source indicator with shape differentiation for WCAG 1.4.1 compliance
+            // User-added: filled circle, AI-generated: stroked circle
+            Group {
+                if insight.isUserAdded {
+                    Circle()
+                        .fill(Color.hcdPrimary)
+                } else {
+                    Circle()
+                        .strokeBorder(Color.hcdInsight, lineWidth: 2)
+                }
+            }
+            .frame(width: 8, height: 8)
+            .accessibilityHidden(true)
 
             // Theme
             Text(insight.theme)

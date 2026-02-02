@@ -15,6 +15,7 @@ struct SessionSetupView: View {
                     Text("Start New Session")
                         .font(.largeTitle)
                         .fontWeight(.bold)
+                        .accessibilityAddTraits(.isHeader)
 
                     Text("Select a template and configure your session")
                         .font(.body)
@@ -23,6 +24,8 @@ struct SessionSetupView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(16)
                 .background(Color(.controlBackgroundColor))
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Start New Session. Select a template and configure your session.")
 
                 // Scrollable content
                 ScrollView {
@@ -32,14 +35,21 @@ struct SessionSetupView: View {
                             selectedTemplate: $selectedTemplate,
                             templateManager: templateManager
                         )
+                        .accessibilityElement(children: .contain)
+                        .accessibilityLabel("Template selection")
+                        .accessibilityHint("Choose an interview template to use for this session")
 
                         // Session mode selector
                         if selectedTemplate != nil {
                             VStack(alignment: .leading, spacing: 12) {
                                 Text("Interview Configuration")
                                     .font(.headline)
+                                    .accessibilityAddTraits(.isHeader)
 
                                 SessionModeSelector(selectedMode: $selectedMode)
+                                    .accessibilityElement(children: .contain)
+                                    .accessibilityLabel("Session mode selection")
+                                    .accessibilityHint("Choose the recording mode for this interview session")
 
                                 // Template topics display
                                 if let template = selectedTemplate {
@@ -105,6 +115,8 @@ struct SessionSetupView: View {
                                 Text("Back")
                             }
                             .buttonStyle(.bordered)
+                            .accessibilityLabel("Back")
+                            .accessibilityHint("Return to template selection")
 
                             Button(action: startSession) {
                                 HStack {
@@ -113,6 +125,8 @@ struct SessionSetupView: View {
                                 }
                             }
                             .buttonStyle(.borderedProminent)
+                            .accessibilityLabel("Start Session")
+                            .accessibilityHint("Begin the interview session with the selected template and mode")
                         }
                         .padding(16)
                     } else {
@@ -126,12 +140,15 @@ struct SessionSetupView: View {
             .navigationTitle("Session Setup")
             .navigationBarTitleDisplayMode(.inline)
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Session Setup")
     }
 
     private func startSession() {
-        // TODO: Navigate to active session view with selected template and mode
-        print("Starting session with template: \(selectedTemplate?.name ?? "Unknown")")
-        print("Session mode: \(selectedMode.displayName)")
+        // ISSUE-124: Session navigation integration pending
+        // This will connect to the SessionCoordinator to start the active session view
+        AppLogger.shared.info("Starting session with template: \(selectedTemplate?.name ?? "Unknown")")
+        AppLogger.shared.info("Session mode: \(selectedMode.displayName)")
     }
 }
 

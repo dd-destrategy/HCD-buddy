@@ -628,7 +628,9 @@ final class ExportService {
     // MARK: - Helpers
 
     private func getExportDirectory() throws -> URL {
-        let documentsPath = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+        guard let documentsPath = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            throw NSError(domain: "ExportService", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not access documents directory"])
+        }
         let exportPath = documentsPath.appendingPathComponent("HCD Interview Coach/Exports", isDirectory: true)
 
         if !fileManager.fileExists(atPath: exportPath.path) {

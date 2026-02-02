@@ -1,41 +1,34 @@
 import Foundation
 import SwiftData
 
+// MARK: - Service Container Protocol
+
+/// Protocol abstraction for ServiceContainer to enable testability
+protocol ServiceContaining: AnyObject {
+    var templateManager: TemplateManager { get }
+    var dataManager: DataManager { get }
+}
+
+// MARK: - Service Container
+
 /// Container for all application services and managers
-class ServiceContainer: ObservableObject {
+/// Uses the singleton DataManager.shared for data persistence
+@MainActor
+class ServiceContainer: ObservableObject, ServiceContaining {
     @Published var templateManager: TemplateManager
 
+    /// Data manager singleton for SwiftData persistence
+    /// Defined in HCDInterviewCoach/Core/Services/DataManager.swift
     let dataManager: DataManager
 
-    init() {
-        // Initialize data manager
-        self.dataManager = DataManager()
+    init(dataManager: DataManager = .shared) {
+        // Use singleton DataManager for persistence
+        self.dataManager = dataManager
 
         // Initialize template manager
         self.templateManager = TemplateManager()
     }
 }
 
-/// Manages SwiftData container and persistence
-class DataManager {
-    let container: ModelContainer
-
-    init() {
-        do {
-            let config = ModelConfiguration(
-                isStoredInMemoryOnly: false,
-                allowsSave: true
-            )
-            self.container = try ModelContainer(
-                for: modelTypes,
-                configurations: config
-            )
-        } catch {
-            fatalError("Could not initialize DataManager: \(error)")
-        }
-    }
-
-    private var modelTypes: [any PersistentModel.Type] {
-        return []
-    }
-}
+// Note: DataManager is defined as a singleton in HCDInterviewCoach/Core/Services/DataManager.swift
+// Use DataManager.shared for all data persistence operations

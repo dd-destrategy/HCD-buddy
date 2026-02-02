@@ -154,7 +154,7 @@ final class AudioStreamingService {
                 handleStreamingError(streamingError)
             } else {
                 // Unknown error, log and continue
-                print("Audio streaming error: \(error.localizedDescription)")
+                AppLogger.shared.logAudio("Audio streaming error: \(error.localizedDescription)", level: .error)
             }
         }
     }
@@ -185,25 +185,25 @@ final class AudioStreamingService {
         switch error {
         case .backpressure:
             // Backpressure - slow down sending
-            print("Backpressure detected, buffer full")
+            AppLogger.shared.logAudio("Backpressure detected, buffer full", level: .warning)
 
         case .notConnected:
             // Connection lost - stop streaming
-            print("Connection lost during streaming")
+            AppLogger.shared.logAudio("Connection lost during streaming", level: .error)
             stopStreaming()
 
         case .streamClosed:
             // Stream closed - stop streaming
-            print("Stream closed")
+            AppLogger.shared.logAudio("Stream closed", level: .warning)
             stopStreaming()
 
         case .encodingFailed:
             // Encoding error - log and continue
-            print("Audio encoding failed")
+            AppLogger.shared.logAudio("Audio encoding failed", level: .error)
 
         case .invalidAudioFormat:
             // Invalid format - log
-            print("Invalid audio format")
+            AppLogger.shared.logAudio("Invalid audio format", level: .error)
         }
     }
 }

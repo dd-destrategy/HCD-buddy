@@ -165,8 +165,9 @@ struct AudioSettingsView: View {
     }
 
     private func runAudioSetup() {
-        // TODO: Trigger the Audio Setup Wizard
-        print("Running audio setup wizard...")
+        // ISSUE-123: Audio Setup Wizard integration pending
+        // This will be connected to the AudioSetupWizard component in a future update
+        AppLogger.shared.info("Audio setup wizard triggered - integration pending")
     }
 }
 

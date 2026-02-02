@@ -7,7 +7,7 @@
 //
 
 import SwiftUI
-import SwiftData
+// Note: SwiftData import removed - view accesses data only through ViewModel
 
 // MARK: - Transcript View
 
@@ -424,7 +424,7 @@ struct TranscriptView: View {
                 do {
                     try text.write(to: url, atomically: true, encoding: .utf8)
                 } catch {
-                    print("Failed to save transcript: \(error)")
+                    AppLogger.shared.logUI("Failed to save transcript: \(error)", level: .error)
                 }
             }
         }

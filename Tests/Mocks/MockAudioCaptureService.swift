@@ -35,19 +35,18 @@ final class MockAudioCaptureService: AudioCapturing {
         set { _audioLevels = newValue }
     }
 
-    private let (audioStreamContinuation, audioStream): (AsyncStream<AudioChunk>.Continuation, AsyncStream<AudioChunk>)
+    private var audioStreamContinuation: AsyncStream<AudioChunk>.Continuation!
+    private var _audioStream: AsyncStream<AudioChunk>!
 
     var audioStream: AsyncStream<AudioChunk> {
-        audioStreamValue
+        _audioStream
     }
-
-    private let audioStreamValue: AsyncStream<AudioChunk>
 
     // MARK: - Initialization
 
     init() {
         let (stream, continuation) = AsyncStream<AudioChunk>.makeStream()
-        self.audioStreamValue = stream
+        self._audioStream = stream
         self.audioStreamContinuation = continuation
     }
 

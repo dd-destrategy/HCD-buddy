@@ -30,6 +30,9 @@ final class DataManager {
                 configurations: [configuration]
             )
 
+            // Apply file protection to the database file for encryption at rest
+            Self.applyFileProtection(to: Self.customStoreURL)
+
             AppLogger.shared.info("DataManager initialized with custom store at: \(Self.customStoreURL.path)")
         } catch {
             fatalError("Failed to initialize ModelContainer: \(error)")
@@ -45,14 +48,39 @@ final class DataManager {
 
         let appDirectory = appSupport.appendingPathComponent("HCDInterviewCoach", isDirectory: true)
 
-        // Create directory if it doesn't exist
+        // Create directory if it doesn't exist with file protection
+        // NSFileProtectionComplete ensures data is encrypted and inaccessible when device is locked
         try? FileManager.default.createDirectory(
             at: appDirectory,
             withIntermediateDirectories: true,
-            attributes: nil
+            attributes: [.protectionKey: FileProtectionType.complete]
         )
 
         return appDirectory.appendingPathComponent("HCDInterviewCoach.sqlite")
+    }
+
+    /// Apply file protection to ensure database encryption at rest
+    /// NSFileProtectionComplete encrypts data and makes it inaccessible when device is locked
+    private static func applyFileProtection(to url: URL) {
+        do {
+            try FileManager.default.setAttributes(
+                [.protectionKey: FileProtectionType.complete],
+                ofItemAtPath: url.path
+            )
+            // Also protect related SQLite files (-shm, -wal)
+            let shmURL = url.appendingPathExtension("sqlite-shm")
+            let walURL = url.appendingPathExtension("sqlite-wal")
+            try? FileManager.default.setAttributes(
+                [.protectionKey: FileProtectionType.complete],
+                ofItemAtPath: shmURL.path
+            )
+            try? FileManager.default.setAttributes(
+                [.protectionKey: FileProtectionType.complete],
+                ofItemAtPath: walURL.path
+            )
+        } catch {
+            AppLogger.shared.warning("Could not apply file protection to database: \(error.localizedDescription)")
+        }
     }
 
     /// Get the main context

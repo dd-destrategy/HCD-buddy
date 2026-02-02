@@ -2,6 +2,7 @@ import Foundation
 import SwiftData
 
 /// Manages interview templates including built-in and custom templates
+@MainActor
 class TemplateManager: ObservableObject {
     @Published var templates: [InterviewTemplate] = []
 

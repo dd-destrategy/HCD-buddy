@@ -14,9 +14,9 @@
     <key>com.apple.security.files.user-selected.read-write</key>
     <true/>
 
-    <!-- Hardened Runtime - required for notarization -->
+    <!-- App Sandbox - enabled for security isolation -->
     <key>com.apple.security.app-sandbox</key>
-    <false/>
+    <true/>
 
     <!-- Allow DYLD environment variables (development only) -->
     <!-- Remove this for production builds -->
