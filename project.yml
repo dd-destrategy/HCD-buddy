@@ -1,0 +1,66 @@
+name: HCDInterviewCoach
+options:
+  bundleIdPrefix: com.hcdbuddy
+  deploymentTarget:
+    macOS: "14.0"
+  xcodeVersion: "15.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    CODE_SIGN_STYLE: Automatic
+
+packages:
+  OpenAI:
+    url: https://github.com/MacPaw/OpenAI
+    from: 0.3.0
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: 2.6.0
+
+targets:
+  HCDInterviewCoach:
+    type: application
+    platform: macOS
+    sources:
+      - path: HCDInterviewCoach
+      - path: Sources/Core
+      - path: Sources/Features
+      - path: Core
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.hcdbuddy.HCDInterviewCoach
+        INFOPLIST_FILE: HCDInterviewCoach/Info.plist
+        CODE_SIGN_ENTITLEMENTS: config/HCDInterviewCoach.entitlements
+        PRODUCT_NAME: "HCD Interview Coach"
+    dependencies:
+      - package: OpenAI
+      - package: Sparkle
+
+  HCDInterviewCoachTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - Tests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.hcdbuddy.HCDInterviewCoachTests
+    dependencies:
+      - target: HCDInterviewCoach
+
+schemes:
+  HCDInterviewCoach:
+    build:
+      targets:
+        HCDInterviewCoach: all
+        HCDInterviewCoachTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - HCDInterviewCoachTests
+    archive:
+      config: Release

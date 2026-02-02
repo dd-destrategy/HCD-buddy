@@ -177,7 +177,7 @@ final class PostSessionViewModel: ObservableObject {
 
     // MARK: - Private Properties
 
-    private let exportService: ExportService
+    private let exportService: PostSessionExportService
     private let aiReflectionService: AIReflectionService
     private let dataManager: DataManager
     private var cancellables = Set<AnyCancellable>()
@@ -186,7 +186,7 @@ final class PostSessionViewModel: ObservableObject {
 
     init(
         session: Session,
-        exportService: ExportService = ExportService(),
+        exportService: PostSessionExportService = PostSessionExportService(),
         aiReflectionService: AIReflectionService = AIReflectionService(),
         dataManager: DataManager = .shared
     ) {
@@ -472,10 +472,10 @@ final class AIReflectionService {
 
 }
 
-// MARK: - Export Service
+// MARK: - Post Session Export Service
 
-/// Service for exporting session data to various formats
-final class ExportService {
+/// Service for exporting session data to various formats (post-session specific)
+final class PostSessionExportService {
 
     private let fileManager = FileManager.default
 

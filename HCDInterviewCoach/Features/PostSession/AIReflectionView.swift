@@ -347,7 +347,7 @@ struct ReflectionCard: View {
 
     let viewModel = PostSessionViewModel(session: session)
 
-    return VStack(spacing: 20) {
+    VStack(spacing: 20) {
         AIReflectionView(viewModel: viewModel)
 
         Divider()
