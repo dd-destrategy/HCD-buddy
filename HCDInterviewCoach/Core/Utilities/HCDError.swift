@@ -29,8 +29,10 @@ enum HCDError: Error {
         case fetchFailed(Error)
         case saveFailed(Error)
         case deleteFailed(Error)
+        case secureDeleteFailed(Error)
         case notFound
         case invalidData
+        case dataProtectionNotEnabled
     }
 
     // MARK: - Audio Errors
@@ -145,10 +147,14 @@ extension HCDError.DatabaseError: LocalizedError {
             return "Failed to save to database: \(error.localizedDescription)"
         case .deleteFailed(let error):
             return "Failed to delete from database: \(error.localizedDescription)"
+        case .secureDeleteFailed(let error):
+            return "Failed to securely delete data: \(error.localizedDescription)"
         case .notFound:
             return "Item not found in database"
         case .invalidData:
             return "Invalid data in database"
+        case .dataProtectionNotEnabled:
+            return "Data protection is not enabled on the database file"
         }
     }
 }

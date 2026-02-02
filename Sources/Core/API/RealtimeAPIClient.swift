@@ -275,6 +275,9 @@ final class ConnectionManager {
     private let maxReconnectionAttempts = 5
     private var pingTimer: Timer?
 
+    /// Certificate pinning delegate for secure connections
+    private let certificatePinningDelegate: WebSocketCertificatePinningDelegate
+
     // Publishers
     let connectionStatePublisher = PassthroughSubject<ConnectionState, Never>()
 
@@ -286,6 +289,12 @@ final class ConnectionManager {
         }
     }()
 
+    // MARK: - Initialization
+
+    init() {
+        self.certificatePinningDelegate = WebSocketCertificatePinningDelegate()
+    }
+
     // MARK: - Connection
 
     func connect(apiKey: String, sessionConfig: [String: Any]) async throws {
@@ -294,10 +303,14 @@ final class ConnectionManager {
             throw ConnectionError.invalidConfiguration
         }
 
-        // Create URL session
+        // Create URL session with certificate pinning delegate
         let configuration = URLSessionConfiguration.default
         configuration.timeoutIntervalForRequest = 30
-        session = URLSession(configuration: configuration)
+        session = URLSession(
+            configuration: configuration,
+            delegate: certificatePinningDelegate,
+            delegateQueue: nil
+        )
 
         // Create WebSocket request
         var request = URLRequest(url: url)
