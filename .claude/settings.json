@@ -1,0 +1,60 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xcodebuild *)",
+      "Bash(swiftlint *)",
+      "Bash(swift *)",
+      "Bash(xcrun *)",
+      "Bash(brew *)",
+      "Bash(sw_vers *)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": {
+          "tool_name": "Write"
+        },
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/journal-action.sh"
+          }
+        ]
+      },
+      {
+        "matcher": {
+          "tool_name": "Edit"
+        },
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/journal-action.sh"
+          }
+        ]
+      },
+      {
+        "matcher": {
+          "tool_name": "Bash"
+        },
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/journal-action.sh"
+          }
+        ]
+      },
+      {
+        "matcher": {
+          "tool_name": "Task"
+        },
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/journal-action.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

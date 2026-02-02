@@ -188,6 +188,17 @@ GitHub Actions workflows in `.github/workflows/`:
 - `CODEBASE_REVIEW.md` — Architecture analysis
 - `APPROVED_DECISIONS.md` — Key product decisions
 - `PRODUCT_BACKLOG.md` — Feature backlog with epics
+- `DEV_JOURNAL.md` — Auto-generated development activity log
+
+## Development Journal
+
+A hook at `.claude/hooks/journal-action.sh` automatically tracks key development actions:
+- File modifications (Write/Edit)
+- Build commands (xcodebuild, swift, swiftlint)
+- Git commits and pushes
+- Agent tasks
+
+Check `DEV_JOURNAL.md` for recent activity and context.
 
 ## Branch
 
