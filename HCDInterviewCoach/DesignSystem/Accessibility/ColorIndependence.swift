@@ -54,7 +54,7 @@ extension TopicAwarenessStatus {
 
 /// Displays topic status with both color AND icon/text
 /// Ensures accessibility for color blind users
-struct TopicStatusIndicator: View {
+struct AccessibleTopicStatusView: View {
 
     let status: TopicAwarenessStatus
     let showLabel: Bool

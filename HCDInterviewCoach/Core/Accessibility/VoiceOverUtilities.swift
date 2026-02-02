@@ -8,6 +8,78 @@
 
 import SwiftUI
 
+// MARK: - Accessibility Extensions for Core Types
+
+extension TopicAwareness {
+    var accessibilityDescription: String {
+        switch self {
+        case .notCovered:
+            return "Not yet discussed"
+        case .partialCoverage:
+            return "Briefly mentioned"
+        case .fullyCovered:
+            return "Discussed in depth"
+        case .skipped:
+            return "Skipped"
+        }
+    }
+}
+
+extension InsightSource {
+    var accessibilityDescription: String {
+        switch self {
+        case .aiGenerated:
+            return "Flagged by AI"
+        case .userAdded:
+            return "Manually flagged"
+        case .automated:
+            return "Automatically flagged"
+        }
+    }
+}
+
+extension SessionState {
+    var accessibilityDescription: String {
+        switch self {
+        case .idle:
+            return "idle"
+        case .configuring:
+            return "setting up"
+        case .ready:
+            return "ready to record"
+        case .running:
+            return "recording"
+        case .paused:
+            return "paused"
+        case .ending:
+            return "ending"
+        case .ended:
+            return "ended"
+        case .error:
+            return "error occurred"
+        case .failed:
+            return "failed"
+        }
+    }
+}
+
+extension ConnectionQuality {
+    var accessibilityDescription: String {
+        switch self {
+        case .excellent:
+            return "Excellent quality"
+        case .good:
+            return "Good quality"
+        case .fair:
+            return "Fair quality"
+        case .poor:
+            return "Poor quality"
+        case .disconnected:
+            return "Disconnected"
+        }
+    }
+}
+
 // MARK: - VoiceOver Extensions
 
 extension View {
@@ -32,7 +104,7 @@ extension View {
     /// Announces both the topic name and its coverage status
     func accessibilityTopicStatus(
         name: String,
-        status: TopicAwarenessStatus
+        status: TopicAwareness
     ) -> some View {
         self
             .accessibilityElement(children: .combine)
@@ -173,95 +245,4 @@ enum AccessibilityLiveRegionPriority {
         }
     }
     #endif
-}
-
-// MARK: - Supporting Types (Mock definitions - would come from actual models)
-
-enum TopicAwarenessStatus {
-    case untouched
-    case touched
-    case explored
-
-    var accessibilityDescription: String {
-        switch self {
-        case .untouched:
-            return "Not yet discussed"
-        case .touched:
-            return "Briefly mentioned"
-        case .explored:
-            return "Discussed in depth"
-        }
-    }
-}
-
-enum InsightSource {
-    case ai
-    case manual
-
-    var accessibilityDescription: String {
-        switch self {
-        case .ai:
-            return "Flagged by AI"
-        case .manual:
-            return "Manually flagged"
-        }
-    }
-}
-
-enum SessionState {
-    case idle
-    case setup
-    case connecting
-    case ready
-    case streaming
-    case paused
-    case reconnecting
-    case ending
-    case ended
-    case failed
-
-    var accessibilityDescription: String {
-        switch self {
-        case .idle:
-            return "idle"
-        case .setup:
-            return "setting up"
-        case .connecting:
-            return "connecting"
-        case .ready:
-            return "ready to record"
-        case .streaming:
-            return "recording"
-        case .paused:
-            return "paused"
-        case .reconnecting:
-            return "reconnecting"
-        case .ending:
-            return "ending"
-        case .ended:
-            return "ended"
-        case .failed:
-            return "failed"
-        }
-    }
-}
-
-enum ConnectionQuality {
-    case excellent
-    case good
-    case fair
-    case poor
-
-    var accessibilityDescription: String {
-        switch self {
-        case .excellent:
-            return "Excellent quality"
-        case .good:
-            return "Good quality"
-        case .fair:
-            return "Fair quality"
-        case .poor:
-            return "Poor quality"
-        }
-    }
 }

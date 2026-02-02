@@ -493,59 +493,8 @@ private struct ExportSuccessBanner: View {
     }
 }
 
-// MARK: - Keyboard Navigation Helper
-
-/// Helper for keyboard navigation accessibility
-@MainActor
-final class KeyboardNavigationHelper: ObservableObject {
-    @Published var shouldShowEnhancedFocus: Bool = false
-
-    init() {
-        // Monitor keyboard usage
-        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            self?.shouldShowEnhancedFocus = true
-            return event
-        }
-
-        NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { [weak self] event in
-            self?.shouldShowEnhancedFocus = false
-            return event
-        }
-    }
-}
-
-// MARK: - Topic Awareness Accessibility Extension
-
-extension TopicAwarenessStatus {
-    var accessibilityDescription: String {
-        switch self {
-        case .untouched:
-            return "Topic not discussed"
-        case .touched:
-            return "Topic briefly mentioned"
-        case .explored:
-            return "Topic fully explored"
-        }
-    }
-}
-
-// MARK: - Accessibility Audio Level Extension
-
-extension View {
-    func accessibilityAudioLevel(source: String, level: Double) -> some View {
-        let percentage = Int(level * 100)
-        return self.accessibilityLabel("\(source) audio level: \(percentage) percent")
-    }
-}
-
-// MARK: - Topic Awareness Status
-
-/// Status enum for topic awareness visualization
-enum TopicAwarenessStatus {
-    case untouched
-    case touched
-    case explored
-}
+// Note: KeyboardNavigationHelper is defined in Core/Accessibility/KeyboardNavigationModifiers.swift
+// Note: accessibilityAudioLevel is defined in DesignSystem/Accessibility/ColorIndependence.swift
 
 // MARK: - Preview
 
@@ -579,7 +528,7 @@ enum TopicAwarenessStatus {
         TopicStatus(topicId: "5", topicName: "Integration Needs", status: .notCovered)
     ]
 
-    return PostSessionSummaryView(
+    PostSessionSummaryView(
         session: session,
         onExport: { format in print("Exported as \(format.displayName)") },
         onDismiss: { print("Dismissed") }

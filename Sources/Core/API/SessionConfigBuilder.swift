@@ -330,10 +330,10 @@ struct FlagInsightCall: Equatable {
 /// Parsed update_topic function call
 struct UpdateTopicCall: Equatable {
     let topicId: String
-    let status: TopicAwareness
+    let status: APITopicStatus
     let timestamp: TimeInterval
 
-    init(topicId: String, status: TopicAwareness, timestamp: TimeInterval) {
+    init(topicId: String, status: APITopicStatus, timestamp: TimeInterval) {
         self.topicId = topicId
         self.status = status
         self.timestamp = timestamp
@@ -343,7 +343,7 @@ struct UpdateTopicCall: Equatable {
         guard event.name == "update_topic",
               let topicId = event.arguments["topic_id"],
               let statusString = event.arguments["status"],
-              let status = TopicAwareness(rawValue: statusString) else {
+              let status = APITopicStatus(rawValue: statusString) else {
             return nil
         }
 
@@ -355,8 +355,8 @@ struct UpdateTopicCall: Equatable {
     }
 }
 
-/// Topic awareness status (from PRD)
-enum TopicAwareness: String, Codable {
+/// API topic awareness status (from PRD) - used for OpenAI function calls
+enum APITopicStatus: String, Codable {
     case untouched
     case touched
     case explored

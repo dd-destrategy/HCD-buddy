@@ -608,19 +608,4 @@ private class MockRealtimeAPIClient: RealtimeAPIConnecting {
     func disconnect() async {}
     func send(audioData: Data) async throws {}
 }
-
-protocol AudioCapturing {
-    var isCapturing: Bool { get }
-    func startCapture() throws
-    func stopCapture()
-    func pauseCapture()
-    func resumeCapture()
-}
-
-protocol RealtimeAPIConnecting {
-    var isConnected: Bool { get }
-    func connect(apiKey: String) async throws
-    func disconnect() async
-    func send(audioData: Data) async throws
-}
 #endif

@@ -113,7 +113,7 @@ actor SessionRecoveryService {
     /// - Returns: Result of the recovery attempt
     func executeRecovery(
         strategy: RecoveryStrategy,
-        executor: @escaping (RecoveryAction) async throws -> Void
+        executor: @escaping (SessionRecoveryAction) async throws -> Void
     ) async -> RecoveryResult {
         guard !isRecovering else {
             return .alreadyRecovering
@@ -249,7 +249,7 @@ actor SessionRecoveryService {
 /// Defines what recovery action to take
 enum RecoveryStrategy: Sendable {
     /// Retry the failed operation after a delay
-    case retry(after: TimeInterval, action: RecoveryAction)
+    case retry(after: TimeInterval, action: SessionRecoveryAction)
 
     /// Switch to a degraded mode of operation
     case degrade(to: DegradedMode)
@@ -264,7 +264,7 @@ enum RecoveryStrategy: Sendable {
 // MARK: - Recovery Action
 
 /// Specific actions that can be taken during recovery
-enum RecoveryAction: Sendable {
+enum SessionRecoveryAction: Sendable {
     /// Reconnect to the API
     case reconnect
 
@@ -397,7 +397,7 @@ enum RecoveryCondition: Sendable {
 /// Record of a recovery attempt for history/debugging
 struct RecoveryAttempt: Sendable {
     let attemptNumber: Int
-    let action: RecoveryAction
+    let action: SessionRecoveryAction
     let timestamp: Date
     var result: RecoveryResult?
     var duration: TimeInterval?

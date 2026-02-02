@@ -462,7 +462,7 @@ struct RadialTopicChart: View {
         TopicStatus(topicId: "7", topicName: "Budget Constraints", status: .skipped, notes: "User declined to discuss")
     ]
 
-    return ScrollView {
+    ScrollView {
         VStack(spacing: 20) {
             TopicCoverageChart(topicStatuses: topics)
 

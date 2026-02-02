@@ -567,7 +567,7 @@ struct InsightRow: View {
 #Preview("Researcher Notes Editor") {
     @Previewable @State var notes = ""
 
-    return VStack(spacing: 20) {
+    VStack(spacing: 20) {
         ResearcherNotesEditor(notes: $notes)
 
         Divider()

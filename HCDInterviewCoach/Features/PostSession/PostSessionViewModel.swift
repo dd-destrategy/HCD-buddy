@@ -10,43 +10,6 @@ import Foundation
 import Combine
 import SwiftUI
 
-// MARK: - Export Format
-
-/// Supported export formats for session data
-enum ExportFormat: String, CaseIterable, Identifiable {
-    case markdown = "markdown"
-    case json = "json"
-
-    var id: String { rawValue }
-
-    var displayName: String {
-        switch self {
-        case .markdown:
-            return "Markdown"
-        case .json:
-            return "JSON"
-        }
-    }
-
-    var fileExtension: String {
-        switch self {
-        case .markdown:
-            return "md"
-        case .json:
-            return "json"
-        }
-    }
-
-    var icon: String {
-        switch self {
-        case .markdown:
-            return "doc.text"
-        case .json:
-            return "curlybraces"
-        }
-    }
-}
-
 // MARK: - AI Reflection State
 
 /// State of the AI reflection generation process

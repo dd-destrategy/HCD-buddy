@@ -75,9 +75,9 @@ private struct ModeOptionView: View {
 // MARK: - Preview
 
 #Preview {
-    @State var selectedMode: SessionMode = .full
+    @Previewable @State var selectedMode: SessionMode = .full
 
-    return VStack(spacing: 20) {
+    VStack(spacing: 20) {
         SessionModeSelector(selectedMode: $selectedMode)
         Text("Selected: \(selectedMode.displayName)")
             .font(.caption)
