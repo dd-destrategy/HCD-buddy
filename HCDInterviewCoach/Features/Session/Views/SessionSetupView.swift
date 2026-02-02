@@ -3,6 +3,7 @@ import SwiftUI
 /// Main session setup view integrating template selection, mode selection, and consent disclosure
 struct SessionSetupView: View {
     @ObservedObject var templateManager: TemplateManager
+    let onStartSession: (InterviewTemplate, SessionMode) -> Void
 
     @State private var selectedTemplate: InterviewTemplate?
     @State private var selectedMode: SessionMode = .full
@@ -144,16 +145,27 @@ struct SessionSetupView: View {
     }
 
     private func startSession() {
-        // ISSUE-124: Session navigation integration pending
-        // This will connect to the SessionCoordinator to start the active session view
-        AppLogger.shared.info("Starting session with template: \(selectedTemplate?.name ?? "Unknown")")
+        guard let template = selectedTemplate else {
+            AppLogger.shared.warning("Attempted to start session without template selected")
+            return
+        }
+        
+        AppLogger.shared.info("Starting session with template: \(template.name)")
         AppLogger.shared.info("Session mode: \(selectedMode.displayName)")
+        
+        // Call the navigation callback
+        onStartSession(template, selectedMode)
     }
 }
 
 // MARK: - Preview
 
 #Preview {
-    SessionSetupView(templateManager: TemplateManager())
-        .frame(minWidth: 600, minHeight: 800)
+    SessionSetupView(
+        templateManager: TemplateManager(),
+        onStartSession: { template, mode in
+            print("Starting session: \(template.name) in \(mode.displayName) mode")
+        }
+    )
+    .frame(minWidth: 600, minHeight: 800)
 }

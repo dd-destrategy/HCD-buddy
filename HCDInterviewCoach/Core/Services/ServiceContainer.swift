@@ -25,8 +25,9 @@ class ServiceContainer: ObservableObject, ServiceContaining {
         // Use singleton DataManager for persistence
         self.dataManager = dataManager
 
-        // Initialize template manager
-        self.templateManager = TemplateManager()
+        // Initialize template manager with modelContext from dataManager
+        let modelContext = ModelContext(dataManager.container)
+        self.templateManager = TemplateManager(modelContext: modelContext)
     }
 }
 

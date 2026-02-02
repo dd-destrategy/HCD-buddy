@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sw_vers:*)",
+      "Bash(swiftlint version:*)",
+      "Bash(swift:*)",
+      "Bash(python3:*)",
+      "Bash(find:*)",
+      "Bash(xargs -I {} bash -c 'echo \"\"=== {} ===\"\" && find {} -name \"\"*.swift\"\" | wc -l')",
+      "Bash(xcodebuild -list)",
+      "Bash(grep:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd development journal hook for action tracking\n\n- Create journal-action.sh hook to track key dev actions\n- Configure PostToolUse hooks for Write, Edit, Bash, Task tools\n- Add DEV_JOURNAL.md for auto-generated activity log\n- Update CLAUDE.md to document the journal system\n\nThis enables Claude Code Cloud to track development context.\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(brew install:*)",
+      "Bash(xcodegen generate)",
+      "Bash(xcodebuild -scheme HCDInterviewCoach -configuration Debug build -quiet)",
+      "Bash(xcodebuild -resolvePackageDependencies -scheme HCDInterviewCoach)",
+      "Bash(xcodebuild:*)",
+      "Bash(git rm:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd XcodeGen project configuration for app build\n\n- Add project.yml for XcodeGen project generation\n- Add Info.plist with app configuration and privacy descriptions\n- Remove duplicate HCDInterviewCoachApp.swift entry point\n- Rename duplicate ExportService to PostSessionExportService\n- Fix return statement in AIReflectionView Preview\n- Update deployment target to macOS 14.0 for SwiftData\n\nNote: Build has duplicate type definitions to resolve in next pass.\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git commit:*)",
+      "Bash(git push)"
+    ]
+  }
+}
