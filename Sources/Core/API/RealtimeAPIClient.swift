@@ -241,9 +241,13 @@ final class RealtimeAPIClient: RealtimeAPIConnecting {
     }
 
     deinit {
-        Task {
-            await disconnect()
-        }
+        // Perform synchronous cleanup only - async tasks may not complete during deallocation
+        // Callers should call disconnect() explicitly before releasing the client
+        isConnected = false
+        audioStreamTask?.cancel()
+        transcriptionContinuation?.finish()
+        functionCallContinuation?.finish()
+        cancellables.removeAll()
     }
 }
 

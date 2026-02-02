@@ -53,6 +53,12 @@ class AudioCaptureEngine {
     /// Buffer size for audio capture (in frames)
     private let bufferSize: AVAudioFrameCount = 4096
 
+    /// Cached audio converter for format conversion (performance optimization)
+    private var cachedConverter: AVAudioConverter?
+
+    /// Last input format used with cached converter
+    private var lastInputFormat: AVAudioFormat?
+
     // MARK: - Initialization
 
     init() {
@@ -230,11 +236,17 @@ class AudioCaptureEngine {
     }
 
     /// Convert audio buffer to output format (24kHz, 16-bit mono PCM)
+    /// Uses cached AVAudioConverter for performance (avoids ~50 allocations/second)
     private func convertToOutputFormat(_ buffer: AVAudioPCMBuffer) -> AVAudioPCMBuffer? {
         let inputFormat = buffer.format
 
-        // Create converter
-        guard let converter = AVAudioConverter(from: inputFormat, to: outputFormat) else {
+        // Reuse cached converter if format hasn't changed (performance optimization)
+        if cachedConverter == nil || lastInputFormat != inputFormat {
+            cachedConverter = AVAudioConverter(from: inputFormat, to: outputFormat)
+            lastInputFormat = inputFormat
+        }
+
+        guard let converter = cachedConverter else {
             return nil
         }
 
