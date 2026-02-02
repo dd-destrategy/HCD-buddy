@@ -1,0 +1,124 @@
+# HCD Interview Coach — Git Ignore
+
+# =============================================================================
+# Environment & Secrets
+# =============================================================================
+.env
+.env.local
+.env.*.local
+*.pem
+*.p12
+*.key
+secrets/
+
+# =============================================================================
+# Xcode
+# =============================================================================
+
+# Build artifacts
+build/
+DerivedData/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+
+# Index data
+*.xcodeproj/project.xcworkspace/xcshareddata/
+Index/
+
+# Playgrounds
+timeline.xctimeline
+playground.xcworkspace
+
+# Archives
+*.xcarchive
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+Packages/
+
+# =============================================================================
+# macOS
+# =============================================================================
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Thumbnails
+Thumbs.db
+
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# =============================================================================
+# IDE & Editors
+# =============================================================================
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# JetBrains (AppCode)
+.idea/
+*.iml
+
+# Vim
+*.swp
+*.swo
+*~
+
+# =============================================================================
+# Testing & Coverage
+# =============================================================================
+*.xcresult
+coverage/
+*.gcda
+*.gcno
+lcov.info
+
+# =============================================================================
+# Build & Distribution
+# =============================================================================
+*.ipa
+*.dSYM.zip
+*.dSYM
+*.app
+*.dmg
+*.pkg
+
+# Carthage (if used)
+Carthage/Build/
+Carthage/Checkouts/
+
+# CocoaPods (if used)
+Pods/
+*.xcworkspace
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# =============================================================================
+# Logs & Temporary Files
+# =============================================================================
+*.log
+*.tmp
+*.temp
+logs/
+tmp/
+
+# =============================================================================
+# Documentation Build
+# =============================================================================
+docs/_build/
+.docusaurus/
