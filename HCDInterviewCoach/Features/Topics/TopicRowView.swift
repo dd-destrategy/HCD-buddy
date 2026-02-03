@@ -240,15 +240,7 @@ struct TopicRowView: View {
             }
         }
         .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(colorScheme == .dark ? Color.gray.opacity(0.1) : Color.white)
-                .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(isHovered ? topic.status.color.opacity(0.5) : Color.gray.opacity(0.2), lineWidth: 1)
-        )
+        .glassCard(isSelected: isHovered, accentColor: topic.status.color)
     }
 
     // MARK: - Subviews

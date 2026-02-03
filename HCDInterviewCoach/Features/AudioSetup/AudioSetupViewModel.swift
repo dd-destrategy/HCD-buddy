@@ -105,6 +105,9 @@ final class AudioSetupViewModel: ObservableObject {
     /// Error message to display
     @Published var errorMessage: String?
 
+    /// Structured setup error for the current step (provides rich what/why/how info)
+    @Published var currentSetupError: HCDError.AudioSetupError?
+
     /// Whether a check is currently in progress
     @Published var isChecking: Bool = false
 
@@ -125,6 +128,8 @@ final class AudioSetupViewModel: ObservableObject {
         static let audioSetupCompletedDate = "hcd_audio_setup_completed_date"
         static let blackHoleDeviceID = "hcd_blackhole_device_id"
         static let multiOutputDeviceID = "hcd_multioutput_device_id"
+        static let audioSetupSkipped = "hcd_audio_setup_skipped"
+        static let audioSetupSkippedDate = "hcd_audio_setup_skipped_date"
     }
 
     // MARK: - Computed Properties
@@ -167,6 +172,16 @@ final class AudioSetupViewModel: ObservableObject {
         UserDefaults.standard.bool(forKey: UserDefaultsKeys.audioSetupCompleted)
     }
 
+    /// Whether audio setup was skipped by the user
+    var wasSetupSkipped: Bool {
+        UserDefaults.standard.bool(forKey: UserDefaultsKeys.audioSetupSkipped)
+    }
+
+    /// Whether the app is running in limited mode (setup skipped, not completed)
+    var isLimitedMode: Bool {
+        wasSetupSkipped && !wasSetupPreviouslyCompleted
+    }
+
     // MARK: - Private Properties
 
     private var cancellables = Set<AnyCancellable>()
@@ -179,10 +194,11 @@ final class AudioSetupViewModel: ObservableObject {
     }
 
     private func setupBindings() {
-        // Clear error message when step changes
+        // Clear error message and structured error when step changes
         $currentStep
             .sink { [weak self] _ in
                 self?.errorMessage = nil
+                self?.currentSetupError = nil
             }
             .store(in: &cancellables)
     }
@@ -235,6 +251,7 @@ final class AudioSetupViewModel: ObservableObject {
     func checkBlackHole() {
         isChecking = true
         blackHoleStatus = .checking
+        currentSetupError = nil
 
         // Simulate async check with slight delay for UX
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
@@ -245,11 +262,16 @@ final class AudioSetupViewModel: ObservableObject {
             switch status {
             case .installed(let deviceID):
                 self.blackHoleStatus = .success
+                self.currentSetupError = nil
                 UserDefaults.standard.set(deviceID, forKey: UserDefaultsKeys.blackHoleDeviceID)
             case .unknownVersion:
-                self.blackHoleStatus = .failure("BlackHole detected but version may not be compatible. Please install BlackHole 2ch.")
+                let error = HCDError.AudioSetupError.blackHoleIncompatibleVersion
+                self.currentSetupError = error
+                self.blackHoleStatus = .failure(error.errorDescription ?? "Incompatible BlackHole version")
             case .notInstalled:
-                self.blackHoleStatus = .failure("BlackHole 2ch is not installed. Please download and install it to continue.")
+                let error = HCDError.AudioSetupError.blackHoleNotFound
+                self.currentSetupError = error
+                self.blackHoleStatus = .failure(error.errorDescription ?? "BlackHole not found")
             }
 
             self.isChecking = false
@@ -262,6 +284,7 @@ final class AudioSetupViewModel: ObservableObject {
     func checkMultiOutput() {
         isChecking = true
         multiOutputStatus = .checking
+        currentSetupError = nil
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             guard let self = self else { return }
@@ -271,15 +294,24 @@ final class AudioSetupViewModel: ObservableObject {
             switch status {
             case .configured(let deviceID, _, _):
                 self.multiOutputStatus = .success
+                self.currentSetupError = nil
                 UserDefaults.standard.set(deviceID, forKey: UserDefaultsKeys.multiOutputDeviceID)
             case .missingBlackHole:
-                self.multiOutputStatus = .failure("Multi-Output Device found but BlackHole is not included. Please add BlackHole 2ch to the Multi-Output Device.")
+                let error = HCDError.AudioSetupError.multiOutputMissingBlackHole
+                self.currentSetupError = error
+                self.multiOutputStatus = .failure(error.errorDescription ?? "Missing BlackHole in Multi-Output")
             case .missingSpeakers:
-                self.multiOutputStatus = .failure("Multi-Output Device found but no speaker output is included. Please add your speakers or headphones.")
+                let error = HCDError.AudioSetupError.multiOutputMissingSpeakers
+                self.currentSetupError = error
+                self.multiOutputStatus = .failure(error.errorDescription ?? "Missing speakers in Multi-Output")
             case .notConfigured:
-                self.multiOutputStatus = .failure("Multi-Output Device is not properly configured. Please follow the setup instructions.")
+                let error = HCDError.AudioSetupError.multiOutputNotConfigured
+                self.currentSetupError = error
+                self.multiOutputStatus = .failure(error.errorDescription ?? "Multi-Output not configured")
             case .notFound:
-                self.multiOutputStatus = .failure("No Multi-Output Device found. Please create one in Audio MIDI Setup.")
+                let error = HCDError.AudioSetupError.multiOutputNotFound
+                self.currentSetupError = error
+                self.multiOutputStatus = .failure(error.errorDescription ?? "Multi-Output not found")
             }
 
             self.isChecking = false
@@ -292,14 +324,18 @@ final class AudioSetupViewModel: ObservableObject {
     func checkSystemAudio() {
         isChecking = true
         systemAudioStatus = .checking
+        currentSetupError = nil
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             guard let self = self else { return }
 
             if MultiOutputDetector.isDefaultOutputConfigured() {
                 self.systemAudioStatus = .success
+                self.currentSetupError = nil
             } else {
-                self.systemAudioStatus = .failure("Multi-Output Device is not set as the system output. Please select it in System Settings > Sound.")
+                let error = HCDError.AudioSetupError.systemAudioNotConfigured
+                self.currentSetupError = error
+                self.systemAudioStatus = .failure(error.errorDescription ?? "System audio not configured")
             }
 
             self.isChecking = false
@@ -335,12 +371,20 @@ final class AudioSetupViewModel: ObservableObject {
     /// Mark verification as successful
     func confirmVerification() {
         verificationStatus = .success
+        currentSetupError = nil
         stopTestAudio()
     }
 
     /// Mark verification as failed
     func failVerification(reason: String) {
         verificationStatus = .failure(reason)
+        stopTestAudio()
+    }
+
+    /// Mark verification as failed with a structured error for rich display
+    func failVerification(error: HCDError.AudioSetupError) {
+        currentSetupError = error
+        verificationStatus = .failure(error.errorDescription ?? "Verification failed")
         stopTestAudio()
     }
 
@@ -402,11 +446,14 @@ final class AudioSetupViewModel: ObservableObject {
         systemAudioStatus = .pending
         verificationStatus = .pending
         errorMessage = nil
+        currentSetupError = nil
         isChecking = false
         audioDetected = false
 
         UserDefaults.standard.removeObject(forKey: UserDefaultsKeys.audioSetupCompleted)
         UserDefaults.standard.removeObject(forKey: UserDefaultsKeys.audioSetupCompletedDate)
+        UserDefaults.standard.removeObject(forKey: UserDefaultsKeys.audioSetupSkipped)
+        UserDefaults.standard.removeObject(forKey: UserDefaultsKeys.audioSetupSkippedDate)
     }
 
     // MARK: - External Links
@@ -447,6 +494,30 @@ final class AudioSetupViewModel: ObservableObject {
     }
 
     // MARK: - Skip Options
+
+    /// Skip the entire audio setup wizard
+    /// The app will launch in limited/transcription-only mode
+    func skipEntireSetup() {
+        UserDefaults.standard.set(true, forKey: UserDefaultsKeys.audioSetupSkipped)
+        UserDefaults.standard.set(Date(), forKey: UserDefaultsKeys.audioSetupSkippedDate)
+    }
+
+    /// Mark a step as already configured by an experienced user
+    /// Skips the check and marks the step as successful
+    func markBlackHoleAlreadyConfigured() {
+        blackHoleStatus = .success
+    }
+
+    /// Mark Multi-Output as already configured by an experienced user
+    func markMultiOutputAlreadyConfigured() {
+        multiOutputStatus = .success
+    }
+
+    /// Clear the skip state so the user can re-enter the wizard
+    func clearSkipState() {
+        UserDefaults.standard.removeObject(forKey: UserDefaultsKeys.audioSetupSkipped)
+        UserDefaults.standard.removeObject(forKey: UserDefaultsKeys.audioSetupSkippedDate)
+    }
 
     /// Skip BlackHole check (for users who know what they're doing)
     func skipBlackHoleCheck() {

@@ -3,31 +3,61 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject var serviceContainer: ServiceContainer
     @State private var activeSessionConfig: SessionConfiguration?
-    
+    @State private var showAudioSetupWizard = false
+    @State private var isAudioSetupIncomplete = AudioSetupLaunchHelper.isAudioSetupSkipped
+
     var body: some View {
-        Group {
-            if let sessionConfig = activeSessionConfig {
-                // Active session view - placeholder for now
-                ActiveSessionPlaceholderView(
-                    sessionConfig: sessionConfig,
-                    onEndSession: {
-                        activeSessionConfig = nil
+        VStack(spacing: 0) {
+            // Incomplete audio setup banner
+            if isAudioSetupIncomplete {
+                AudioSetupIncompleteBanner(
+                    onSetupNow: {
+                        showAudioSetupWizard = true
+                    },
+                    onDismiss: {
+                        withAnimation(.easeOut(duration: 0.3)) {
+                            isAudioSetupIncomplete = false
+                        }
                     }
                 )
-            } else {
-                // Session setup view
-                SessionSetupView(
-                    templateManager: serviceContainer.templateManager,
-                    onStartSession: { template, mode in
-                        startSession(template: template, mode: mode)
-                    }
-                )
+                .transition(.move(edge: .top).combined(with: .opacity))
+            }
+
+            Group {
+                if let sessionConfig = activeSessionConfig {
+                    // Active session view - placeholder for now
+                    ActiveSessionPlaceholderView(
+                        sessionConfig: sessionConfig,
+                        onEndSession: {
+                            activeSessionConfig = nil
+                        }
+                    )
+                } else {
+                    // Session setup view
+                    SessionSetupView(
+                        templateManager: serviceContainer.templateManager,
+                        onStartSession: { template, mode in
+                            startSession(template: template, mode: mode)
+                        }
+                    )
+                }
             }
         }
         .frame(minWidth: 800, minHeight: 600)
         .environmentObject(serviceContainer)
+        .audioSetupSheet(
+            isPresented: $showAudioSetupWizard,
+            onComplete: {
+                withAnimation {
+                    isAudioSetupIncomplete = false
+                }
+            },
+            onSkipSetup: {
+                // Already skipped, keep banner visible
+            }
+        )
     }
-    
+
     private func startSession(template: InterviewTemplate, mode: SessionMode) {
         // Create session configuration
         let config = SessionConfiguration(
@@ -35,9 +65,9 @@ struct ContentView: View {
             mode: mode,
             startedAt: Date()
         )
-        
+
         activeSessionConfig = config
-        
+
         AppLogger.shared.info("Starting session with template: \(template.name)")
         AppLogger.shared.info("Session mode: \(mode.displayName)")
     }
@@ -171,6 +201,59 @@ struct ActiveSessionPlaceholderView: View {
         let minutes = Int(time) / 60
         let seconds = Int(time) % 60
         return String(format: "%02d:%02d", minutes, seconds)
+    }
+}
+
+// MARK: - Audio Setup Incomplete Banner
+
+/// A subtle, dismissable banner indicating that audio setup was skipped.
+/// Provides a one-tap path back into the setup wizard.
+struct AudioSetupIncompleteBanner: View {
+    let onSetupNow: () -> Void
+    let onDismiss: () -> Void
+
+    var body: some View {
+        HStack(spacing: Spacing.md) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(Typography.body)
+                .foregroundColor(.orange)
+                .accessibilityHidden(true)
+
+            Text("Audio setup incomplete \u{2014} running in limited mode.")
+                .font(Typography.caption)
+                .foregroundColor(.secondary)
+
+            Spacer()
+
+            Button(action: onSetupNow) {
+                Text("Set Up Now")
+                    .font(Typography.caption)
+                    .fontWeight(.medium)
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .accessibilityLabel("Open audio setup wizard")
+            .accessibilityHint("Launches the audio setup wizard to configure full audio capture")
+
+            Button(action: onDismiss) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(.secondary)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Dismiss audio setup banner")
+        }
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.sm)
+        .background(Color.orange.opacity(0.08))
+        .overlay(
+            Rectangle()
+                .frame(height: 1)
+                .foregroundColor(Color.orange.opacity(0.15)),
+            alignment: .bottom
+        )
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Audio setup is incomplete. The app is running in limited mode.")
     }
 }
 

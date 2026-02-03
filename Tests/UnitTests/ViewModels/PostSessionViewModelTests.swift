@@ -547,7 +547,7 @@ final class PostSessionViewModelTests: XCTestCase {
         let vm = PostSessionViewModel(session: session)
 
         // Then: Should limit to 5
-        XCTAssertLesseThanOrEqual(vm.topThemes.count, 5)
+        XCTAssertLessThanOrEqual(vm.topThemes.count, 5)
     }
 
     // MARK: - Test Export Format Properties

@@ -4,18 +4,34 @@ import SwiftData
 @main
 struct HCDInterviewCoachApp: App {
     @StateObject private var serviceContainer = ServiceContainer()
+    @State private var showAudioSetupFromMenu = false
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(serviceContainer)
                 .modelContainer(serviceContainer.dataManager.container)
+                .audioSetupSheet(
+                    isPresented: $showAudioSetupFromMenu,
+                    onComplete: {
+                        // Setup completed from Settings re-entry
+                    }
+                )
         }
         .commands {
             CommandGroup(replacing: .appInfo) {
                 Button("About HCD Interview Coach") {
                     showAboutWindow()
                 }
+            }
+
+            // Settings > Audio Setup command for re-entering the wizard
+            CommandGroup(after: .appSettings) {
+                Button("Audio Setup Wizard...") {
+                    AudioSetupLaunchHelper.clearSkipState()
+                    showAudioSetupFromMenu = true
+                }
+                .keyboardShortcut("a", modifiers: [.command, .shift])
             }
         }
     }

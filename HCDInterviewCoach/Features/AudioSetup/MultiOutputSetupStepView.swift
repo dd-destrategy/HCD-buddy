@@ -45,9 +45,16 @@ struct MultiOutputSetupStepView: View {
 
     @ViewBuilder
     private var multiOutputContent: some View {
-        VStack(alignment: .leading, spacing: 24) {
+        VStack(alignment: .leading, spacing: Spacing.xl) {
             // Status section
             statusSection
+
+            // Inline tip for the most common issue
+            if case .failure = viewModel.multiOutputStatus {
+                InlineTroubleshootingTip(
+                    message: "Can't find it? Open Audio MIDI Setup \u{2192} click '+' \u{2192} Create Multi-Output Device."
+                )
+            }
 
             // Content based on status
             switch viewModel.multiOutputStatus {
@@ -60,7 +67,30 @@ struct MultiOutputSetupStepView: View {
             case .skipped:
                 skippedSection
             }
+
+            // Video tutorial link
+            VideoTutorialLink(
+                title: "Watch: Creating a Multi-Output Device",
+                url: "https://hcdcoach.app/tutorials/multi-output-setup"
+            )
+
+            // Collapsible troubleshooting section
+            if case .failure = viewModel.multiOutputStatus {
+                multiOutputTroubleshootingSection
+            }
         }
+    }
+
+    // MARK: - Troubleshooting
+
+    private var multiOutputTroubleshootingSection: some View {
+        TroubleshootingSection(tips: [
+            .init(text: "Open Audio MIDI Setup from Applications > Utilities (or Spotlight search)."),
+            .init(text: "Click the \"+\" button in the bottom-left and choose \"Create Multi-Output Device\"."),
+            .init(text: "Make sure both BlackHole 2ch and your speakers/headphones are checked."),
+            .init(text: "Set your speakers as the \"Master Device\" using the gear icon for proper sync."),
+            .init(text: "If BlackHole does not appear in the list, go back and reinstall it first.")
+        ])
     }
 
     // MARK: - Status Section
@@ -68,7 +98,7 @@ struct MultiOutputSetupStepView: View {
     private var statusSection: some View {
         HStack {
             Text("Status:")
-                .font(.headline)
+                .font(Typography.heading3)
                 .foregroundColor(.primary)
 
             SetupStatusBadge(status: viewModel.multiOutputStatus)
@@ -89,16 +119,16 @@ struct MultiOutputSetupStepView: View {
     // MARK: - Checking Section
 
     private var checkingSection: some View {
-        VStack(alignment: .center, spacing: 16) {
+        VStack(alignment: .center, spacing: Spacing.lg) {
             ProgressView()
                 .scaleEffect(1.2)
 
             Text("Checking for Multi-Output Device...")
-                .font(.body)
+                .font(Typography.body)
                 .foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 40)
+        .padding(.vertical, Spacing.xxl)
     }
 
     // MARK: - Success Section
@@ -118,16 +148,27 @@ struct MultiOutputSetupStepView: View {
     // MARK: - Failure Section
 
     private func failureSection(message: String) -> some View {
-        VStack(alignment: .leading, spacing: 20) {
-            // Error message
-            WizardInfoBox(
-                style: .error,
-                title: "Multi-Output Device Not Found",
-                message: message
-            )
+        VStack(alignment: .leading, spacing: Spacing.xl) {
+            // Structured error view (if available)
+            if let setupError = viewModel.currentSetupError {
+                SetupErrorView(
+                    error: setupError,
+                    onRetry: { viewModel.checkMultiOutput() },
+                    onAction: { viewModel.openAudioMIDISetup() },
+                    actionLabel: "Open Audio MIDI Setup",
+                    actionIcon: "slider.horizontal.3"
+                )
+            } else {
+                // Fallback for legacy error messages
+                WizardInfoBox(
+                    style: .error,
+                    title: "Multi-Output Device Not Found",
+                    message: message
+                )
 
-            // Open Audio MIDI Setup button
-            openAudioMIDIButton
+                // Open Audio MIDI Setup button
+                openAudioMIDIButton
+            }
 
             Divider()
 
@@ -146,7 +187,7 @@ struct MultiOutputSetupStepView: View {
                     Text(showDetailedInstructions ? "Hide Instructions" : "Show Instructions")
                     Image(systemName: showDetailedInstructions ? "chevron.up" : "chevron.down")
                 }
-                .font(.subheadline)
+                .font(Typography.body)
             }
             .buttonStyle(.plain)
             .foregroundColor(.accentColor)
@@ -173,13 +214,13 @@ struct MultiOutputSetupStepView: View {
     // MARK: - Explanation Section
 
     private var explanationSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             Text("Why Multi-Output Device?")
-                .font(.headline)
+                .font(Typography.heading3)
                 .foregroundColor(.primary)
 
             Text("A Multi-Output Device sends audio to multiple destinations at once. This lets you hear your participant through your speakers while BlackHole simultaneously captures the audio for analysis.")
-                .font(.body)
+                .font(Typography.body)
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -225,9 +266,9 @@ struct MultiOutputSetupStepView: View {
     // MARK: - Setup Instructions
 
     private var setupInstructions: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             Text("Setup Instructions")
-                .font(.headline)
+                .font(Typography.heading3)
                 .foregroundColor(.primary)
 
             VStack(alignment: .leading, spacing: 16) {
@@ -364,6 +405,20 @@ struct MultiOutputSetupStepView: View {
             WizardBackButton()
 
             Spacer()
+
+            // "I already have this configured" shortcut for experienced users
+            if viewModel.multiOutputStatus != .success {
+                Button(action: {
+                    viewModel.markMultiOutputAlreadyConfigured()
+                }) {
+                    Text("I already have this configured")
+                        .font(Typography.caption)
+                        .foregroundColor(.secondary)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Mark Multi-Output Device as already configured")
+                .accessibilityHint("For experienced users who have already set up a Multi-Output Device")
+            }
 
             // Skip option
             if case .failure = viewModel.multiOutputStatus {

@@ -57,13 +57,7 @@ struct CoachingPromptView: View {
         }
         .padding(16)
         .frame(maxWidth: 360)
-        .background(promptBackground())
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 4)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(Color.hcdCoaching.opacity(0.3), lineWidth: 1)
-        )
+        .glassFloating(isActive: true, pulseAnimation: true)
     }
 
     // MARK: - Header
@@ -140,8 +134,7 @@ struct CoachingPromptView: View {
                 .foregroundColor(.hcdTextSecondary)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
-                .background(Color.hcdBackgroundSecondary)
-                .clipShape(Capsule())
+                .glassButton(style: .secondary)
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Snooze prompt")
@@ -160,8 +153,7 @@ struct CoachingPromptView: View {
                 .foregroundColor(.white)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
-                .background(Color.hcdCoaching)
-                .clipShape(Capsule())
+                .glassButton(isActive: true, style: .primary)
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Accept prompt")
@@ -233,16 +225,6 @@ struct CoachingPromptView: View {
             .clipShape(Capsule())
     }
 
-    // MARK: - Background
-
-    @ViewBuilder
-    private func promptBackground() -> some View {
-        #if os(macOS)
-        VisualEffectBlur(material: .hudWindow, blendingMode: .withinWindow)
-        #else
-        Color.hcdSurfaceElevated
-        #endif
-    }
 }
 
 // MARK: - Coaching Overlay Container
