@@ -16,6 +16,7 @@ struct FocusIndicator: ViewModifier {
 
     @FocusState private var isFocused: Bool
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     let style: FocusIndicatorStyle
 
@@ -28,7 +29,7 @@ struct FocusIndicator: ViewModifier {
                         focusColor,
                         lineWidth: isFocused ? style.lineWidth : 0
                     )
-                    .animation(.easeInOut(duration: 0.15), value: isFocused)
+                    .animation(reduceMotion ? nil : .easeInOut(duration: AnimationTiming.fast), value: isFocused)
             )
             .accessibilityAddTraits(isFocused ? .isSelected : [])
     }
@@ -114,6 +115,7 @@ struct EnhancedFocusRing: ViewModifier {
 
     @FocusState private var isFocused: Bool
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @EnvironmentObject private var keyboardNav: KeyboardNavigationHelper
 
     func body(content: Content) -> some View {
@@ -125,7 +127,7 @@ struct EnhancedFocusRing: ViewModifier {
                         .strokeBorder(focusColor, lineWidth: 2)
                         .shadow(color: focusColor.opacity(0.5), radius: 4, x: 0, y: 0)
                         .transition(.opacity)
-                        .animation(.easeInOut(duration: 0.2), value: isFocused)
+                        .animation(reduceMotion ? nil : .easeInOut(duration: AnimationTiming.normal), value: isFocused)
                 }
             }
     }

@@ -21,6 +21,10 @@ struct VerificationStepView: View {
     @State private var testDuration: TimeInterval = 0
     @State private var testTimer: Timer?
 
+    // MARK: - Environment
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     // MARK: - Body
 
     var body: some View {
@@ -298,7 +302,7 @@ struct VerificationStepView: View {
                     RoundedRectangle(cornerRadius: 4)
                         .fill(levelColor(for: level, baseColor: color))
                         .frame(width: geometry.size.width * CGFloat(level))
-                        .animation(.easeOut(duration: 0.1), value: level)
+                        .animation(reduceMotion ? nil : .easeOut(duration: AnimationTiming.veryFast), value: level)
                 }
             }
             .frame(height: 8)
@@ -427,8 +431,12 @@ struct VerificationStepView: View {
     private var troubleshootingSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Button(action: {
-                withAnimation {
+                if reduceMotion {
                     showTroubleshooting.toggle()
+                } else {
+                    withAnimation(.easeInOut(duration: AnimationTiming.normal)) {
+                        showTroubleshooting.toggle()
+                    }
                 }
             }) {
                 HStack {

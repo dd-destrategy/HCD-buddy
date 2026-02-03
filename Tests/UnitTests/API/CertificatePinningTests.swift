@@ -202,11 +202,12 @@ final class CertificatePinningTests: XCTestCase {
         // When: Any one of the pins matches
         // Then: Validation should succeed
 
-        // This test verifies the set contains expected pins
-        XCTAssertTrue(pins.contains("47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=") ||
-                     pins.contains("i7WTqTvh0OioIruIfFR4kMPnBqrS2rdiVPl/s2uC/CY=") ||
-                     pins.contains("r/mIkG3eEpVdm+u/ko/cwxzOMo1bk4TyHIlByibiA5E="),
-                     "Should contain at least one of the known pins")
+        // This test verifies the set contains expected pins (Cloudflare/DigiCert)
+        XCTAssertTrue(pins.contains("Wes86T8bEwYv2RHN2Foh3Dqhl8wEqhOrp8yBgT/AoLI=") ||  // Cloudflare ECC
+                     pins.contains("RQeZkB42znUfsDIIFWIRiYEcKl7nHwNFwWCrnMMJbVc=") ||  // Cloudflare RSA
+                     pins.contains("i7WTqTvh0OioIruIfFR4kMPnBqrS2rdiVPl/s2uC/CY=") ||  // DigiCert G2
+                     pins.contains("r/mIkG3eEpVdm+u/ko/cwxzOMo1bk4TyHIlByibiA5E="),   // DigiCert Root
+                     "Should contain at least one of the known Cloudflare/DigiCert pins")
     }
 
     // MARK: - Test: Validate Method with Unknown Host

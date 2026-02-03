@@ -390,7 +390,18 @@ extension View {
             .background(
                 utteranceId == highlightedId ? highlightColor : Color.clear
             )
-            .animation(.easeInOut(duration: 0.3), value: utteranceId == highlightedId)
+            .modifier(InsightNavigationHighlightModifier(isHighlighted: utteranceId == highlightedId))
+    }
+}
+
+/// View modifier that handles motion-safe animation for insight navigation highlights
+private struct InsightNavigationHighlightModifier: ViewModifier {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    let isHighlighted: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .animation(reduceMotion ? nil : .easeInOut(duration: AnimationTiming.normal), value: isHighlighted)
     }
 }
 

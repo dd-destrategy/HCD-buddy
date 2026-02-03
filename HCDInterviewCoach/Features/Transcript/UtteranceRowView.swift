@@ -197,6 +197,8 @@ struct UtteranceRowView: View {
             .menuStyle(.borderlessButton)
             .frame(width: 24, height: 24)
             .help("More options")
+            .accessibilityLabel("More options")
+            .accessibilityHint("Opens menu with additional actions")
         }
         .transition(.opacity.combined(with: .scale(scale: 0.8)))
     }
@@ -309,6 +311,8 @@ struct ConfidenceIndicator: View {
                 .font(.system(size: 10))
                 .foregroundColor(.orange)
                 .help("Low confidence transcription (\(Int(confidence * 100))%)")
+                .accessibilityLabel("Low confidence transcription")
+                .accessibilityValue("\(Int(confidence * 100)) percent")
         }
     }
 }

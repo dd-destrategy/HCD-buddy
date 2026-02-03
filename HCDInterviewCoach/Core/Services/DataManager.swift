@@ -1,12 +1,50 @@
 import Foundation
 import SwiftData
 
+/// Error types for DataManager operations
+enum DataManagerError: LocalizedError {
+    case initializationFailed(Error)
+    case containerUnavailable
+    case saveFailed(Error)
+
+    var errorDescription: String? {
+        switch self {
+        case .initializationFailed(let error):
+            return "Failed to initialize database: \(error.localizedDescription)"
+        case .containerUnavailable:
+            return "Database is unavailable. The app is running in degraded mode."
+        case .saveFailed(let error):
+            return "Failed to save data: \(error.localizedDescription)"
+        }
+    }
+
+    var recoverySuggestion: String? {
+        switch self {
+        case .initializationFailed:
+            return "Try restarting the app. If the problem persists, you may need to reset the app's data in Settings."
+        case .containerUnavailable:
+            return "Session data cannot be saved. Please restart the app to restore full functionality."
+        case .saveFailed:
+            return "Your changes may not be saved. Try again or restart the app."
+        }
+    }
+}
+
 /// Manages SwiftData persistence with custom container location and encryption
 @MainActor
 final class DataManager {
     static let shared = DataManager()
 
-    let container: ModelContainer
+    /// The model container, or nil if initialization failed
+    private(set) var container: ModelContainer?
+
+    /// Error that occurred during initialization, if any
+    private(set) var initializationError: Error?
+
+    /// Whether the DataManager initialized successfully and is fully operational
+    var isOperational: Bool {
+        container != nil
+    }
 
     /// Size of buffer used for secure file overwriting (64KB)
     private static let secureOverwriteBufferSize = 64 * 1024
@@ -42,8 +80,21 @@ final class DataManager {
 
             AppLogger.shared.info("DataManager initialized with custom store at: \(Self.customStoreURL.path)")
         } catch {
-            fatalError("Failed to initialize ModelContainer: \(error)")
+            // Log the error but don't crash - allow app to run in degraded mode
+            self.initializationError = error
+            self.container = nil
+            AppLogger.shared.error("DataManager initialization failed: \(error.localizedDescription). App will run in degraded mode without data persistence.")
         }
+    }
+
+    /// Ensures the container is available, throwing an error if not
+    /// - Returns: The model container
+    /// - Throws: DataManagerError.containerUnavailable if the database failed to initialize
+    func requireContainer() throws -> ModelContainer {
+        guard let container = container else {
+            throw DataManagerError.containerUnavailable
+        }
+        return container
     }
 
     /// Custom store URL in Application Support directory with encryption
@@ -96,19 +147,63 @@ final class DataManager {
     }
 
     /// Get the main context
+    /// - Returns: The main model context
+    /// - Note: If the database failed to initialize, this will log an error and return a context
+    ///         that will fail on operations. Use `isOperational` to check if DB is available,
+    ///         or `safeMainContext` for an optional version.
     var mainContext: ModelContext {
-        container.mainContext
-    }
-
-    /// Create a new background context for concurrent operations
-    func newBackgroundContext() -> ModelContext {
-        let context = ModelContext(container)
+        guard let context = container?.mainContext else {
+            // Log the access attempt for debugging
+            AppLogger.shared.error("Attempted to access mainContext but database is unavailable. Check isOperational before accessing.")
+            // Return a placeholder context that will fail on operations
+            // This allows the app to continue running and show appropriate error UI
+            preconditionFailure(
+                "Database unavailable: \(initializationError?.localizedDescription ?? "Unknown error"). " +
+                "Check DataManager.shared.isOperational before accessing mainContext."
+            )
+        }
         return context
     }
 
+    /// Get the main context as an optional
+    /// - Returns: The main model context, or nil if the database is unavailable
+    var safeMainContext: ModelContext? {
+        container?.mainContext
+    }
+
+    /// Get the main context, throwing if unavailable
+    /// - Returns: The main model context
+    /// - Throws: DataManagerError.containerUnavailable if the database is unavailable
+    func requireMainContext() throws -> ModelContext {
+        guard let context = container?.mainContext else {
+            throw DataManagerError.containerUnavailable
+        }
+        return context
+    }
+
+    /// Create a new background context for concurrent operations
+    /// - Returns: A new background context
+    /// - Note: Returns nil if the database is unavailable
+    func newBackgroundContext() -> ModelContext? {
+        guard let container = container else {
+            AppLogger.shared.warning("Cannot create background context: database unavailable")
+            return nil
+        }
+        return ModelContext(container)
+    }
+
     /// Save context if it has changes
+    /// - Parameter context: The context to save, or nil to use the main context
+    /// - Throws: DataManagerError.containerUnavailable if database is unavailable,
+    ///           or the underlying save error
     func save(context: ModelContext? = nil) throws {
-        let contextToSave = context ?? mainContext
+        let contextToSave: ModelContext
+        if let context = context {
+            contextToSave = context
+        } else {
+            contextToSave = try requireMainContext()
+        }
+
         if contextToSave.hasChanges {
             try contextToSave.save()
             AppLogger.shared.debug("Context saved successfully")
@@ -116,8 +211,9 @@ final class DataManager {
     }
 
     /// Delete all data (useful for testing)
+    /// - Throws: DataManagerError.containerUnavailable if database is unavailable
     func deleteAllData() throws {
-        let context = mainContext
+        let context = try requireMainContext()
 
         // Delete all sessions (cascade will handle related entities)
         let sessions = try context.fetch(FetchDescriptor<Session>())
@@ -157,11 +253,14 @@ final class DataManager {
         }
 
         // Step 2: Delete from SwiftData (cascade will handle utterances, insights, etc.)
-        let context = mainContext
         do {
+            let context = try requireMainContext()
             context.delete(session)
             try save(context: context)
             AppLogger.shared.info("Session \(session.id) securely deleted from database")
+        } catch let error as DataManagerError {
+            AppLogger.shared.error("Database unavailable for deletion: \(error.localizedDescription)")
+            throw HCDError.database(.secureDeleteFailed(error))
         } catch {
             AppLogger.shared.error("Failed to delete session from database: \(error.localizedDescription)")
             throw HCDError.database(.secureDeleteFailed(error))

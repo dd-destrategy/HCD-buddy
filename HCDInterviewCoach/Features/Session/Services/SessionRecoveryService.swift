@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Network
 
 // MARK: - Session Recovery Service
 
@@ -36,9 +37,147 @@ actor SessionRecoveryService {
     /// Current degraded mode if any
     private var currentDegradedMode: DegradedMode?
 
+    /// Network path monitor for checking network availability
+    private let networkMonitor: NWPathMonitor
+
+    /// Current network path status
+    private var currentNetworkPath: NWPath?
+
+    /// Dispatch queue for network monitoring
+    private let networkMonitorQueue = DispatchQueue(label: "com.hcdinterviewcoach.recovery.network")
+
+    /// Maximum time elapsed (in seconds) before recovery is no longer possible
+    private let maxRecoveryTimeSeconds: TimeInterval = 30 * 60 // 30 minutes
+
+    /// Timestamp when the error first occurred (for time-based recovery limits)
+    private var errorOccurredAt: Date?
+
+    /// Session ID being recovered
+    private var recoveringSessionId: UUID?
+
+    /// UserDefaults keys for persistence
+    private enum PersistenceKeys {
+        static let recoveryState = "com.hcdinterviewcoach.recoveryState"
+        static let errorTimestamp = "com.hcdinterviewcoach.errorTimestamp"
+        static let sessionId = "com.hcdinterviewcoach.recoveringSessionId"
+        static let attemptCount = "com.hcdinterviewcoach.attemptCount"
+        static let degradedMode = "com.hcdinterviewcoach.degradedMode"
+    }
+
     // MARK: - Initialization
 
-    init() {}
+    init() {
+        self.networkMonitor = NWPathMonitor()
+        self.startNetworkMonitoring()
+        self.loadPersistedState()
+    }
+
+    deinit {
+        networkMonitor.cancel()
+    }
+
+    // MARK: - Network Monitoring
+
+    private func startNetworkMonitoring() {
+        networkMonitor.pathUpdateHandler = { [weak self] path in
+            Task {
+                await self?.updateNetworkPath(path)
+            }
+        }
+        networkMonitor.start(queue: networkMonitorQueue)
+    }
+
+    private func updateNetworkPath(_ path: NWPath) {
+        currentNetworkPath = path
+    }
+
+    // MARK: - State Persistence
+
+    private func loadPersistedState() {
+        let defaults = UserDefaults.standard
+
+        if let timestamp = defaults.object(forKey: PersistenceKeys.errorTimestamp) as? Date {
+            errorOccurredAt = timestamp
+        }
+
+        if let sessionIdString = defaults.string(forKey: PersistenceKeys.sessionId),
+           let sessionId = UUID(uuidString: sessionIdString) {
+            recoveringSessionId = sessionId
+        }
+
+        currentAttemptCount = defaults.integer(forKey: PersistenceKeys.attemptCount)
+
+        if let degradedModeRaw = defaults.string(forKey: PersistenceKeys.degradedMode) {
+            currentDegradedMode = DegradedMode(rawValue: degradedModeRaw)
+        }
+    }
+
+    private func persistState() {
+        let defaults = UserDefaults.standard
+
+        if let timestamp = errorOccurredAt {
+            defaults.set(timestamp, forKey: PersistenceKeys.errorTimestamp)
+        } else {
+            defaults.removeObject(forKey: PersistenceKeys.errorTimestamp)
+        }
+
+        if let sessionId = recoveringSessionId {
+            defaults.set(sessionId.uuidString, forKey: PersistenceKeys.sessionId)
+        } else {
+            defaults.removeObject(forKey: PersistenceKeys.sessionId)
+        }
+
+        defaults.set(currentAttemptCount, forKey: PersistenceKeys.attemptCount)
+
+        if let mode = currentDegradedMode {
+            defaults.set(mode.rawValue, forKey: PersistenceKeys.degradedMode)
+        } else {
+            defaults.removeObject(forKey: PersistenceKeys.degradedMode)
+        }
+    }
+
+    private func clearPersistedState() {
+        let defaults = UserDefaults.standard
+        defaults.removeObject(forKey: PersistenceKeys.errorTimestamp)
+        defaults.removeObject(forKey: PersistenceKeys.sessionId)
+        defaults.removeObject(forKey: PersistenceKeys.attemptCount)
+        defaults.removeObject(forKey: PersistenceKeys.degradedMode)
+    }
+
+    // MARK: - Session Recovery Validation
+
+    /// Checks if recovery is possible for a given session
+    /// - Parameters:
+    ///   - sessionId: The session ID to recover
+    ///   - sessionStartTime: When the session started
+    /// - Returns: Whether recovery is possible
+    func canRecover(sessionId: UUID, sessionStartTime: Date?) -> Bool {
+        // Check if too much time has elapsed since error occurred
+        if let errorTime = errorOccurredAt {
+            let elapsed = Date().timeIntervalSince(errorTime)
+            if elapsed > maxRecoveryTimeSeconds {
+                AppLogger.shared.warning("Recovery time limit exceeded: \(elapsed)s > \(maxRecoveryTimeSeconds)s")
+                return false
+            }
+        }
+
+        // Validate session ID matches
+        if let recoveringId = recoveringSessionId, recoveringId != sessionId {
+            AppLogger.shared.warning("Session ID mismatch for recovery")
+            return false
+        }
+
+        return true
+    }
+
+    /// Sets the session being recovered
+    func setRecoveringSession(sessionId: UUID) {
+        recoveringSessionId = sessionId
+        if errorOccurredAt == nil {
+            errorOccurredAt = Date()
+        }
+        persistState()
+    }
 
     // MARK: - Recovery Logic
 
@@ -176,11 +315,15 @@ actor SessionRecoveryService {
     func recordSuccess() {
         currentAttemptCount = 0
         currentDegradedMode = nil
+        errorOccurredAt = nil
+        recoveringSessionId = nil
+        clearPersistedState()
         AppLogger.shared.info("Recovery successful, state reset")
     }
 
     /// Records a failed recovery attempt
     func recordFailure(_ error: Error) {
+        persistState()
         AppLogger.shared.warning("Recovery attempt \(currentAttemptCount) failed: \(error.localizedDescription)")
     }
 
@@ -190,6 +333,9 @@ actor SessionRecoveryService {
         isRecovering = false
         currentDegradedMode = nil
         recoveryHistory.removeAll()
+        errorOccurredAt = nil
+        recoveringSessionId = nil
+        clearPersistedState()
     }
 
     /// Gets the current degraded mode if any
@@ -230,17 +376,113 @@ actor SessionRecoveryService {
     private func checkCondition(_ condition: RecoveryCondition) async -> Bool {
         switch condition {
         case .audioDeviceAvailable:
-            // In a real implementation, this would check audio device availability
-            return true
+            return checkAudioDeviceAvailable()
 
         case .networkAvailable:
-            // This would check network reachability
-            return true
+            return checkNetworkAvailable()
 
         case .apiReachable:
-            // This would ping the API
-            return true
+            return await checkAPIReachable()
+
+        case .sessionDataValid(let sessionId):
+            return await checkSessionDataValid(sessionId: sessionId)
         }
+    }
+
+    /// Checks if audio devices (BlackHole and Multi-Output) are available
+    private func checkAudioDeviceAvailable() -> Bool {
+        // Check if BlackHole is installed
+        let blackHoleStatus = BlackHoleDetector.detectBlackHole()
+        guard case .installed = blackHoleStatus else {
+            AppLogger.shared.warning("BlackHole not installed for recovery")
+            return false
+        }
+
+        // Check if Multi-Output device is configured
+        let multiOutputStatus = MultiOutputDetector.detectMultiOutputDevice()
+        switch multiOutputStatus {
+        case .configured:
+            AppLogger.shared.info("Audio devices available for recovery")
+            return true
+        case .notFound:
+            AppLogger.shared.warning("Multi-Output device not found for recovery")
+            return false
+        case .notConfigured, .missingBlackHole, .missingSpeakers:
+            AppLogger.shared.warning("Multi-Output device not properly configured: \(multiOutputStatus)")
+            return false
+        }
+    }
+
+    /// Checks if network is available using NWPathMonitor
+    private func checkNetworkAvailable() -> Bool {
+        guard let path = currentNetworkPath else {
+            // If we haven't received a path update yet, assume unavailable
+            AppLogger.shared.warning("Network path not yet determined")
+            return false
+        }
+
+        let isAvailable = path.status == .satisfied
+        if !isAvailable {
+            AppLogger.shared.warning("Network not available: \(path.status)")
+        }
+        return isAvailable
+    }
+
+    /// Checks if the OpenAI API is reachable by performing a lightweight connectivity check
+    private func checkAPIReachable() async -> Bool {
+        // First check network availability
+        guard checkNetworkAvailable() else {
+            return false
+        }
+
+        // Perform a lightweight HEAD request to the API endpoint
+        guard let url = URL(string: "https://api.openai.com/v1/models") else {
+            return false
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "HEAD"
+        request.timeoutInterval = 5.0 // Short timeout for health check
+
+        do {
+            let (_, response) = try await URLSession.shared.data(for: request)
+
+            if let httpResponse = response as? HTTPURLResponse {
+                // 401 means the API is reachable but needs auth (expected without key)
+                // 200 means it's reachable and working
+                let isReachable = httpResponse.statusCode == 200 || httpResponse.statusCode == 401
+                if !isReachable {
+                    AppLogger.shared.warning("API returned unexpected status: \(httpResponse.statusCode)")
+                }
+                return isReachable
+            }
+            return false
+        } catch {
+            AppLogger.shared.warning("API reachability check failed: \(error.localizedDescription)")
+            return false
+        }
+    }
+
+    /// Validates that session data exists and is valid for recovery
+    private func checkSessionDataValid(sessionId: UUID) async -> Bool {
+        // Check if the session ID matches what we're recovering
+        if let recoveringId = recoveringSessionId, recoveringId != sessionId {
+            AppLogger.shared.warning("Session ID mismatch: expected \(recoveringId), got \(sessionId)")
+            return false
+        }
+
+        // Check if recovery time hasn't exceeded the limit
+        if let errorTime = errorOccurredAt {
+            let elapsed = Date().timeIntervalSince(errorTime)
+            if elapsed > maxRecoveryTimeSeconds {
+                AppLogger.shared.warning("Session recovery time limit exceeded")
+                return false
+            }
+        }
+
+        // Session data validation would typically involve checking the database
+        // For now, we check that a session ID is set and time limit hasn't passed
+        return true
     }
 }
 
@@ -326,15 +568,15 @@ enum RecoveryResult: Sendable {
 // MARK: - Degraded Mode
 
 /// Modes of degraded operation when full functionality is unavailable
-enum DegradedMode: Sendable {
+enum DegradedMode: String, Sendable {
     /// Only transcription, no AI coaching
-    case transcriptionOnly
+    case transcriptionOnly = "transcriptionOnly"
 
     /// Audio recording but no real-time transcription
-    case localRecordingOnly
+    case localRecordingOnly = "localRecordingOnly"
 
     /// Manual notes only, no audio or AI
-    case manualNotesOnly
+    case manualNotesOnly = "manualNotesOnly"
 
     var description: String {
         switch self {
@@ -375,10 +617,11 @@ enum DegradedMode: Sendable {
 // MARK: - Recovery Condition
 
 /// Conditions to wait for during recovery
-enum RecoveryCondition: Sendable {
+enum RecoveryCondition: Sendable, Equatable {
     case audioDeviceAvailable
     case networkAvailable
     case apiReachable
+    case sessionDataValid(sessionId: UUID)
 
     var description: String {
         switch self {
@@ -388,6 +631,21 @@ enum RecoveryCondition: Sendable {
             return "Waiting for network connection"
         case .apiReachable:
             return "Waiting for API availability"
+        case .sessionDataValid:
+            return "Validating session data"
+        }
+    }
+
+    static func == (lhs: RecoveryCondition, rhs: RecoveryCondition) -> Bool {
+        switch (lhs, rhs) {
+        case (.audioDeviceAvailable, .audioDeviceAvailable),
+             (.networkAvailable, .networkAvailable),
+             (.apiReachable, .apiReachable):
+            return true
+        case (.sessionDataValid(let lhsId), .sessionDataValid(let rhsId)):
+            return lhsId == rhsId
+        default:
+            return false
         }
     }
 }

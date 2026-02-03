@@ -8,6 +8,24 @@
 
 import SwiftUI
 
+// MARK: - Animation Timing Constants
+
+/// Standard animation duration constants for consistent timing across the app
+/// These values are designed to feel responsive while remaining comfortable for users
+enum AnimationTiming {
+    /// Fast animations (0.15s) - for micro-interactions, focus indicators, hover states
+    static let fast: Double = 0.15
+
+    /// Normal animations (0.25s) - for most UI transitions
+    static let normal: Double = 0.25
+
+    /// Slow animations (0.4s) - for emphasis, larger element transitions
+    static let slow: Double = 0.4
+
+    /// Very fast animations (0.1s) - for immediate feedback like audio level meters
+    static let veryFast: Double = 0.1
+}
+
 // MARK: - Motion Safe Animation Modifier
 
 /// Respects the system-wide Reduce Motion preference

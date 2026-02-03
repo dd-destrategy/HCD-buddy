@@ -33,6 +33,7 @@ struct TopicAwarenessView: View {
     var isCompact: Bool = false
 
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     // MARK: - Initialization
 
@@ -91,8 +92,12 @@ struct TopicAwarenessView: View {
 
     private var panelHeader: some View {
         Button {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+            if reduceMotion {
                 viewModel.togglePanel()
+            } else {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                    viewModel.togglePanel()
+                }
             }
         } label: {
             HStack(spacing: 12) {
@@ -151,6 +156,8 @@ struct TopicAwarenessView: View {
             Capsule()
                 .fill(Color.blue.opacity(0.1))
         )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Topic coverage \(viewModel.coverageSummary.formattedPercentage)\(viewModel.isAnalyzing ? ", analyzing" : "")")
     }
 
     private var compactProgressBadge: some View {
@@ -163,6 +170,8 @@ struct TopicAwarenessView: View {
                 .font(.caption)
                 .foregroundColor(.green)
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(viewModel.coverageSummary.completedCount) of \(viewModel.coverageSummary.total) topics completed")
     }
 
     // MARK: - Overview Section
@@ -429,6 +438,8 @@ struct TopicDetailSheet: View {
                         .foregroundColor(.secondary)
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Close")
+                .accessibilityHint("Dismiss topic detail sheet")
             }
             .padding()
             .background(Color.gray.opacity(0.1))

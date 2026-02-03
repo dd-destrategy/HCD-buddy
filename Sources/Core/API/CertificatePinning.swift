@@ -34,25 +34,31 @@ enum CertificatePinning {
     /// SHA-256 public key hashes for api.openai.com
     /// These are the SPKI (Subject Public Key Info) hashes
     ///
-    /// To generate these hashes, run:
+    /// OpenAI's API uses Cloudflare as their CDN/proxy, so we pin to:
+    /// 1. Cloudflare intermediate certificates (more stable than leaf certs)
+    /// 2. DigiCert root CAs (backup pins for certificate chain validation)
+    ///
+    /// To generate/verify these hashes, run:
     /// ```
-    /// openssl s_client -connect api.openai.com:443 -servername api.openai.com < /dev/null 2>/dev/null | \
+    /// openssl s_client -connect api.openai.com:443 -servername api.openai.com -showcerts < /dev/null 2>/dev/null | \
     ///   openssl x509 -pubkey -noout | openssl pkey -pubin -outform DER | \
     ///   openssl dgst -sha256 -binary | base64
     /// ```
     ///
     /// Include multiple pins for certificate rotation resilience:
-    /// - Current production certificate
-    /// - Backup/intermediate certificates
-    /// - Root CA certificates (more stable, less secure)
+    /// - Cloudflare intermediate certificates (rotated periodically)
+    /// - Root CA certificates (very stable, changed rarely)
     static let openAIPins: Set<String> = [
-        // OpenAI's current certificate public key hash (example - replace with actual)
-        // These should be obtained by running the openssl command above against api.openai.com
-        "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
-        // Backup pin - DigiCert Global Root G2 (OpenAI's typical CA chain)
+        // Cloudflare Inc ECC CA-3 (intermediate cert used by OpenAI/Cloudflare)
+        "Wes86T8bEwYv2RHN2Foh3Dqhl8wEqhOrp8yBgT/AoLI=",
+        // Cloudflare Inc RSA CA-2 (alternate intermediate)
+        "RQeZkB42znUfsDIIFWIRiYEcKl7nHwNFwWCrnMMJbVc=",
+        // DigiCert Global Root G2 (root CA in Cloudflare's chain)
         "i7WTqTvh0OioIruIfFR4kMPnBqrS2rdiVPl/s2uC/CY=",
-        // Additional backup - DigiCert Global Root CA
-        "r/mIkG3eEpVdm+u/ko/cwxzOMo1bk4TyHIlByibiA5E="
+        // DigiCert Global Root CA (backup root CA)
+        "r/mIkG3eEpVdm+u/ko/cwxzOMo1bk4TyHIlByibiA5E=",
+        // Baltimore CyberTrust Root (legacy backup, used in some Cloudflare chains)
+        "Y9mvm0exBk1JoQ57f9Vm28jKo5lFm/woKcVxrYxu80o="
     ]
 
     /// Whether certificate pinning is enabled

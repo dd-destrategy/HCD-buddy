@@ -187,6 +187,7 @@ struct AudioTestView: View {
     @State private var systemAudioLevel: Double = 0.0
     @State private var microphoneLevel: Double = 0.0
     @State private var isRunning: Bool = false
+    @State private var audioTestTimer: Timer?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -292,33 +293,44 @@ struct AudioTestView: View {
         }
         .padding(24)
         .frame(width: 400, height: 300)
+        .onDisappear {
+            audioTestTimer?.invalidate()
+            audioTestTimer = nil
+        }
     }
 
     private func startAudioTest() {
         isRunning = true
+        let startTime = Date()
+
+        // Invalidate any existing timer
+        audioTestTimer?.invalidate()
 
         // Simulate audio testing with animation
-        Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { timer in
-            withAnimation {
-                systemAudioLevel = Double.random(in: 0.2 ... 0.8)
-                microphoneLevel = Double.random(in: 0.2 ... 0.8)
-            }
+        audioTestTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { timer in
+            Task { @MainActor in
+                withAnimation {
+                    self.systemAudioLevel = Double.random(in: 0.2 ... 0.8)
+                    self.microphoneLevel = Double.random(in: 0.2 ... 0.8)
+                }
 
-            // Stop after 5 seconds
-            if Date().timeIntervalSince(Date()) > 5 {
-                timer.invalidate()
-                isRunning = false
+                // Stop after 5 seconds
+                if Date().timeIntervalSince(startTime) > 5 {
+                    timer.invalidate()
+                    self.audioTestTimer = nil
+                    self.isRunning = false
 
-                // Generate result
-                let isSuccessful = systemAudioLevel > 0.3 && microphoneLevel > 0.3
-                testResult = AudioTestResult(
-                    isSuccessful: isSuccessful,
-                    message: isSuccessful ?
-                        "Audio levels look good! Both sources are detecting properly." :
-                        "Warning: One or more audio sources may not be configured correctly.",
-                    systemAudioLevel: systemAudioLevel,
-                    microphoneLevel: microphoneLevel
-                )
+                    // Generate result
+                    let isSuccessful = self.systemAudioLevel > 0.3 && self.microphoneLevel > 0.3
+                    self.testResult = AudioTestResult(
+                        isSuccessful: isSuccessful,
+                        message: isSuccessful ?
+                            "Audio levels look good! Both sources are detecting properly." :
+                            "Warning: One or more audio sources may not be configured correctly.",
+                        systemAudioLevel: self.systemAudioLevel,
+                        microphoneLevel: self.microphoneLevel
+                    )
+                }
             }
         }
     }

@@ -359,6 +359,81 @@ final class RealtimeAPIClientTests: XCTestCase {
         XCTAssertEqual(mockConnectionManager.connectCallCount, 2)
     }
 
+    // MARK: - Test: Auto-Reconnection Logic
+
+    func testAutoReconnect_triggeredOnUnexpectedDisconnect() async throws {
+        // Given: A connected client
+        let config = createValidSessionConfig()
+        mockConnectionManager.shouldSucceed = true
+        try await apiClient.connect(with: config)
+        XCTAssertEqual(apiClient.connectionState, .connected)
+
+        // When: Unexpected disconnection occurs
+        mockConnectionManager.simulateUnexpectedDisconnection()
+
+        // Allow some time for state change to propagate
+        try await Task.sleep(nanoseconds: 100_000_000) // 100ms
+
+        // Then: Should be in reconnecting state
+        XCTAssertEqual(apiClient.connectionState, .reconnecting)
+    }
+
+    func testReconnectionAttempts_tracking() async throws {
+        // Given: A client with tracking
+        let config = createValidSessionConfig()
+        mockConnectionManager.shouldSucceed = true
+        try await apiClient.connect(with: config)
+
+        // Initially, reconnection attempts should be 0
+        XCTAssertEqual(apiClient.currentReconnectionAttempts, 0)
+
+        // When: Not reconnecting
+        // Then: isReconnecting should be false
+        XCTAssertFalse(apiClient.isReconnecting)
+    }
+
+    func testDisconnect_cancelsReconnection() async throws {
+        // Given: A connected client
+        let config = createValidSessionConfig()
+        mockConnectionManager.shouldSucceed = true
+        try await apiClient.connect(with: config)
+
+        // When: Disconnecting (which should cancel any pending reconnection)
+        await apiClient.disconnect()
+
+        // Then: Reconnection attempts should be reset to 0
+        XCTAssertEqual(apiClient.currentReconnectionAttempts, 0)
+        XCTAssertEqual(apiClient.connectionState, .disconnected)
+    }
+
+    // MARK: - Test: Connection Health Check
+
+    func testConnectionHealthCheck_whenConnected() async throws {
+        // Given: A connected client
+        let config = createValidSessionConfig()
+        mockConnectionManager.shouldSucceed = true
+        try await apiClient.connect(with: config)
+
+        // When: Checking connection health
+        let health = await apiClient.checkConnectionHealth()
+
+        // Then: Should return health info
+        XCTAssertNotNil(health)
+        XCTAssertTrue(health?.isHealthy ?? false)
+        XCTAssertGreaterThanOrEqual(health?.latencyMs ?? 0, 0)
+    }
+
+    func testConnectionHealthCheck_whenDisconnected() async throws {
+        // Given: A disconnected client
+        XCTAssertEqual(apiClient.connectionState, .disconnected)
+
+        // When: Checking connection health
+        let health = await apiClient.checkConnectionHealth()
+
+        // Then: Should return nil
+        XCTAssertNil(health)
+    }
+
     func testReconnect_afterFailure() async throws {
         // Given: A failed connection attempt
         let config = createValidSessionConfig()
@@ -541,8 +616,16 @@ final class TestableConnectionManager: ConnectionManager {
         }
     }
 
+    override func sendHealthCheck() async -> Bool {
+        return shouldSucceed
+    }
+
     func simulateEvent(_ event: RealtimeEvent) {
         eventContinuation?.yield(event)
+    }
+
+    func simulateUnexpectedDisconnection() {
+        connectionStatePublisher.send(.disconnected)
     }
 }
 

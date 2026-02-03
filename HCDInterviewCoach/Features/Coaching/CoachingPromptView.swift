@@ -363,6 +363,16 @@ struct CoachingStatusBadge: View {
         .padding(.vertical, 4)
         .background(Color.hcdBackgroundSecondary)
         .clipShape(Capsule())
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilityLabel)
+    }
+
+    private var accessibilityLabel: String {
+        var label = "Coaching status: \(statusText)"
+        if viewModel.isEnabled && viewModel.promptCount > 0 {
+            label += ", \(viewModel.promptCount) of \(viewModel.maxPrompts) prompts shown"
+        }
+        return label
     }
 
     private var statusColor: Color {

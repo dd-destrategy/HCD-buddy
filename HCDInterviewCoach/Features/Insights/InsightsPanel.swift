@@ -41,6 +41,7 @@ struct InsightsPanel: View {
     @State private var insightToDelete: Insight?
 
     @FocusState private var isPanelFocused: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     // MARK: - Body
 
@@ -293,7 +294,7 @@ struct InsightsPanel: View {
             Spacer()
         }
         .frame(height: 36)
-        .animation(.easeInOut(duration: 0.2), value: viewModel.isCollapsed)
+        .animation(reduceMotion ? nil : .easeInOut(duration: AnimationTiming.normal), value: viewModel.isCollapsed)
     }
 
     private var expandedContent: some View {
@@ -319,7 +320,7 @@ struct InsightsPanel: View {
             }
         }
         .frame(minHeight: 200, maxHeight: 400)
-        .animation(.easeInOut(duration: 0.2), value: viewModel.isCollapsed)
+        .animation(reduceMotion ? nil : .easeInOut(duration: AnimationTiming.normal), value: viewModel.isCollapsed)
     }
 
     private var searchBar: some View {
@@ -375,8 +376,12 @@ struct InsightsPanel: View {
             }
             .onChange(of: viewModel.selectedInsight) { newSelection in
                 if let id = newSelection?.id {
-                    withAnimation(.easeInOut(duration: 0.2)) {
+                    if reduceMotion {
                         proxy.scrollTo(id, anchor: .center)
+                    } else {
+                        withAnimation(.easeInOut(duration: AnimationTiming.normal)) {
+                            proxy.scrollTo(id, anchor: .center)
+                        }
                     }
                 }
             }
@@ -496,6 +501,21 @@ struct FlaggingStatusBadge: View {
         .padding(.vertical, 4)
         .background(Color.hcdBackgroundSecondary)
         .clipShape(RoundedRectangle(cornerRadius: 4))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilityLabel)
+    }
+
+    private var accessibilityLabel: String {
+        switch status {
+        case .idle:
+            return "Flagging idle"
+        case .flagging:
+            return "Flagging in progress"
+        case .flagged:
+            return "Successfully flagged"
+        case .error:
+            return "Flagging error"
+        }
     }
 }
 

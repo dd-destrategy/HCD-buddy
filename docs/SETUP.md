@@ -202,6 +202,10 @@ HCD-buddy/
 
 ## Troubleshooting
 
+This section covers common issues and their solutions. For additional help, see `docs/USER_FAQ.md`.
+
+---
+
 ### Build Errors
 
 **"No such module 'SwiftUI'"**
@@ -212,27 +216,249 @@ HCD-buddy/
 - Add your Apple ID in Xcode > Preferences > Accounts
 - Select your team in project settings
 
+**"Swift 6 Concurrency Errors"**
+- Ensure `@MainActor` is applied to ObservableObject classes
+- Check that async code uses proper task isolation
+- Review `Sendable` conformance for types crossing actor boundaries
+
+**"SPM Package Resolution Failed"**
+```bash
+# Clear package cache
+rm -rf ~/Library/Caches/org.swift.swiftpm
+rm -rf .build
+
+# Re-resolve packages in Xcode
+File > Packages > Reset Package Caches
+```
+
+---
+
 ### Audio Issues
 
 **"BlackHole not detected"**
-```bash
-# Reinstall BlackHole
-brew reinstall blackhole-2ch
 
-# Restart CoreAudio
-sudo killall coreaudiod
-```
+1. **Verify installation:**
+   ```bash
+   brew list blackhole-2ch
+   ```
+
+2. **Reinstall if needed:**
+   ```bash
+   brew reinstall blackhole-2ch
+   ```
+
+3. **Restart CoreAudio:**
+   ```bash
+   sudo killall coreaudiod
+   ```
+
+4. **Check Audio MIDI Setup:**
+   - Open Applications > Utilities > Audio MIDI Setup
+   - BlackHole 2ch should appear in the device list
+   - If not visible, restart your Mac
 
 **"Multi-Output Device not found"**
-1. Open Audio MIDI Setup
-2. Delete existing Multi-Output Device
-3. Create new one with speakers + BlackHole 2ch
+
+1. Open Audio MIDI Setup (Applications > Utilities)
+2. Delete any existing Multi-Output Device
+3. Click **+** > Create Multi-Output Device
+4. Check both your speakers/headphones AND BlackHole 2ch
+5. Ensure "Drift Correction" is enabled for BlackHole
+
+**"No audio levels showing"**
+
+1. **Check system output:**
+   - System Settings > Sound > Output
+   - Must be set to your Multi-Output Device
+
+2. **Verify meeting audio:**
+   - Ensure video conferencing app is playing audio
+   - Check that remote participants are not muted
+
+3. **Test BlackHole capture:**
+   - Play audio from any app (e.g., YouTube in browser)
+   - The app's audio meter should show activity
+
+**"Audio is distorted or choppy"**
+
+1. **Check sample rate consistency:**
+   - Open Audio MIDI Setup
+   - Ensure all devices in Multi-Output use the same sample rate (44100 Hz or 48000 Hz)
+
+2. **Reduce system load:**
+   - Close unnecessary applications
+   - Check Activity Monitor for high CPU usage
+
+3. **Check buffer size:**
+   - In some cases, increasing audio buffer size helps
+   - This is a system-level setting in Audio MIDI Setup
+
+**"Microphone permission denied"**
+
+1. Go to System Settings > Privacy & Security > Microphone
+2. Find HCD Interview Coach in the list
+3. Toggle the switch to enable access
+4. Restart the app
+
+---
+
+### API Connection Problems
+
+**"Failed to connect to OpenAI API"**
+
+1. **Verify API key:**
+   - Settings > API > Check that key is entered
+   - Ensure no extra spaces or characters
+
+2. **Check API key validity:**
+   - Go to [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+   - Verify the key is active and not expired
+
+3. **Check network connection:**
+   - Ensure internet access is available
+   - Try accessing `api.openai.com` in a browser
+
+4. **Check firewall/VPN:**
+   - Disable VPN temporarily to test
+   - Check that corporate firewalls aren't blocking WebSocket connections
+
+**"Connection dropped during session"**
+
+1. **Check connection quality indicator** in the app
+2. **Network stability:**
+   - Prefer wired connection over Wi-Fi
+   - Check for network congestion
+
+3. **Automatic recovery:**
+   - The app will attempt to reconnect automatically
+   - Session data is preserved during brief disconnections
+
+**"Rate limit exceeded"**
+
+1. Check your OpenAI account usage limits
+2. Consider upgrading your OpenAI plan
+3. Reduce session frequency or duration temporarily
+
+**"Invalid API key format"**
+
+- OpenAI keys start with `sk-`
+- Ensure you copied the complete key
+- Keys are case-sensitive
+
+---
+
+### Permission Errors
+
+**"App cannot access microphone"**
+
+```bash
+# Check current permissions
+tccutil reset Microphone com.hcd.interviewcoach
+```
+
+Then re-grant permission when the app requests it.
+
+**"Keychain access denied"**
+
+1. Open Keychain Access app
+2. Search for "HCD Interview Coach"
+3. Delete any existing entries
+4. Re-enter API key in app settings
+
+**"Sandbox violation"**
+
+- Ensure you're running the signed/notarized build
+- Debug builds have different sandbox permissions
+- Check Console.app for specific sandbox errors
+
+---
 
 ### Test Failures
 
 **"Mock not conforming to protocol"**
 - Ensure mock methods match protocol signatures exactly
 - Check `Tests/Mocks/` for correct implementations
+- Verify `@MainActor` annotations match
+
+**"Async test timeout"**
+- Increase timeout duration in test
+- Check for deadlocks in async code
+- Ensure mock continuations are properly yielded
+
+**"SwiftData container error in tests"**
+- Use in-memory configuration for test containers
+- Ensure schema includes all required models
+- Check `IntegrationTestCase.swift` for proper setup
+
+**"Tests pass locally but fail in CI"**
+- Check for timing-dependent tests
+- Ensure no hardcoded file paths
+- Verify all dependencies are in version control
+
+---
+
+### Common Runtime Issues
+
+**"App crashes on launch"**
+
+1. **Check macOS version:** Requires 13.0 (Ventura) or later
+2. **Reset preferences:**
+   ```bash
+   defaults delete com.hcd.interviewcoach
+   ```
+3. **Check crash logs:**
+   - Open Console.app
+   - Search for "HCDInterviewCoach"
+   - Look for crash reports
+
+**"Session won't start"**
+
+1. API key must be configured (Settings > API)
+2. Audio setup must be complete (run setup wizard)
+3. No other session currently active
+4. Network connection available
+
+**"Export fails"**
+
+1. Check write permissions for destination folder
+2. Ensure session has data (not empty)
+3. Try a different export format (Markdown vs JSON)
+
+**"Coaching prompts never appear"**
+
+1. Verify coaching is enabled (Settings > Coaching)
+2. Check coaching level (Minimal = very few prompts)
+3. Prompts require 85%+ confidence
+4. Maximum 3 prompts per session
+5. 2-minute cooldown between prompts
+
+---
+
+### Getting Debug Information
+
+**Enable verbose logging:**
+```bash
+# Set environment variable before launching
+export HCD_LOG_LEVEL=debug
+open /Applications/HCDInterviewCoach.app
+```
+
+**View logs:**
+```bash
+# Stream live logs
+log stream --predicate 'subsystem == "com.hcd.interviewcoach"'
+
+# View recent logs
+log show --predicate 'subsystem == "com.hcd.interviewcoach"' --last 1h
+```
+
+**Generate diagnostic report:**
+1. In app: Help > Generate Diagnostic Report
+2. This creates a ZIP file with:
+   - App version and system info
+   - Recent log entries
+   - Audio device configuration
+   - (No sensitive data like API keys)
 
 ## Environment Variables
 

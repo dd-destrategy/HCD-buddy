@@ -55,7 +55,7 @@ final class TemplateManagerTests: XCTestCase {
         // Then: Built-in templates should be loaded
         let builtInTemplates = templateManager.getBuiltInTemplates()
         XCTAssertFalse(builtInTemplates.isEmpty)
-        XCTAssertGreaterThanOrEqual(builtInTemplates.count, 5) // 5 default templates
+        XCTAssertEqual(builtInTemplates.count, 4) // 4 default templates
     }
 
     func testLoadDefaultTemplates_hasDiscoveryInterview() {
@@ -70,15 +70,15 @@ final class TemplateManagerTests: XCTestCase {
         XCTAssertTrue(discoveryTemplate?.isBuiltIn ?? false)
     }
 
-    func testLoadDefaultTemplates_hasUsabilityTestDebrief() {
+    func testLoadDefaultTemplates_hasUsabilityTesting() {
         // Given: Template manager with loaded templates
 
-        // Then: Should have Usability Test Debrief template
+        // Then: Should have Usability Testing template
         let templates = templateManager.templates
-        let usabilityTemplate = templates.first { $0.name == "Usability Test Debrief" }
+        let usabilityTemplate = templates.first { $0.name == "Usability Testing" }
 
         XCTAssertNotNil(usabilityTemplate)
-        XCTAssertEqual(usabilityTemplate?.duration, 30)
+        XCTAssertEqual(usabilityTemplate?.duration, 45)
         XCTAssertTrue(usabilityTemplate?.isBuiltIn ?? false)
     }
 
@@ -94,27 +94,35 @@ final class TemplateManagerTests: XCTestCase {
         XCTAssertTrue(stakeholderTemplate?.isBuiltIn ?? false)
     }
 
-    func testLoadDefaultTemplates_hasJobsToBeDone() {
+    func testLoadDefaultTemplates_hasContextualInquiry() {
         // Given: Template manager with loaded templates
 
-        // Then: Should have Jobs-to-be-Done template
+        // Then: Should have Contextual Inquiry template
         let templates = templateManager.templates
-        let jtbdTemplate = templates.first { $0.name == "Jobs-to-be-Done" }
+        let contextualTemplate = templates.first { $0.name == "Contextual Inquiry" }
 
-        XCTAssertNotNil(jtbdTemplate)
-        XCTAssertTrue(jtbdTemplate?.isBuiltIn ?? false)
+        XCTAssertNotNil(contextualTemplate)
+        XCTAssertEqual(contextualTemplate?.duration, 90)
+        XCTAssertEqual(contextualTemplate?.consentVariant, .research)
+        XCTAssertTrue(contextualTemplate?.isBuiltIn ?? false)
     }
 
-    func testLoadDefaultTemplates_hasCustomerFeedback() {
+    func testLoadDefaultTemplates_templatesHaveSystemPrompts() {
         // Given: Template manager with loaded templates
 
-        // Then: Should have Customer Feedback template
-        let templates = templateManager.templates
-        let feedbackTemplate = templates.first { $0.name == "Customer Feedback" }
+        // Then: All built-in templates should have system prompt additions for coaching
+        let templates = templateManager.getBuiltInTemplates()
 
-        XCTAssertNotNil(feedbackTemplate)
-        XCTAssertEqual(feedbackTemplate?.duration, 30)
-        XCTAssertTrue(feedbackTemplate?.isBuiltIn ?? false)
+        for template in templates {
+            XCTAssertNotNil(
+                template.systemPromptAdditions,
+                "\(template.name) should have system prompt additions"
+            )
+            XCTAssertFalse(
+                template.systemPromptAdditions?.isEmpty ?? true,
+                "\(template.name) should have non-empty system prompt"
+            )
+        }
     }
 
     func testLoadDefaultTemplates_allHaveTopics() {

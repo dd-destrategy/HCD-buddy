@@ -24,6 +24,7 @@ struct AudioSetupWizardView: View {
     // MARK: - Environment
 
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     // MARK: - Body
 
@@ -78,7 +79,7 @@ struct AudioSetupWizardView: View {
                     RoundedRectangle(cornerRadius: 2)
                         .fill(Color.accentColor)
                         .frame(width: geometry.size.width * viewModel.currentStep.progressPercentage, height: 4)
-                        .animation(.easeInOut(duration: 0.3), value: viewModel.currentStep)
+                        .animation(reduceMotion ? nil : .easeInOut(duration: AnimationTiming.normal), value: viewModel.currentStep)
                 }
             }
             .frame(height: 4)

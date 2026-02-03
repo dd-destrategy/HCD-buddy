@@ -30,6 +30,7 @@ struct InsightRowView: View {
 
     @State private var isHovered: Bool = false
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     // MARK: - Body
 
@@ -71,8 +72,12 @@ struct InsightRowView: View {
             onDoubleTap()
         }
         .onHover { hovering in
-            withAnimation(.easeInOut(duration: 0.15)) {
+            if reduceMotion {
                 isHovered = hovering
+            } else {
+                withAnimation(.easeInOut(duration: 0.15)) {
+                    isHovered = hovering
+                }
             }
         }
         .accessibilityElement(children: .combine)
@@ -165,7 +170,7 @@ struct InsightRowView: View {
             .accessibilityLabel("Delete insight")
             .accessibilityIdentifier(AccessibilityIdentifiers.Insights.deleteButton(id: insight.id.uuidString))
         }
-        .transition(.opacity.combined(with: .scale(scale: 0.8)))
+        .transition(reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.8)))
     }
 
     private var backgroundView: some View {

@@ -236,6 +236,7 @@ struct WizardSkipButton: View {
 /// Visual progress indicator for the wizard
 struct WizardProgressIndicator: View {
     @EnvironmentObject private var viewModel: AudioSetupViewModel
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         HStack(spacing: 8) {
@@ -262,7 +263,7 @@ struct WizardProgressIndicator: View {
                         .foregroundColor(.white)
                 }
             }
-            .animation(.easeInOut(duration: 0.2), value: viewModel.currentStep)
+            .animation(reduceMotion ? nil : .easeInOut(duration: AnimationTiming.normal), value: viewModel.currentStep)
     }
 
     private func dotColor(isCurrent: Bool, isComplete: Bool) -> Color {

@@ -1,23 +1,35 @@
 # Agent Registry - Format: agent_id|agent_name
-# Agents launched 2026-02-03
-a7b8d94|Feature Completeness Agent
-abae278|i18n Readiness Agent
-# Note: 18 other agents running but IDs not captured:
-# - Architecture Review
-# - Security Audit
-# - Test Coverage Audit
-# - Accessibility Compliance
-# - Performance Audit
-# - SwiftUI Best Practices
-# - API Integration Review
-# - Data Model Review
-# - Documentation Review
-# - Product Manager
-# - Creative Technologist
-# - UX Psychologist
-# - Growth Strategist
-# - Journey Designer
-# - Technical Writer
-# - Visual Designer
-# - SRE Reliability
-# - Motion Designer
+# Evaluation Agents (2026-02-03)
+a38b912|Architecture Review
+abf6d5e|Security Audit
+a2e7bf1|Test Coverage
+afcd796|Accessibility Compliance
+a48cdf0|Performance Audit
+af42006|SwiftUI Best Practices
+a0980c0|API Integration Review
+aaa7ee3|Data Model Review
+ad82158|Documentation Review
+a71bd7b|Feature Completeness
+ac93fb0|Product Manager
+a84059d|Creative Technologist
+a04b6b5|UX Psychologist
+a86ff08|Growth Strategist
+a8f37e0|Journey Designer
+a615f36|Technical Writer
+a4d2e44|Visual Designer
+a992363|SRE Reliability
+adf4293|Motion Designer
+a0e0a56|i18n Readiness
+
+# Remediation Agents (2026-02-03)
+aec8f4e|Security Fixes (R1)
+abd13ab|API Reconnection (R5)
+a3201b0|SRE Recovery (R1)
+a6edd8c|Design System Tokens (R2)
+a4ea8ab|Accessibility Fixes (R3)
+afeffd6|Database Indexes (R4)
+a1472b3|SwiftUI Lifecycle (R10)
+a2c354d|Motion-Safe Animations (R6)
+a9a1567|Interview Templates (R8)
+a6b8e85|Documentation FAQ (R8)
+af7b503|Liquid Glass UI

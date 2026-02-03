@@ -57,9 +57,10 @@ struct SessionConfiguration: Identifiable {
 struct ActiveSessionPlaceholderView: View {
     let sessionConfig: SessionConfiguration
     let onEndSession: () -> Void
-    
+
     @State private var elapsedTime: TimeInterval = 0
-    
+    @State private var timer: Timer?
+
     var body: some View {
         VStack(spacing: 24) {
             // Header
@@ -152,11 +153,19 @@ struct ActiveSessionPlaceholderView: View {
         .onAppear {
             startTimer()
         }
+        .onDisappear {
+            timer?.invalidate()
+            timer = nil
+        }
     }
-    
+
     private func startTimer() {
-        Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
-            elapsedTime += 1
+        // Invalidate any existing timer first
+        timer?.invalidate()
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+            Task { @MainActor in
+                elapsedTime += 1
+            }
         }
     }
     

@@ -43,6 +43,13 @@ final class RealtimeAPIClient: RealtimeAPIConnecting {
     private let connectionManager: ConnectionManager
     private let eventParser: RealtimeEventParser
 
+    // Reconnection tracking
+    private var reconnectionTask: Task<Void, Never>?
+    private var reconnectionAttempts = 0
+    private let maxReconnectionAttempts = 5
+    private let baseReconnectionDelay: TimeInterval = 1.0 // 1 second
+    private let maxReconnectionDelay: TimeInterval = 30.0 // 30 seconds
+
     // Audio streaming
     private var audioStreamTask: Task<Void, Never>?
     private let audioQueue = AsyncStream<AudioChunk>.makeStream()
@@ -60,12 +67,17 @@ final class RealtimeAPIClient: RealtimeAPIConnecting {
     // MARK: - RealtimeAPIConnecting Implementation
 
     func connect(with config: SessionConfig) async throws {
-        guard connectionState == .disconnected else {
+        // Allow connection from disconnected or reconnecting states
+        guard connectionState == .disconnected || connectionState == .reconnecting else {
             throw ConnectionError.invalidConfiguration
         }
 
         currentConfig = config
-        connectionStateSubject.send(.connecting)
+
+        // Only send .connecting state if not already reconnecting
+        if connectionState != .reconnecting {
+            connectionStateSubject.send(.connecting)
+        }
 
         do {
             // Validate API key
@@ -130,6 +142,11 @@ final class RealtimeAPIClient: RealtimeAPIConnecting {
         isConnected = false
         sessionStartTime = nil
 
+        // Cancel any pending reconnection
+        reconnectionTask?.cancel()
+        reconnectionTask = nil
+        reconnectionAttempts = 0
+
         // Stop event listening
         audioStreamTask?.cancel()
         audioStreamTask = nil
@@ -143,6 +160,32 @@ final class RealtimeAPIClient: RealtimeAPIConnecting {
 
         // Update state
         connectionStateSubject.send(.disconnected)
+    }
+
+    // MARK: - Connection Health
+
+    /// Check if the connection is healthy and responsive
+    /// - Returns: A tuple indicating (isHealthy, latencyMs) or nil if check failed
+    func checkConnectionHealth() async -> (isHealthy: Bool, latencyMs: Double)? {
+        guard isConnected, connectionState == .connected else {
+            return nil
+        }
+
+        let startTime = Date()
+        let isResponsive = await connectionManager.sendHealthCheck()
+        let latencyMs = Date().timeIntervalSince(startTime) * 1000
+
+        return (isHealthy: isResponsive, latencyMs: latencyMs)
+    }
+
+    /// Current reconnection attempt count (for monitoring)
+    var currentReconnectionAttempts: Int {
+        reconnectionAttempts
+    }
+
+    /// Whether a reconnection is currently in progress
+    var isReconnecting: Bool {
+        connectionState == .reconnecting
     }
 
     // MARK: - Private Methods
@@ -172,13 +215,54 @@ final class RealtimeAPIClient: RealtimeAPIConnecting {
     }
 
     private func attemptReconnection() {
-        Task {
-            guard let config = currentConfig else { return }
+        // Cancel any existing reconnection task
+        reconnectionTask?.cancel()
 
+        reconnectionTask = Task { [weak self] in
+            guard let self = self else { return }
+            guard let config = self.currentConfig else { return }
+
+            // Check if we've exceeded max retries
+            if self.reconnectionAttempts >= self.maxReconnectionAttempts {
+                self.connectionStateSubject.send(.failed(ConnectionError.timeout))
+                self.isConnected = false
+                self.reconnectionAttempts = 0
+                return
+            }
+
+            // Calculate exponential backoff delay: 1s, 2s, 4s, 8s, 16s (capped at 30s)
+            let delay = min(
+                self.baseReconnectionDelay * pow(2.0, Double(self.reconnectionAttempts)),
+                self.maxReconnectionDelay
+            )
+
+            self.reconnectionAttempts += 1
+
+            // Wait for backoff period
             do {
-                try await connect(with: config)
+                try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
             } catch {
-                // Reconnection failed, connection manager will retry with backoff
+                // Task was cancelled
+                return
+            }
+
+            // Check if task was cancelled during sleep
+            guard !Task.isCancelled else { return }
+
+            // Attempt to reconnect
+            do {
+                try await self.connect(with: config)
+                // Success - reset retry count
+                self.reconnectionAttempts = 0
+            } catch {
+                // Reconnection failed, will retry if not at max attempts
+                if self.reconnectionAttempts < self.maxReconnectionAttempts {
+                    self.attemptReconnection()
+                } else {
+                    self.connectionStateSubject.send(.failed(ConnectionError.timeout))
+                    self.isConnected = false
+                    self.reconnectionAttempts = 0
+                }
             }
         }
     }
@@ -244,6 +328,7 @@ final class RealtimeAPIClient: RealtimeAPIConnecting {
         // Perform synchronous cleanup only - async tasks may not complete during deallocation
         // Callers should call disconnect() explicitly before releasing the client
         isConnected = false
+        reconnectionTask?.cancel()
         audioStreamTask?.cancel()
         transcriptionContinuation?.finish()
         functionCallContinuation?.finish()
@@ -369,6 +454,27 @@ final class ConnectionManager {
         try await webSocketTask.send(.string(string))
     }
 
+    /// Send a health check ping and wait for response
+    /// - Returns: true if the connection is responsive, false otherwise
+    func sendHealthCheck() async -> Bool {
+        guard let webSocketTask = webSocketTask else {
+            return false
+        }
+
+        let message: [String: Any] = ["type": "ping"]
+        guard let data = try? JSONSerialization.data(withJSONObject: message),
+              let string = String(data: data, encoding: .utf8) else {
+            return false
+        }
+
+        do {
+            try await webSocketTask.send(.string(string))
+            return true
+        } catch {
+            return false
+        }
+    }
+
     // MARK: - Private Methods
 
     private func waitForConnection() async throws {
@@ -419,9 +525,9 @@ final class ConnectionManager {
                 }
             }
         } catch {
-            // Connection closed or error
+            // Connection closed or error - notify client to handle reconnection
             connectionStatePublisher.send(.disconnected)
-            attemptReconnection()
+            // RealtimeAPIClient handles reconnection logic via handleConnectionStateChange
         }
     }
 
@@ -455,20 +561,10 @@ final class ConnectionManager {
         }
     }
 
-    private func attemptReconnection() {
-        guard reconnectionAttempts < maxReconnectionAttempts else {
-            connectionStatePublisher.send(.failed(ConnectionError.timeout))
-            return
-        }
-
-        reconnectionAttempts += 1
-        let delay = min(pow(2.0, Double(reconnectionAttempts)), 32.0) // Exponential backoff, max 32s
-
-        Task {
-            try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
-            connectionStatePublisher.send(.reconnecting)
-            // Reconnection would be triggered by the client with the stored config
-        }
+    /// Resets the reconnection attempt counter
+    /// Called by the client after a successful reconnection
+    func resetReconnectionAttempts() {
+        reconnectionAttempts = 0
     }
 }
 

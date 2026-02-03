@@ -44,6 +44,7 @@ struct TranscriptView: View {
     // MARK: - Environment
 
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @EnvironmentObject private var focusManager: FocusManager
 
     // MARK: - Body
@@ -64,7 +65,7 @@ struct TranscriptView: View {
                     onNext: { viewModel.nextSearchResult() },
                     onClose: { closeSearch() }
                 )
-                .transition(.move(edge: .top).combined(with: .opacity))
+                .transition(reduceMotion ? .opacity : .move(edge: .top).combined(with: .opacity))
             }
 
             // Main transcript content
@@ -225,8 +226,12 @@ struct TranscriptView: View {
                 }
                 .onChange(of: viewModel.selectedUtteranceId) { _, newId in
                     if let id = newId {
-                        withAnimation {
+                        if reduceMotion {
                             proxy.scrollTo(id, anchor: .center)
+                        } else {
+                            withAnimation {
+                                proxy.scrollTo(id, anchor: .center)
+                            }
                         }
                     }
                 }
@@ -307,6 +312,18 @@ struct TranscriptView: View {
         }
         .font(.caption)
         .foregroundColor(.secondary)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(statisticsAccessibilityLabel(stats))
+    }
+
+    private func statisticsAccessibilityLabel(_ stats: TranscriptStatistics) -> String {
+        var parts: [String] = []
+        parts.append("\(stats.totalUtterances) utterances")
+        parts.append("\(stats.totalWords) words")
+        if stats.durationSeconds > 0 {
+            parts.append("duration \(stats.formattedDuration)")
+        }
+        return "Transcript statistics: " + parts.joined(separator: ", ")
     }
 
     #if DEBUG
@@ -336,18 +353,30 @@ struct TranscriptView: View {
     // MARK: - Actions
 
     private func toggleSearch() {
-        withAnimation(.easeInOut(duration: 0.2)) {
+        if reduceMotion {
             isSearchVisible.toggle()
             if !isSearchVisible {
                 viewModel.clearSearch()
+            }
+        } else {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isSearchVisible.toggle()
+                if !isSearchVisible {
+                    viewModel.clearSearch()
+                }
             }
         }
     }
 
     private func closeSearch() {
-        withAnimation(.easeInOut(duration: 0.2)) {
+        if reduceMotion {
             isSearchVisible = false
             viewModel.clearSearch()
+        } else {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isSearchVisible = false
+                viewModel.clearSearch()
+            }
         }
     }
 
@@ -359,8 +388,12 @@ struct TranscriptView: View {
 
     private func scrollToBottom(proxy: ScrollViewProxy) {
         if let lastId = viewModel.filteredUtterances.last?.id {
-            withAnimation(.easeOut(duration: 0.2)) {
+            if reduceMotion {
                 proxy.scrollTo(lastId, anchor: .bottom)
+            } else {
+                withAnimation(.easeOut(duration: 0.2)) {
+                    proxy.scrollTo(lastId, anchor: .bottom)
+                }
             }
         }
     }

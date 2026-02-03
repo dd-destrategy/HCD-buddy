@@ -8,8 +8,8 @@ final class Session {
     var participantName: String
     var projectName: String
     var sessionMode: SessionMode
-    var startedAt: Date
-    var endedAt: Date?
+    @Attribute(.indexed) var startedAt: Date
+    @Attribute(.indexed) var endedAt: Date?
     var audioFilePath: String?
     var totalDurationSeconds: Double
     var notes: String?

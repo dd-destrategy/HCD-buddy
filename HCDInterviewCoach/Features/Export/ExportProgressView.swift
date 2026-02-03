@@ -16,6 +16,7 @@ struct ExportProgressView: View {
     let onCancel: () -> Void
 
     @State private var animatingPhase = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     // MARK: - Body
 
@@ -44,15 +45,15 @@ struct ExportProgressView: View {
                         )
                         .frame(width: 100, height: 100)
                         .rotationEffect(.degrees(-90))
-                        .animation(.easeInOut(duration: 0.3), value: progress.progress)
+                        .animation(reduceMotion ? nil : .easeInOut(duration: AnimationTiming.normal), value: progress.progress)
 
                     // Phase icon
                     phaseIcon
                         .font(.system(size: 32))
                         .foregroundColor(progressColor)
-                        .scaleEffect(animatingPhase ? 1.1 : 1.0)
+                        .scaleEffect(reduceMotion ? 1.0 : (animatingPhase ? 1.1 : 1.0))
                         .animation(
-                            .easeInOut(duration: 0.8).repeatForever(autoreverses: true),
+                            reduceMotion ? nil : .easeInOut(duration: 0.8).repeatForever(autoreverses: true),
                             value: animatingPhase
                         )
                 }
@@ -101,7 +102,9 @@ struct ExportProgressView: View {
         .frame(width: 350, height: 450)
         .background(Color(.windowBackgroundColor))
         .onAppear {
-            animatingPhase = true
+            if !reduceMotion {
+                animatingPhase = true
+            }
         }
     }
 
@@ -223,6 +226,7 @@ struct ExportProgressView: View {
 struct ExportProgressIndicator: View {
     let progress: ExportProgress
     let compact: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(progress: ExportProgress, compact: Bool = false) {
         self.progress = progress
@@ -270,7 +274,7 @@ struct ExportProgressIndicator: View {
                     RoundedRectangle(cornerRadius: 4)
                         .fill(progressColor)
                         .frame(width: geometry.size.width * progress.progress)
-                        .animation(.easeInOut(duration: 0.3), value: progress.progress)
+                        .animation(reduceMotion ? nil : .easeInOut(duration: AnimationTiming.normal), value: progress.progress)
                 }
             }
             .frame(height: 8)

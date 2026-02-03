@@ -37,6 +37,7 @@ struct TopicRowView: View {
     var onSelect: ((TopicItem) -> Void)?
 
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isHovered = false
     @State private var isPressed = false
 
@@ -57,8 +58,12 @@ struct TopicRowView: View {
         }
         .contentShape(Rectangle())
         .onHover { hovering in
-            withAnimation(.easeInOut(duration: 0.15)) {
+            if reduceMotion {
                 isHovered = hovering
+            } else {
+                withAnimation(.easeInOut(duration: 0.15)) {
+                    isHovered = hovering
+                }
             }
         }
         .accessibilityElement(children: .combine)
@@ -251,14 +256,22 @@ struct TopicRowView: View {
     private var statusButton: some View {
         Button {
             if isInteractive {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                if reduceMotion {
                     isPressed = true
+                } else {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                        isPressed = true
+                    }
                 }
                 onStatusCycle?(topic.id)
 
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                    if reduceMotion {
                         isPressed = false
+                    } else {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                            isPressed = false
+                        }
                     }
                 }
             }
@@ -355,13 +368,18 @@ struct TopicRowGroup: View {
     var onSelect: ((TopicItem) -> Void)?
 
     @State private var isExpanded = true
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Section header
             Button {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                if reduceMotion {
                     isExpanded.toggle()
+                } else {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        isExpanded.toggle()
+                    }
                 }
             } label: {
                 HStack {
