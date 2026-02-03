@@ -12,6 +12,15 @@
   "hooks": {
     "PostToolUse": [
       {
+        "matcher": {},
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/agent-status.sh"
+          }
+        ]
+      },
+      {
         "matcher": {
           "tool_name": "Write"
         },
