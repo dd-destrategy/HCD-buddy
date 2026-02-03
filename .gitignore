@@ -122,3 +122,7 @@ tmp/
 # =============================================================================
 docs/_build/
 .docusaurus/
+
+# Agent status hook runtime files
+.claude/.last-agent-check
+.claude/agent-status.md
