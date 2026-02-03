@@ -3,7 +3,7 @@ import SwiftUI
 /// Main session setup view integrating template selection, mode selection, and consent disclosure
 struct SessionSetupView: View {
     @ObservedObject var templateManager: TemplateManager
-    let onStartSession: (InterviewTemplate, SessionMode) -> Void
+        let onStartSession: (InterviewTemplate, SessionMode) -> Void
 
     @State private var selectedTemplate: InterviewTemplate?
     @State private var selectedMode: SessionMode = .full

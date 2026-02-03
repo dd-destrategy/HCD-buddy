@@ -57,10 +57,10 @@ struct SessionConfiguration: Identifiable {
 struct ActiveSessionPlaceholderView: View {
     let sessionConfig: SessionConfiguration
     let onEndSession: () -> Void
-
+    
     @State private var elapsedTime: TimeInterval = 0
     @State private var timer: Timer?
-
+    
     var body: some View {
         VStack(spacing: 24) {
             // Header
@@ -137,7 +137,10 @@ struct ActiveSessionPlaceholderView: View {
                     .font(.body)
                     .foregroundColor(.secondary)
                 
-                Button(action: onEndSession) {
+                Button(action: {
+                    timer?.invalidate()
+                    onEndSession()
+                }) {
                     HStack {
                         Image(systemName: "stop.circle.fill")
                         Text("End Session")
@@ -155,17 +158,12 @@ struct ActiveSessionPlaceholderView: View {
         }
         .onDisappear {
             timer?.invalidate()
-            timer = nil
         }
     }
-
+    
     private func startTimer() {
-        // Invalidate any existing timer first
-        timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-            Task { @MainActor in
-                elapsedTime += 1
-            }
+            elapsedTime += 1
         }
     }
     
@@ -180,6 +178,7 @@ struct ActiveSessionPlaceholderView: View {
     ContentView()
         .environmentObject(ServiceContainer())
 }
+
 #Preview("Active Session") {
     let config = SessionConfiguration(
         template: InterviewTemplate(
