@@ -16,6 +16,7 @@ struct AudioSetupWizardView: View {
 
     @Binding var isPresented: Bool
     var onComplete: () -> Void
+    var onSkipSetup: (() -> Void)?
 
     // MARK: - State
 
@@ -35,6 +36,11 @@ struct AudioSetupWizardView: View {
 
             // Current step content
             currentStepView
+
+            // Skip setup link (shown on non-complete steps)
+            if viewModel.currentStep != .complete {
+                skipSetupLink
+            }
 
             // Keyboard shortcut hints (for accessibility)
             keyboardHints
@@ -233,7 +239,31 @@ struct AudioSetupWizardView: View {
         }
     }
 
+    // MARK: - Skip Setup Link
+
+    private var skipSetupLink: some View {
+        Button(action: {
+            skipEntireSetup()
+        }) {
+            Text("I\u{2019}ll set this up later")
+                .font(Typography.caption)
+                .foregroundColor(.secondary)
+                .underline(color: .secondary.opacity(0.5))
+        }
+        .buttonStyle(.plain)
+        .padding(.top, Spacing.sm)
+        .padding(.bottom, Spacing.xs)
+        .accessibilityLabel("Skip audio setup")
+        .accessibilityHint("Launches the app in limited mode without full audio capture. You can complete setup later from Settings.")
+    }
+
     // MARK: - Actions
+
+    private func skipEntireSetup() {
+        viewModel.skipEntireSetup()
+        onSkipSetup?()
+        isPresented = false
+    }
 
     private func dismissWizard() {
         if viewModel.currentStep == .complete {
@@ -310,12 +340,14 @@ extension View {
     /// Presents the Audio Setup Wizard as a sheet
     func audioSetupSheet(
         isPresented: Binding<Bool>,
-        onComplete: @escaping () -> Void
+        onComplete: @escaping () -> Void,
+        onSkipSetup: (() -> Void)? = nil
     ) -> some View {
         self.sheet(isPresented: isPresented) {
             AudioSetupWizardView(
                 isPresented: isPresented,
-                onComplete: onComplete
+                onComplete: onComplete,
+                onSkipSetup: onSkipSetup
             )
         }
     }
@@ -327,12 +359,17 @@ extension View {
 struct AudioSetupLaunchHelper {
 
     /// Checks if the audio setup wizard should be presented on app launch
-    /// Returns true if setup has never been completed or if audio devices have changed
+    /// Returns true if setup has never been completed or skipped, or if audio devices have changed
     static func shouldPresentOnLaunch() -> Bool {
         // Check if setup has been completed
         let hasCompletedSetup = UserDefaults.standard.bool(forKey: "hcd_audio_setup_completed")
 
         if !hasCompletedSetup {
+            // If setup was skipped, don't present the wizard again automatically
+            let wasSkipped = UserDefaults.standard.bool(forKey: "hcd_audio_setup_skipped")
+            if wasSkipped {
+                return false
+            }
             return true
         }
 
@@ -353,9 +390,22 @@ struct AudioSetupLaunchHelper {
         return false
     }
 
+    /// Whether the audio setup was skipped (app is in limited mode)
+    static var isAudioSetupSkipped: Bool {
+        let wasSkipped = UserDefaults.standard.bool(forKey: "hcd_audio_setup_skipped")
+        let hasCompleted = UserDefaults.standard.bool(forKey: "hcd_audio_setup_completed")
+        return wasSkipped && !hasCompleted
+    }
+
     /// Resets the setup completion flag (useful for testing or re-running setup)
     static func resetSetupCompletion() {
         UserDefaults.standard.removeObject(forKey: "hcd_audio_setup_completed")
         UserDefaults.standard.removeObject(forKey: "hcd_audio_setup_completed_date")
+    }
+
+    /// Clears the skip state so the wizard will be presented again
+    static func clearSkipState() {
+        UserDefaults.standard.removeObject(forKey: "hcd_audio_setup_skipped")
+        UserDefaults.standard.removeObject(forKey: "hcd_audio_setup_skipped_date")
     }
 }

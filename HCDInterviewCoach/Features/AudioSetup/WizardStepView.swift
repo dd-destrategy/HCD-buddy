@@ -323,18 +323,23 @@ struct SetupStatusBadge: View {
         switch status {
         case .pending:
             Text("Not checked")
+                .font(Typography.caption)
                 .foregroundColor(.secondary)
         case .checking:
             Text("Checking...")
+                .font(Typography.caption)
                 .foregroundColor(.primary)
         case .success:
             Text("Verified")
+                .font(Typography.caption)
                 .foregroundColor(.green)
-        case .failure(let message):
+        case .failure:
             Text("Failed")
+                .font(Typography.caption)
                 .foregroundColor(.red)
         case .skipped:
             Text("Skipped")
+                .font(Typography.caption)
                 .foregroundColor(.orange)
         }
     }
@@ -428,36 +433,294 @@ struct WizardInfoBox: View {
     }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .top, spacing: Spacing.md) {
             Image(systemName: style.iconName)
-                .font(.title3)
+                .font(Typography.heading2)
                 .foregroundColor(style.iconColor)
                 .accessibilityHidden(true)
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 if let title = title {
                     Text(title)
-                        .font(.headline)
+                        .font(Typography.heading3)
                         .foregroundColor(.primary)
                 }
 
                 Text(message)
-                    .font(.body)
+                    .font(Typography.body)
                     .foregroundColor(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
             Spacer()
         }
-        .padding(16)
+        .padding(Spacing.lg)
         .background(style.backgroundColor)
         .overlay(
-            RoundedRectangle(cornerRadius: 8)
+            RoundedRectangle(cornerRadius: CornerRadius.medium)
                 .stroke(style.borderColor, lineWidth: 1)
         )
-        .cornerRadius(8)
+        .cornerRadius(CornerRadius.medium)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(style == .warning ? "Warning" : style == .error ? "Error" : style == .tip ? "Tip" : "Information"): \(title ?? "") \(message)")
+    }
+}
+
+// MARK: - Inline Troubleshooting Tip
+
+/// A subtle inline tip shown beneath status sections to help users who get stuck.
+/// Uses secondary text styling and a lightbulb icon to stay non-intrusive.
+struct InlineTroubleshootingTip: View {
+    let message: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: Spacing.sm) {
+            Image(systemName: "lightbulb.fill")
+                .font(Typography.caption)
+                .foregroundColor(.orange)
+                .accessibilityHidden(true)
+
+            Text(message)
+                .font(Typography.caption)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(Spacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: CornerRadius.medium)
+                .fill(Color.orange.opacity(0.06))
+        )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Tip: \(message)")
+    }
+}
+
+// MARK: - Troubleshooting Section
+
+/// An expandable "Having trouble?" section with common fixes for a wizard step.
+/// Stays collapsed by default so it does not clutter the screen.
+struct TroubleshootingSection: View {
+
+    /// Model for a single troubleshooting tip inside the section.
+    struct Tip: Identifiable {
+        let id = UUID()
+        let text: String
+    }
+
+    let tips: [Tip]
+    @State private var isExpanded = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            // Toggle header
+            Button(action: {
+                if reduceMotion {
+                    isExpanded.toggle()
+                } else {
+                    withAnimation(.easeInOut(duration: 0.25)) {
+                        isExpanded.toggle()
+                    }
+                }
+            }) {
+                HStack(spacing: Spacing.sm) {
+                    Image(systemName: "questionmark.circle.fill")
+                        .font(Typography.bodyMedium)
+                        .foregroundColor(.orange)
+
+                    Text("Having trouble?")
+                        .font(Typography.bodyMedium)
+                        .foregroundColor(.primary)
+
+                    Spacer()
+
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .font(Typography.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Having trouble?")
+            .accessibilityHint(isExpanded ? "Collapse troubleshooting tips" : "Expand troubleshooting tips")
+            .accessibilityAddTraits(.isButton)
+
+            // Expandable tip list
+            if isExpanded {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
+                    ForEach(tips) { tip in
+                        HStack(alignment: .top, spacing: Spacing.sm) {
+                            Image(systemName: "wrench.and.screwdriver")
+                                .font(Typography.small)
+                                .foregroundColor(.secondary)
+                                .frame(width: 14, alignment: .center)
+                                .accessibilityHidden(true)
+
+                            Text(tip.text)
+                                .font(Typography.caption)
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                }
+                .padding(.leading, Spacing.xl)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
+        .padding(Spacing.lg)
+        .background(
+            RoundedRectangle(cornerRadius: CornerRadius.medium)
+                .fill(Color.orange.opacity(0.06))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: CornerRadius.medium)
+                .stroke(Color.orange.opacity(0.15), lineWidth: 1)
+        )
+        .accessibilityElement(children: .contain)
+    }
+}
+
+// MARK: - Setup Error View
+
+/// A comprehensive error display component for the audio setup wizard.
+/// Shows a structured error with:
+/// - A clear title describing **what** went wrong
+/// - A reason explaining **why** it happened
+/// - Step-by-step instructions for **how** to fix it
+/// - A "Try Again" action button
+///
+/// Uses Typography tokens for consistent text styling.
+struct SetupErrorView: View {
+    /// The setup error to display.
+    let error: HCDError.AudioSetupError
+    /// Closure invoked when the user taps "Try Again".
+    let onRetry: () -> Void
+    /// Optional closure invoked when the user taps a contextual action (e.g., open settings).
+    var onAction: (() -> Void)?
+    /// Label for the contextual action button.
+    var actionLabel: String?
+    /// SF Symbol name for the contextual action button.
+    var actionIcon: String?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
+            // MARK: What went wrong
+            HStack(alignment: .top, spacing: Spacing.md) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(Typography.heading2)
+                    .foregroundColor(.red)
+                    .accessibilityHidden(true)
+
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    Text(error.errorDescription ?? "An error occurred")
+                        .font(Typography.heading3)
+                        .foregroundColor(.primary)
+
+                    if let reason = error.failureReason {
+                        Text(reason)
+                            .font(Typography.body)
+                            .foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+            }
+
+            Divider()
+
+            // MARK: How to fix it
+            if let recovery = error.recoverySuggestion {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
+                    Text("How to fix this")
+                        .font(Typography.heading3)
+                        .foregroundColor(.primary)
+
+                    Text(recovery)
+                        .font(Typography.caption)
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .lineSpacing(3)
+                }
+            }
+
+            // MARK: Action buttons
+            HStack(spacing: Spacing.md) {
+                Button(action: onRetry) {
+                    HStack(spacing: Spacing.xs) {
+                        Image(systemName: "arrow.clockwise")
+                            .font(Typography.body)
+                        Text("Try Again")
+                            .font(Typography.bodyMedium)
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .accessibilityLabel("Try again")
+                .accessibilityHint("Re-runs the check for this step")
+
+                if let onAction = onAction,
+                   let actionLabel = actionLabel {
+                    Button(action: onAction) {
+                        HStack(spacing: Spacing.xs) {
+                            if let icon = actionIcon {
+                                Image(systemName: icon)
+                                    .font(Typography.body)
+                            }
+                            Text(actionLabel)
+                                .font(Typography.bodyMedium)
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityLabel(actionLabel)
+                }
+            }
+        }
+        .padding(Spacing.lg)
+        .background(
+            RoundedRectangle(cornerRadius: CornerRadius.large)
+                .fill(Color.red.opacity(0.06))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: CornerRadius.large)
+                .stroke(Color.red.opacity(0.2), lineWidth: 1)
+        )
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Error: \(error.errorDescription ?? "Unknown error")")
+    }
+}
+
+// MARK: - Video Tutorial Link
+
+/// A subtle link component that points to a video tutorial for a wizard step.
+/// Shows a play icon alongside a descriptive label. Tapping opens the URL in the
+/// user's default browser. The URLs are placeholders that will be updated once
+/// tutorial videos are produced.
+struct VideoTutorialLink: View {
+    let title: String
+    let url: String
+
+    @Environment(\.openURL) private var openURL
+
+    var body: some View {
+        Button(action: openTutorial) {
+            HStack(spacing: Spacing.sm) {
+                Image(systemName: "play.circle")
+                    .font(Typography.caption)
+                    .foregroundColor(.secondary)
+                    .accessibilityHidden(true)
+
+                Text(title)
+                    .font(Typography.caption)
+                    .foregroundColor(.secondary)
+                    .underline()
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(title)
+        .accessibilityHint("Opens video tutorial in your default web browser")
+    }
+
+    private func openTutorial() {
+        guard let link = URL(string: url) else { return }
+        openURL(link)
     }
 }
 

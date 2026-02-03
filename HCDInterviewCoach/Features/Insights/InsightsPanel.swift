@@ -59,12 +59,7 @@ struct InsightsPanel: View {
                 expandedContent
             }
         }
-        .background(Color.hcdBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.hcdBorder, lineWidth: 1)
-        )
+        .glassPanel(edge: .trailing)
         .focusable()
         .focused($isPanelFocused)
         // Global keyboard shortcut for flagging

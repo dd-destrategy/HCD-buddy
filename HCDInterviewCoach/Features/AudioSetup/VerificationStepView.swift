@@ -66,6 +66,12 @@ struct VerificationStepView: View {
             case .skipped:
                 skippedSection
             }
+
+            // Video tutorial link
+            VideoTutorialLink(
+                title: "Watch: Testing your audio setup",
+                url: "https://hcdcoach.app/tutorials/audio-verification"
+            )
         }
     }
 
@@ -74,7 +80,7 @@ struct VerificationStepView: View {
     private var statusSection: some View {
         HStack {
             Text("Status:")
-                .font(.headline)
+                .font(Typography.heading3)
                 .foregroundColor(.primary)
 
             SetupStatusBadge(status: viewModel.verificationStatus)
@@ -137,22 +143,58 @@ struct VerificationStepView: View {
     // MARK: - Failure Section
 
     private func failureSection(message: String) -> some View {
-        VStack(alignment: .leading, spacing: 20) {
-            WizardInfoBox(
-                style: .error,
-                title: "Verification Failed",
-                message: message
-            )
+        VStack(alignment: .leading, spacing: Spacing.xl) {
+            // Structured error view (if available)
+            if let setupError = viewModel.currentSetupError {
+                SetupErrorView(
+                    error: setupError,
+                    onRetry: {
+                        viewModel.currentSetupError = nil
+                        viewModel.verificationStatus = .pending
+                    },
+                    onAction: { viewModel.openSystemSoundSettings() },
+                    actionLabel: "Open Sound Settings",
+                    actionIcon: "gearshape.fill"
+                )
+            } else {
+                // Fallback for legacy error messages
+                WizardInfoBox(
+                    style: .error,
+                    title: "Verification Failed",
+                    message: message
+                )
+
+                // Inline tip for the most common issue
+                InlineTroubleshootingTip(
+                    message: "No audio? Check System Settings \u{2192} Sound \u{2192} Output is set to Multi-Output Device."
+                )
+
+                // Retry button
+                Button("Try Again") {
+                    viewModel.verificationStatus = .pending
+                }
+                .buttonStyle(.bordered)
+            }
 
             // Troubleshooting section
             troubleshootingSection
 
-            // Retry button
-            Button("Try Again") {
-                viewModel.verificationStatus = .pending
-            }
-            .buttonStyle(.bordered)
+            // Expandable common fixes
+            verificationTroubleshootingSection
         }
+    }
+
+    // MARK: - Expanded Troubleshooting
+
+    private var verificationTroubleshootingSection: some View {
+        TroubleshootingSection(tips: [
+            .init(text: "Ensure System Settings > Sound > Output is set to your Multi-Output Device."),
+            .init(text: "Check that your volume is not muted (try pressing the volume-up key)."),
+            .init(text: "Verify BlackHole 2ch is included in the Multi-Output Device in Audio MIDI Setup."),
+            .init(text: "Try playing audio from a different app (e.g., Music or a YouTube video in Safari)."),
+            .init(text: "Restart Audio MIDI Setup and re-check."),
+            .init(text: "Some apps (like Zoom) may route audio directly; try testing with system sounds instead.")
+        ])
     }
 
     // MARK: - Skipped Section
@@ -168,9 +210,9 @@ struct VerificationStepView: View {
     // MARK: - Test Instructions
 
     private var testInstructions: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             Text("What happens during the test:")
-                .font(.headline)
+                .font(Typography.heading3)
                 .foregroundColor(.primary)
 
             VStack(alignment: .leading, spacing: 8) {
@@ -227,7 +269,7 @@ struct VerificationStepView: View {
         VStack(spacing: 16) {
             HStack {
                 Text("Testing Audio Capture...")
-                    .font(.headline)
+                    .font(Typography.heading3)
                     .foregroundColor(.primary)
 
                 Spacer()
@@ -252,7 +294,7 @@ struct VerificationStepView: View {
     private var audioLevelMeters: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Audio Levels")
-                .font(.headline)
+                .font(Typography.heading3)
                 .foregroundColor(.primary)
 
             VStack(spacing: 12) {
@@ -389,7 +431,7 @@ struct VerificationStepView: View {
 
             // Report failure
             Button(action: {
-                viewModel.failVerification(reason: "Audio was not detected during the test. Please check your setup and try again.")
+                viewModel.failVerification(error: .verificationNoAudioDetected)
                 testTimer?.invalidate()
             }) {
                 Text("I Don't Hear Audio")
@@ -404,7 +446,7 @@ struct VerificationStepView: View {
     private var verificationSummary: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Verified Components")
-                .font(.headline)
+                .font(Typography.heading3)
                 .foregroundColor(.primary)
 
             VStack(alignment: .leading, spacing: 8) {

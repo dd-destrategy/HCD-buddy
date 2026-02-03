@@ -37,6 +37,9 @@ final class AudioSetupCoordinator: ObservableObject {
     /// Called when audio setup needs to be re-run
     var onSetupRequired: (() -> Void)?
 
+    /// Called when the user skips the entire setup wizard
+    var onSetupSkipped: (() -> Void)?
+
     // MARK: - UserDefaults Keys
 
     private enum UserDefaultsKeys {
@@ -50,6 +53,11 @@ final class AudioSetupCoordinator: ObservableObject {
     var shouldShowSetupOnLaunch: Bool {
         // Don't show if already completed
         if viewModel.wasSetupPreviouslyCompleted {
+            return false
+        }
+
+        // Don't show if user has skipped the setup
+        if viewModel.wasSetupSkipped {
             return false
         }
 
@@ -68,6 +76,11 @@ final class AudioSetupCoordinator: ObservableObject {
     /// Whether audio setup has been successfully completed
     var isAudioSetupComplete: Bool {
         viewModel.wasSetupPreviouslyCompleted
+    }
+
+    /// Whether the user skipped audio setup (app is in limited mode)
+    var isAudioSetupSkipped: Bool {
+        viewModel.isLimitedMode
     }
 
     // MARK: - Initialization
@@ -122,6 +135,13 @@ final class AudioSetupCoordinator: ObservableObject {
         viewModel.completeSetup()
         isWizardPresented = false
         onWizardComplete?()
+    }
+
+    /// Skip the wizard entirely and launch in limited mode
+    func skipAndDismiss() {
+        viewModel.skipEntireSetup()
+        isWizardPresented = false
+        onSetupSkipped?()
     }
 
     // MARK: - Navigation
@@ -239,13 +259,27 @@ enum AudioSetupInvalidReason {
     var localizedDescription: String {
         switch self {
         case .blackHoleNotInstalled:
-            return "BlackHole 2ch virtual audio device is not installed."
+            return "BlackHole 2ch is not installed. Install it via Homebrew (brew install blackhole-2ch) or download from existential.audio/blackhole, then re-run audio setup."
         case .multiOutputNotConfigured:
-            return "Multi-Output Device is not properly configured."
+            return "Multi-Output Device is not properly configured. Open Audio MIDI Setup, create a Multi-Output Device, and include both BlackHole 2ch and your speakers."
         case .systemAudioNotConfigured:
-            return "System audio output is not set to Multi-Output Device."
+            return "System audio output is not set to Multi-Output Device. Open System Settings > Sound and select your Multi-Output Device under Output."
         case .verificationFailed:
-            return "Audio capture verification failed."
+            return "Audio capture could not be verified. Check that your Multi-Output Device is selected as system output and that BlackHole 2ch is included in it, then re-run audio setup."
+        }
+    }
+
+    /// The corresponding structured error with full what/why/how information.
+    var setupError: HCDError.AudioSetupError {
+        switch self {
+        case .blackHoleNotInstalled:
+            return .blackHoleNotFound
+        case .multiOutputNotConfigured:
+            return .multiOutputNotConfigured
+        case .systemAudioNotConfigured:
+            return .systemAudioNotConfigured
+        case .verificationFailed:
+            return .verificationNoAudioDetected
         }
     }
 
@@ -282,7 +316,8 @@ extension View {
     /// Adds the audio setup wizard sheet to the view
     func audioSetupWizard(
         coordinator: AudioSetupCoordinator,
-        onComplete: @escaping () -> Void = {}
+        onComplete: @escaping () -> Void = {},
+        onSkipSetup: (() -> Void)? = nil
     ) -> some View {
         let isPresentedBinding = Binding(
             get: { coordinator.isWizardPresented },
@@ -294,6 +329,10 @@ extension View {
                 onComplete: {
                     coordinator.completeAndDismiss()
                     onComplete()
+                },
+                onSkipSetup: {
+                    coordinator.skipAndDismiss()
+                    onSkipSetup?()
                 }
             )
             .environmentObject(coordinator.viewModel)

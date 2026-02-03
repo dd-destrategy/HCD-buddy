@@ -46,9 +46,16 @@ struct BlackHoleCheckStepView: View {
 
     @ViewBuilder
     private var blackHoleContent: some View {
-        VStack(alignment: .leading, spacing: 24) {
+        VStack(alignment: .leading, spacing: Spacing.xl) {
             // Status section
             statusSection
+
+            // Inline tip for the most common issue
+            if case .failure = viewModel.blackHoleStatus {
+                InlineTroubleshootingTip(
+                    message: "Not detected? Try: brew install blackhole-2ch, then restart your Mac."
+                )
+            }
 
             // Content based on status
             switch viewModel.blackHoleStatus {
@@ -61,7 +68,30 @@ struct BlackHoleCheckStepView: View {
             case .skipped:
                 skippedSection
             }
+
+            // Video tutorial link
+            VideoTutorialLink(
+                title: "Watch: Installing BlackHole on macOS",
+                url: "https://hcdcoach.app/tutorials/blackhole-setup"
+            )
+
+            // Collapsible troubleshooting section
+            if case .failure = viewModel.blackHoleStatus {
+                blackHoleTroubleshootingSection
+            }
         }
+    }
+
+    // MARK: - Troubleshooting
+
+    private var blackHoleTroubleshootingSection: some View {
+        TroubleshootingSection(tips: [
+            .init(text: "Run \"brew install blackhole-2ch\" in Terminal if you have Homebrew installed."),
+            .init(text: "If you installed manually, restart your Mac for the audio driver to register."),
+            .init(text: "Check System Information > Software > Audio to confirm the driver loaded."),
+            .init(text: "On macOS 13+, you may need to allow the system extension in System Settings > Privacy & Security."),
+            .init(text: "Make sure you installed BlackHole 2ch (not 16ch or 64ch).")
+        ])
     }
 
     // MARK: - Status Section
@@ -69,7 +99,7 @@ struct BlackHoleCheckStepView: View {
     private var statusSection: some View {
         HStack {
             Text("Status:")
-                .font(.headline)
+                .font(Typography.heading3)
                 .foregroundColor(.primary)
 
             SetupStatusBadge(status: viewModel.blackHoleStatus)
@@ -90,16 +120,16 @@ struct BlackHoleCheckStepView: View {
     // MARK: - Checking Section
 
     private var checkingSection: some View {
-        VStack(alignment: .center, spacing: 16) {
+        VStack(alignment: .center, spacing: Spacing.lg) {
             ProgressView()
                 .scaleEffect(1.2)
 
             Text("Checking for BlackHole 2ch...")
-                .font(.body)
+                .font(Typography.body)
                 .foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 40)
+        .padding(.vertical, Spacing.xxl)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Checking for BlackHole virtual audio device")
     }
@@ -122,13 +152,24 @@ struct BlackHoleCheckStepView: View {
     // MARK: - Failure Section
 
     private func failureSection(message: String) -> some View {
-        VStack(alignment: .leading, spacing: 20) {
-            // Error message
-            WizardInfoBox(
-                style: .error,
-                title: "BlackHole Not Found",
-                message: message
-            )
+        VStack(alignment: .leading, spacing: Spacing.xl) {
+            // Structured error view (if available)
+            if let setupError = viewModel.currentSetupError {
+                SetupErrorView(
+                    error: setupError,
+                    onRetry: { viewModel.checkBlackHole() },
+                    onAction: { viewModel.openBlackHoleDownload() },
+                    actionLabel: "Download BlackHole 2ch",
+                    actionIcon: "arrow.down.circle.fill"
+                )
+            } else {
+                // Fallback for legacy error messages
+                WizardInfoBox(
+                    style: .error,
+                    title: "BlackHole Not Found",
+                    message: message
+                )
+            }
 
             // Installation instructions
             installationInstructions
@@ -159,13 +200,13 @@ struct BlackHoleCheckStepView: View {
     // MARK: - Explanation Section
 
     private var explanationSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             Text("What is BlackHole?")
-                .font(.headline)
+                .font(Typography.heading3)
                 .foregroundColor(.primary)
 
             Text("BlackHole is a free, open-source virtual audio driver that creates a \"loopback\" device. It allows applications like HCD Interview Coach to capture audio that's playing on your Mac, such as your participant's voice during a video call.")
-                .font(.body)
+                .font(Typography.body)
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -174,9 +215,9 @@ struct BlackHoleCheckStepView: View {
     // MARK: - Installation Instructions
 
     private var installationInstructions: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             Text("Installation Steps")
-                .font(.headline)
+                .font(Typography.heading3)
                 .foregroundColor(.primary)
 
             VStack(alignment: .leading, spacing: 12) {
@@ -262,6 +303,20 @@ struct BlackHoleCheckStepView: View {
             WizardBackButton()
 
             Spacer()
+
+            // "I already have this configured" shortcut for experienced users
+            if viewModel.blackHoleStatus != .success {
+                Button(action: {
+                    viewModel.markBlackHoleAlreadyConfigured()
+                }) {
+                    Text("I already have this configured")
+                        .font(Typography.caption)
+                        .foregroundColor(.secondary)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Mark BlackHole as already configured")
+                .accessibilityHint("For experienced users who have already installed BlackHole")
+            }
 
             // Skip option for advanced users
             if case .failure = viewModel.blackHoleStatus {

@@ -62,8 +62,7 @@ struct InsightRowView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
-        .background(backgroundView)
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .glassCard(isSelected: isHovered)
         .contentShape(Rectangle())
         .onTapGesture {
             onTap()
@@ -171,24 +170,6 @@ struct InsightRowView: View {
             .accessibilityIdentifier(AccessibilityIdentifiers.Insights.deleteButton(id: insight.id.uuidString))
         }
         .transition(reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.8)))
-    }
-
-    private var backgroundView: some View {
-        Group {
-            if isSelected {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.hcdInsightHighlight)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.hcdInsight, lineWidth: 2)
-                    )
-            } else if isHovered {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.hcdBackgroundSecondary)
-            } else {
-                Color.clear
-            }
-        }
     }
 
     // MARK: - Computed Properties

@@ -44,9 +44,16 @@ struct SystemAudioStepView: View {
 
     @ViewBuilder
     private var systemAudioContent: some View {
-        VStack(alignment: .leading, spacing: 24) {
+        VStack(alignment: .leading, spacing: Spacing.xl) {
             // Status section
             statusSection
+
+            // Inline tip for the most common issue
+            if case .failure = viewModel.systemAudioStatus {
+                InlineTroubleshootingTip(
+                    message: "Not seeing Multi-Output Device? Make sure you created it in Audio MIDI Setup first (Step 3)."
+                )
+            }
 
             // Content based on status
             switch viewModel.systemAudioStatus {
@@ -59,7 +66,24 @@ struct SystemAudioStepView: View {
             case .skipped:
                 skippedSection
             }
+
+            // Collapsible troubleshooting section
+            if case .failure = viewModel.systemAudioStatus {
+                systemAudioTroubleshootingSection
+            }
         }
+    }
+
+    // MARK: - Troubleshooting
+
+    private var systemAudioTroubleshootingSection: some View {
+        TroubleshootingSection(tips: [
+            .init(text: "Open System Settings > Sound and select your Multi-Output Device under Output."),
+            .init(text: "Alternatively, hold Option and click the Sound icon in the menu bar to switch output."),
+            .init(text: "If Multi-Output Device is not listed, go back to Step 3 and create it in Audio MIDI Setup."),
+            .init(text: "Some Bluetooth headphones may override the output selection when connected."),
+            .init(text: "If the auto-detection is not working, use the \"I've Set Up System Audio\" button below to proceed.")
+        ])
     }
 
     // MARK: - Status Section
@@ -67,7 +91,7 @@ struct SystemAudioStepView: View {
     private var statusSection: some View {
         HStack {
             Text("Status:")
-                .font(.headline)
+                .font(Typography.heading3)
                 .foregroundColor(.primary)
 
             SetupStatusBadge(status: viewModel.systemAudioStatus)
@@ -88,16 +112,16 @@ struct SystemAudioStepView: View {
     // MARK: - Checking Section
 
     private var checkingSection: some View {
-        VStack(alignment: .center, spacing: 16) {
+        VStack(alignment: .center, spacing: Spacing.lg) {
             ProgressView()
                 .scaleEffect(1.2)
 
             Text("Checking system audio output...")
-                .font(.body)
+                .font(Typography.body)
                 .foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 40)
+        .padding(.vertical, Spacing.xxl)
     }
 
     // MARK: - Success Section
@@ -122,13 +146,24 @@ struct SystemAudioStepView: View {
     // MARK: - Failure Section
 
     private func failureSection(message: String) -> some View {
-        VStack(alignment: .leading, spacing: 20) {
-            // Error message
-            WizardInfoBox(
-                style: .warning,
-                title: "Multi-Output Device Not Selected",
-                message: message
-            )
+        VStack(alignment: .leading, spacing: Spacing.xl) {
+            // Structured error view (if available)
+            if let setupError = viewModel.currentSetupError {
+                SetupErrorView(
+                    error: setupError,
+                    onRetry: { viewModel.checkSystemAudio() },
+                    onAction: { viewModel.openSystemSoundSettings() },
+                    actionLabel: "Open Sound Settings",
+                    actionIcon: "gearshape.fill"
+                )
+            } else {
+                // Fallback for legacy error messages
+                WizardInfoBox(
+                    style: .warning,
+                    title: "Multi-Output Device Not Selected",
+                    message: message
+                )
+            }
 
             // Quick setup guide
             quickSetupGuide
@@ -152,7 +187,7 @@ struct SystemAudioStepView: View {
                     Text(showAlternativeMethod ? "Hide Alternative Method" : "Show Alternative Method")
                     Image(systemName: showAlternativeMethod ? "chevron.up" : "chevron.down")
                 }
-                .font(.subheadline)
+                .font(Typography.body)
             }
             .buttonStyle(.plain)
             .foregroundColor(.accentColor)
@@ -177,9 +212,9 @@ struct SystemAudioStepView: View {
     // MARK: - Quick Setup Guide
 
     private var quickSetupGuide: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             Text("Quick Setup")
-                .font(.headline)
+                .font(Typography.heading3)
                 .foregroundColor(.primary)
 
             VStack(alignment: .leading, spacing: 12) {
@@ -299,12 +334,11 @@ struct SystemAudioStepView: View {
             Divider()
 
             Text("Already configured?")
-                .font(.subheadline)
-                .fontWeight(.medium)
+                .font(Typography.bodyMedium)
                 .foregroundColor(.primary)
 
             Text("If you've already set the Multi-Output Device as your output but the check isn't detecting it, you can manually confirm:")
-                .font(.caption)
+                .font(Typography.caption)
                 .foregroundColor(.secondary)
 
             Button("I've Set Up System Audio") {
