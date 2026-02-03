@@ -1,2 +1,23 @@
-a7b8d94|Feature Completeness
-abae278|i18n Readiness
+# Agent Registry - Format: agent_id|agent_name
+# Agents launched 2026-02-03
+a7b8d94|Feature Completeness Agent
+abae278|i18n Readiness Agent
+# Note: 18 other agents running but IDs not captured:
+# - Architecture Review
+# - Security Audit
+# - Test Coverage Audit
+# - Accessibility Compliance
+# - Performance Audit
+# - SwiftUI Best Practices
+# - API Integration Review
+# - Data Model Review
+# - Documentation Review
+# - Product Manager
+# - Creative Technologist
+# - UX Psychologist
+# - Growth Strategist
+# - Journey Designer
+# - Technical Writer
+# - Visual Designer
+# - SRE Reliability
+# - Motion Designer
