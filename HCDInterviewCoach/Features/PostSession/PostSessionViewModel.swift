@@ -140,8 +140,8 @@ final class PostSessionViewModel: ObservableObject {
 
     // MARK: - Private Properties
 
-    private let exportService: PostSessionExportService
-    private let aiReflectionService: AIReflectionService
+    private let exportService: PostSessionExportServiceProtocol
+    private let aiReflectionService: AIReflectionServiceProtocol
     private let dataManager: DataManager
     private var cancellables = Set<AnyCancellable>()
 
@@ -149,8 +149,8 @@ final class PostSessionViewModel: ObservableObject {
 
     init(
         session: Session,
-        exportService: PostSessionExportService = PostSessionExportService(),
-        aiReflectionService: AIReflectionService = AIReflectionService(),
+        exportService: PostSessionExportServiceProtocol = PostSessionExportService(),
+        aiReflectionService: AIReflectionServiceProtocol = AIReflectionService(),
         dataManager: DataManager = .shared
     ) {
         self.session = session
@@ -302,10 +302,17 @@ final class PostSessionViewModel: ObservableObject {
     }
 }
 
+// MARK: - AI Reflection Service Protocol
+
+/// Protocol for AI reflection services (enables testing)
+protocol AIReflectionServiceProtocol {
+    func generateReflection(for session: Session) async throws -> String
+}
+
 // MARK: - AI Reflection Service
 
 /// Service for generating AI reflections on sessions
-final class AIReflectionService {
+final class AIReflectionService: AIReflectionServiceProtocol {
 
     /// Generate an AI reflection for the given session
     /// - Parameter session: The session to reflect on
@@ -435,10 +442,22 @@ final class AIReflectionService {
 
 }
 
+// MARK: - Post Session Export Service Protocol
+
+/// Protocol for post-session export services (enables testing)
+protocol PostSessionExportServiceProtocol {
+    func export(
+        session: Session,
+        format: ExportFormat,
+        reflection: String?,
+        notes: String?
+    ) async throws -> URL
+}
+
 // MARK: - Post Session Export Service
 
 /// Service for exporting session data to various formats (post-session specific)
-final class PostSessionExportService {
+final class PostSessionExportService: PostSessionExportServiceProtocol {
 
     private let fileManager = FileManager.default
 

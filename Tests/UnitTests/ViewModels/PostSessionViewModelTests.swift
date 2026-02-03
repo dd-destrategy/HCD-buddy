@@ -14,13 +14,13 @@ final class PostSessionViewModelTests: XCTestCase {
 
     var viewModel: PostSessionViewModel!
     var testSession: Session!
-    var mockExportService: MockExportService!
+    var mockExportService: MockPostSessionExportService!
     var mockAIReflectionService: MockAIReflectionService!
 
     override func setUp() {
         super.setUp()
         testSession = createTestSession()
-        mockExportService = MockExportService()
+        mockExportService = MockPostSessionExportService()
         mockAIReflectionService = MockAIReflectionService()
         viewModel = PostSessionViewModel(
             session: testSession,
@@ -659,7 +659,7 @@ final class PostSessionViewModelTests: XCTestCase {
 
 // MARK: - Mock Classes
 
-final class MockExportService: ExportService {
+final class MockPostSessionExportService: PostSessionExportServiceProtocol {
     var exportWasCalled = false
     var lastExportFormat: ExportFormat?
     var lastReflection: String?
@@ -668,7 +668,7 @@ final class MockExportService: ExportService {
     var errorToThrow: Error?
     var exportDelay: TimeInterval = 0
 
-    override func export(
+    func export(
         session: Session,
         format: ExportFormat,
         reflection: String?,
@@ -691,7 +691,7 @@ final class MockExportService: ExportService {
     }
 }
 
-final class MockAIReflectionService: AIReflectionService {
+final class MockAIReflectionService: AIReflectionServiceProtocol {
     var generateReflectionWasCalled = false
     var reflectionToReturn: String?
     var errorToThrow: Error?
@@ -699,10 +699,9 @@ final class MockAIReflectionService: AIReflectionService {
 
     init(initialState: AIReflectionState? = nil) {
         self.initialState = initialState
-        super.init()
     }
 
-    override func generateReflection(for session: Session) async throws -> String {
+    func generateReflection(for session: Session) async throws -> String {
         generateReflectionWasCalled = true
 
         if let error = errorToThrow {

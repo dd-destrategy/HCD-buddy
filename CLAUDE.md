@@ -36,6 +36,7 @@ Data (SwiftData Models + KeychainService + RealtimeAPIClient)
 - **CoachingService** (`HCDInterviewCoach/Features/Coaching/CoachingService.swift`) — Implements silence-first coaching logic
 - **RealtimeAPIClient** (`Sources/Core/API/RealtimeAPIClient.swift`) — WebSocket connection to OpenAI
 - **AudioCaptureEngine** (`Core/Services/Audio/AudioCaptureEngine.swift`) — System audio capture via BlackHole
+- **TemplateManager** (`HCDInterviewCoach/Core/Services/TemplateManager.swift`) — Manages interview templates and topic lists
 
 ### Core Models
 
@@ -85,7 +86,12 @@ HCDInterviewCoach/
 │   ├── Services/       # DataManager, Keychain, Templates
 │   ├── Accessibility/  # Keyboard nav, VoiceOver utilities
 │   └── Utilities/      # Logger, Error types
-└── DesignSystem/       # Colors, typography, a11y helpers
+└── DesignSystem/       # Design tokens and UI primitives
+    ├── Typography.swift    # 8 text styles (largeTitle → caption2)
+    ├── Spacing.swift       # 6-value scale (xxs → xxl)
+    ├── CornerRadius.swift  # small/medium/large/xl/pill
+    ├── Shadows.swift       # Elevation scale for depth
+    └── LiquidGlass.swift   # 5 material styles + view modifiers
 ```
 
 ## Coding Conventions
@@ -96,6 +102,12 @@ HCDInterviewCoach/
 - `@MainActor` on all `ObservableObject` classes
 - Async/await with `AsyncStream` for real-time data
 - No force unwraps (`!`) in production code
+
+### Design Tokens
+- Use `Typography` styles (`.largeTitle`, `.body`, `.caption`) instead of raw fonts
+- Use `Spacing` values (`.xxs` to `.xxl`) for consistent padding/margins
+- Use `CornerRadius` tokens (`.small`, `.medium`, `.large`, `.xl`, `.pill`) for rounded corners
+- Apply `LiquidGlass` modifiers (`.ultraThin`, `.thin`, `.regular`, `.thick`, `.ultraThick`) for glassmorphism effects
 
 ### Accessibility
 - WCAG 2.1 AA compliance target
@@ -147,6 +159,7 @@ HCDInterviewCoach/
 | `KeyboardNavigationModifiers.swift` | Keyboard accessibility |
 | `HCDError.swift` | Error type hierarchy |
 | `AppLogger.swift` | Logging utility |
+| `LiquidGlass.swift` | Glassmorphism design system with material styles |
 
 ## State Machine
 

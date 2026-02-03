@@ -18,6 +18,8 @@ A macOS application that captures system audio, transcribes conversations in rea
 - **Topic Awareness** — Track coverage of interview guide topics
 - **Insight Flagging** — Mark key moments manually (⌘+I) or automatically
 - **Session Export** — Export to Markdown or JSON for analysis
+- **Built-in Interview Templates** — Discovery, Usability, Stakeholder, and Contextual templates
+- **Liquid Glass UI** — Modern glassmorphism effects for a polished visual experience
 
 ### Design Philosophy
 > "The best coaching is invisible until needed."
@@ -214,7 +216,12 @@ HCD-buddy/
 │   │   ├── Topics/        # Topic tracking
 │   │   └── Transcript/    # Transcript display
 │   ├── Core/              # Models, services, utilities
-│   └── DesignSystem/      # Colors, typography, a11y
+│   └── DesignSystem/      # Design tokens and visual effects
+│       ├── Typography.swift
+│       ├── Spacing.swift
+│       ├── CornerRadius.swift
+│       ├── Shadows.swift
+│       └── LiquidGlass.swift
 ├── Tests/                 # Unit tests and mocks
 ├── docs/                  # Documentation
 └── .github/workflows/     # CI/CD pipelines
@@ -246,6 +253,7 @@ HCD-buddy/
 | Security | macOS Keychain |
 | CI/CD | GitHub Actions |
 | Updates | Sparkle |
+| Design System | Typography, Spacing, CornerRadius, Shadows, LiquidGlass |
 
 ---
 
