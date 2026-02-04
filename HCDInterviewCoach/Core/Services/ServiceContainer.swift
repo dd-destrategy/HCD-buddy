@@ -26,7 +26,7 @@ class ServiceContainer: ObservableObject, ServiceContaining {
         self.dataManager = dataManager
 
         // Initialize template manager with modelContext from dataManager
-        let modelContext = ModelContext(dataManager.container)
+        let modelContext = dataManager.container.map { ModelContext($0) }
         self.templateManager = TemplateManager(modelContext: modelContext)
     }
 }

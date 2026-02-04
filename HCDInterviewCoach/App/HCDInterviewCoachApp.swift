@@ -8,9 +8,7 @@ struct HCDInterviewCoachApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environmentObject(serviceContainer)
-                .modelContainer(serviceContainer.dataManager.container)
+            contentView
                 .audioSetupSheet(
                     isPresented: $showAudioSetupFromMenu,
                     onComplete: {
@@ -33,6 +31,18 @@ struct HCDInterviewCoachApp: App {
                 }
                 .keyboardShortcut("a", modifiers: [.command, .shift])
             }
+        }
+    }
+
+    @ViewBuilder
+    private var contentView: some View {
+        if let container = serviceContainer.dataManager.container {
+            ContentView()
+                .environmentObject(serviceContainer)
+                .modelContainer(container)
+        } else {
+            ContentView()
+                .environmentObject(serviceContainer)
         }
     }
 

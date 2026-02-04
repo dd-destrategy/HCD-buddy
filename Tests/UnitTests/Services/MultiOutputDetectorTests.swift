@@ -224,7 +224,7 @@ final class MultiOutputDetectorTests: XCTestCase {
 
     // MARK: - Multi-Output Info Tests
 
-    func testGetMultiOutputInfo_withConfiguredDevice() {
+    func testGetMultiOutputInfo_withConfiguredDevice() throws {
         // Given: Multi-Output Device is configured
         let status = MultiOutputDetector.detectMultiOutputDevice()
 
@@ -241,7 +241,7 @@ final class MultiOutputDetectorTests: XCTestCase {
         XCTAssertNotNil(info?["isAggregate"])
     }
 
-    func testGetMultiOutputInfo_isAggregate() {
+    func testGetMultiOutputInfo_isAggregate() throws {
         // Given: Multi-Output Device is configured
         let status = MultiOutputDetector.detectMultiOutputDevice()
 
@@ -260,7 +260,7 @@ final class MultiOutputDetectorTests: XCTestCase {
         XCTAssertTrue(isAggregate)
     }
 
-    func testGetMultiOutputInfo_hasSubDevices() {
+    func testGetMultiOutputInfo_hasSubDevices() throws {
         // Given: Multi-Output Device is configured
         let status = MultiOutputDetector.detectMultiOutputDevice()
 
@@ -279,7 +279,7 @@ final class MultiOutputDetectorTests: XCTestCase {
         XCTAssertNotNil(info["subDeviceCount"])
     }
 
-    func testGetMultiOutputInfo_subDeviceCount() {
+    func testGetMultiOutputInfo_subDeviceCount() throws {
         // Given: Multi-Output Device is configured
         let status = MultiOutputDetector.detectMultiOutputDevice()
 
@@ -297,7 +297,7 @@ final class MultiOutputDetectorTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(subDeviceCount, 2)
     }
 
-    func testGetMultiOutputInfo_subDeviceNames() {
+    func testGetMultiOutputInfo_subDeviceNames() throws {
         // Given: Multi-Output Device is configured
         let status = MultiOutputDetector.detectMultiOutputDevice()
 
@@ -318,7 +318,7 @@ final class MultiOutputDetectorTests: XCTestCase {
         }
     }
 
-    func testGetMultiOutputInfo_containsBlackHole() {
+    func testGetMultiOutputInfo_containsBlackHole() throws {
         // Given: Multi-Output Device is configured with BlackHole
         let status = MultiOutputDetector.detectMultiOutputDevice()
 

@@ -41,7 +41,7 @@ final class RealtimeAPIClient: RealtimeAPIConnecting {
 
     // Connection management
     private let connectionManager: ConnectionManager
-    private let eventParser: RealtimeEventParser
+    private let eventParser: RealtimeEventParserProtocol
 
     // Reconnection tracking
     private var reconnectionTask: Task<Void, Never>?
@@ -58,7 +58,7 @@ final class RealtimeAPIClient: RealtimeAPIConnecting {
 
     // MARK: - Initialization
 
-    init(connectionManager: ConnectionManager = .init(), eventParser: RealtimeEventParser = .init()) {
+    init(connectionManager: ConnectionManager = .init(), eventParser: RealtimeEventParserProtocol = RealtimeEventParser()) {
         self.connectionManager = connectionManager
         self.eventParser = eventParser
         setupConnectionStateObserver()
@@ -355,7 +355,7 @@ struct RealtimeEvent {
 }
 
 /// Manages WebSocket connection to OpenAI Realtime API
-final class ConnectionManager {
+class ConnectionManager {
     // MARK: - Properties
 
     private var webSocketTask: URLSessionWebSocketTask?
@@ -568,8 +568,14 @@ final class ConnectionManager {
     }
 }
 
+/// Protocol for event parsing to allow test mocking
+protocol RealtimeEventParserProtocol {
+    func parseTranscription(_ event: RealtimeEvent, sessionStartTime: Date) -> TranscriptionEvent?
+    func parseFunctionCall(_ event: RealtimeEvent, sessionStartTime: Date) -> FunctionCallEvent?
+}
+
 /// Event parser for Realtime API events
-struct RealtimeEventParser {
+struct RealtimeEventParser: RealtimeEventParserProtocol {
     func parseTranscription(_ event: RealtimeEvent, sessionStartTime: Date) -> TranscriptionEvent? {
         guard let text = event.payload["text"] as? String else {
             return nil

@@ -198,7 +198,7 @@ struct SessionMetadata {
 // MARK: - Errors
 
 /// Errors that can occur during API connection
-enum ConnectionError: LocalizedError {
+enum ConnectionError: LocalizedError, Equatable {
     case invalidAPIKey
     case networkUnavailable
     case serverError(String)
@@ -225,7 +225,7 @@ enum ConnectionError: LocalizedError {
 }
 
 /// Errors that can occur during audio streaming
-enum StreamingError: LocalizedError {
+enum StreamingError: LocalizedError, Equatable {
     case notConnected
     case encodingFailed
     case backpressure

@@ -22,7 +22,7 @@ import SwiftData
 ///                                    \-> failed (unrecoverable) -> ended
 /// ```
 @MainActor
-final class SessionManager: ObservableObject {
+class SessionManager: ObservableObject {
     // MARK: - Published State
 
     /// Current state of the session lifecycle

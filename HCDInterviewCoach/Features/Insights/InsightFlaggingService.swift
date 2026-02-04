@@ -21,7 +21,7 @@ import SwiftData
 /// service.flagManually(utterance: utterance, title: "Key insight")
 /// ```
 @MainActor
-final class InsightFlaggingService: ObservableObject {
+class InsightFlaggingService: ObservableObject {
 
     // MARK: - Published Properties
 

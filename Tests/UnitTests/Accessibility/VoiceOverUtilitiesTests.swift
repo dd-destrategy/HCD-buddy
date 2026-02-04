@@ -16,17 +16,17 @@ final class VoiceOverUtilitiesTests: XCTestCase {
 
     func testTopicStatusAccessibilityDescription_untouched() {
         let status = TopicAwarenessStatus.untouched
-        XCTAssertEqual(status.accessibilityDescription, "Not yet discussed")
+        XCTAssertEqual(status.accessibilityDescription, "Topic not yet discussed")
     }
 
     func testTopicStatusAccessibilityDescription_touched() {
         let status = TopicAwarenessStatus.touched
-        XCTAssertEqual(status.accessibilityDescription, "Briefly mentioned")
+        XCTAssertEqual(status.accessibilityDescription, "Topic briefly mentioned")
     }
 
     func testTopicStatusAccessibilityDescription_explored() {
         let status = TopicAwarenessStatus.explored
-        XCTAssertEqual(status.accessibilityDescription, "Discussed in depth")
+        XCTAssertEqual(status.accessibilityDescription, "Topic explored in depth")
     }
 
     func testTopicStatusAccessibilityDescription_allStatusesHaveDescriptions() {
@@ -41,17 +41,17 @@ final class VoiceOverUtilitiesTests: XCTestCase {
     // MARK: - Test: Insight Source Accessibility
 
     func testInsightAccessibility_aiSource() {
-        let source = InsightSource.ai
+        let source = InsightSource.aiGenerated
         XCTAssertEqual(source.accessibilityDescription, "Flagged by AI")
     }
 
     func testInsightAccessibility_manualSource() {
-        let source = InsightSource.manual
+        let source = InsightSource.userAdded
         XCTAssertEqual(source.accessibilityDescription, "Manually flagged")
     }
 
     func testInsightAccessibility_allSourcesHaveDescriptions() {
-        let allSources: [InsightSource] = [.ai, .manual]
+        let allSources: [InsightSource] = [.aiGenerated, .userAdded, .automated]
         for source in allSources {
             XCTAssertFalse(source.accessibilityDescription.isEmpty,
                           "\(source) should have an accessibility description")
@@ -64,28 +64,20 @@ final class VoiceOverUtilitiesTests: XCTestCase {
         XCTAssertEqual(SessionState.idle.accessibilityDescription, "idle")
     }
 
-    func testSessionStateAccessibilityDescription_setup() {
-        XCTAssertEqual(SessionState.setup.accessibilityDescription, "setting up")
-    }
-
-    func testSessionStateAccessibilityDescription_connecting() {
-        XCTAssertEqual(SessionState.connecting.accessibilityDescription, "connecting")
+    func testSessionStateAccessibilityDescription_configuring() {
+        XCTAssertEqual(SessionState.configuring.accessibilityDescription, "setting up")
     }
 
     func testSessionStateAccessibilityDescription_ready() {
         XCTAssertEqual(SessionState.ready.accessibilityDescription, "ready to record")
     }
 
-    func testSessionStateAccessibilityDescription_streaming() {
-        XCTAssertEqual(SessionState.streaming.accessibilityDescription, "recording")
+    func testSessionStateAccessibilityDescription_running() {
+        XCTAssertEqual(SessionState.running.accessibilityDescription, "recording")
     }
 
     func testSessionStateAccessibilityDescription_paused() {
         XCTAssertEqual(SessionState.paused.accessibilityDescription, "paused")
-    }
-
-    func testSessionStateAccessibilityDescription_reconnecting() {
-        XCTAssertEqual(SessionState.reconnecting.accessibilityDescription, "reconnecting")
     }
 
     func testSessionStateAccessibilityDescription_ending() {
@@ -96,14 +88,22 @@ final class VoiceOverUtilitiesTests: XCTestCase {
         XCTAssertEqual(SessionState.ended.accessibilityDescription, "ended")
     }
 
+    func testSessionStateAccessibilityDescription_error() {
+        let error = SessionError(kind: .connectionLost)
+        XCTAssertEqual(SessionState.error(error).accessibilityDescription, "error occurred")
+    }
+
     func testSessionStateAccessibilityDescription_failed() {
-        XCTAssertEqual(SessionState.failed.accessibilityDescription, "failed")
+        let error = SessionError(kind: .apiKeyInvalid)
+        XCTAssertEqual(SessionState.failed(error).accessibilityDescription, "failed")
     }
 
     func testSessionModeAccessibilityDescription_allStatesHaveDescriptions() {
+        let dummyError = SessionError(kind: .unknown)
         let allStates: [SessionState] = [
-            .idle, .setup, .connecting, .ready, .streaming,
-            .paused, .reconnecting, .ending, .ended, .failed
+            .idle, .configuring, .ready, .running,
+            .paused, .ending, .ended,
+            .error(dummyError), .failed(dummyError)
         ]
         for state in allStates {
             XCTAssertFalse(state.accessibilityDescription.isEmpty,
@@ -197,7 +197,7 @@ final class VoiceOverUtilitiesTests: XCTestCase {
         // When: Apply topic status accessibility modifier
         let modifiedView = view.accessibilityTopicStatus(
             name: "User Goals",
-            status: .explored
+            status: .fullyCovered
         )
 
         // Then: View should be modified
@@ -212,7 +212,7 @@ final class VoiceOverUtilitiesTests: XCTestCase {
         let modifiedView = view.accessibilityInsight(
             theme: "Pain Point",
             quote: "The process is too complicated",
-            source: .manual,
+            source: .userAdded,
             timestamp: "00:05:20"
         )
 
@@ -220,7 +220,7 @@ final class VoiceOverUtilitiesTests: XCTestCase {
         XCTAssertNotNil(modifiedView)
     }
 
-    func testInsightAccessibility_aiSource() {
+    func testInsightAccessibility_aiSourceModifier() {
         // Given: A simple view
         let view = Text("Test")
 
@@ -228,7 +228,7 @@ final class VoiceOverUtilitiesTests: XCTestCase {
         let modifiedView = view.accessibilityInsight(
             theme: "Opportunity",
             quote: "I wish there was a better way",
-            source: .ai,
+            source: .aiGenerated,
             timestamp: "00:10:45"
         )
 
@@ -497,7 +497,7 @@ final class VoiceOverUtilitiesTests: XCTestCase {
         // Topic status should have button trait for interaction
         let view = Text("Test").accessibilityTopicStatus(
             name: "Test Topic",
-            status: .untouched
+            status: .notCovered
         )
         XCTAssertNotNil(view)
     }
@@ -507,7 +507,7 @@ final class VoiceOverUtilitiesTests: XCTestCase {
         let view = Text("Test").accessibilityInsight(
             theme: "Test",
             quote: "Test quote",
-            source: .manual,
+            source: .userAdded,
             timestamp: "00:00:00"
         )
         XCTAssertNotNil(view)

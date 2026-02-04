@@ -532,33 +532,33 @@ final class FunctionCallParsingTests: XCTestCase {
 
     // MARK: - Test: TopicAwareness Enum
 
-    func testTopicAwareness_untouched() {
-        // Given: The untouched status
-        let status = TopicAwareness.untouched
+    func testTopicAwareness_notCovered() {
+        // Given: The notCovered status
+        let status = TopicAwareness.notCovered
 
         // Then: Raw value should match
-        XCTAssertEqual(status.rawValue, "untouched")
+        XCTAssertEqual(status.rawValue, "not_covered")
     }
 
-    func testTopicAwareness_touched() {
-        // Given: The touched status
-        let status = TopicAwareness.touched
+    func testTopicAwareness_partialCoverage() {
+        // Given: The partialCoverage status
+        let status = TopicAwareness.partialCoverage
 
         // Then: Raw value should match
-        XCTAssertEqual(status.rawValue, "touched")
+        XCTAssertEqual(status.rawValue, "partial_coverage")
     }
 
-    func testTopicAwareness_explored() {
-        // Given: The explored status
-        let status = TopicAwareness.explored
+    func testTopicAwareness_fullyCovered() {
+        // Given: The fullyCovered status
+        let status = TopicAwareness.fullyCovered
 
         // Then: Raw value should match
-        XCTAssertEqual(status.rawValue, "explored")
+        XCTAssertEqual(status.rawValue, "fully_covered")
     }
 
     func testTopicAwareness_codable() throws {
         // Given: A status
-        let status = TopicAwareness.explored
+        let status = TopicAwareness.fullyCovered
 
         // When: Encoding and decoding
         let encoded = try JSONEncoder().encode(status)

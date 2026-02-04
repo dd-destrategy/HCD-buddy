@@ -7,9 +7,11 @@
 //
 
 import Foundation
+@testable import HCDInterviewCoach
 
 /// Mock Realtime API client for testing
-actor MockRealtimeAPIClient: RealtimeAPIConnecting {
+@MainActor
+final class MockRealtimeAPIClient: RealtimeAPIConnecting {
 
     // MARK: - Mock State
 
@@ -140,7 +142,7 @@ actor MockRealtimeAPIClient: RealtimeAPIConnecting {
     // MARK: - Test Data Helpers
 
     /// Create a test transcription event
-    static func createTestTranscription(
+    nonisolated static func createTestTranscription(
         text: String = "Test transcription",
         isFinal: Bool = true,
         speaker: Speaker? = .interviewer,
@@ -157,7 +159,7 @@ actor MockRealtimeAPIClient: RealtimeAPIConnecting {
     }
 
     /// Create a test function call event
-    static func createTestFunctionCall(
+    nonisolated static func createTestFunctionCall(
         name: String = "show_nudge",
         arguments: [String: String] = ["message": "Test nudge"],
         timestamp: TimeInterval = 0.0

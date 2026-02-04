@@ -445,7 +445,7 @@ final class PostSessionViewModelTests: XCTestCase {
         // Note: isExporting may have already completed due to timing
         // In real tests, we'd use proper async coordination
 
-        await exportTask.value
+        try await exportTask.value
     }
 
     // MARK: - Test Insight Management

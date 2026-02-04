@@ -10,30 +10,6 @@ import Foundation
 import AVFoundation
 import CoreAudio
 
-/// Errors that can occur during audio capture
-enum AudioCaptureError: LocalizedError {
-    case failedToCreateOutputFormat
-    case failedToConfigureAudioSession(Error)
-    case failedToSetupMicrophone(Error)
-    case failedToStartEngine(Error)
-    case deviceNotFound
-
-    var errorDescription: String? {
-        switch self {
-        case .failedToCreateOutputFormat:
-            return "Failed to create required audio format (24kHz, 16-bit mono PCM)"
-        case .failedToConfigureAudioSession(let error):
-            return "Failed to configure audio session: \(error.localizedDescription)"
-        case .failedToSetupMicrophone(let error):
-            return "Failed to set up microphone input: \(error.localizedDescription)"
-        case .failedToStartEngine(let error):
-            return "Failed to start audio engine: \(error.localizedDescription)"
-        case .deviceNotFound:
-            return "Multi-Output Device not found"
-        }
-    }
-}
-
 /// Audio capture engine using AVAudioEngine
 /// Captures system audio (via BlackHole in Multi-Output Device) and microphone
 /// Converts to 24kHz 16-bit mono PCM for OpenAI Realtime API

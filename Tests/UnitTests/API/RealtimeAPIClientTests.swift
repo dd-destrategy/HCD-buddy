@@ -668,14 +668,7 @@ struct MockEventParser: RealtimeEventParserProtocol {
     }
 }
 
-// MARK: - Protocol for Event Parser
-
-protocol RealtimeEventParserProtocol {
-    func parseTranscription(_ event: RealtimeEvent, sessionStartTime: Date) -> TranscriptionEvent?
-    func parseFunctionCall(_ event: RealtimeEvent, sessionStartTime: Date) -> FunctionCallEvent?
-}
-
-extension RealtimeEventParser: RealtimeEventParserProtocol {}
+// MARK: - RealtimeEventParser already conforms to RealtimeEventParserProtocol in production code
 
 // MARK: - Connection State Equality Tests
 
@@ -960,7 +953,7 @@ final class ExponentialBackoffTests: XCTestCase {
 
         // Then: Should have given up and be in failed state
         if case .failed(let error) = apiClient.connectionState {
-            XCTAssertEqual(error, ConnectionError.timeout, "Should fail with timeout after max attempts")
+            XCTAssertEqual(error as? ConnectionError, ConnectionError.timeout, "Should fail with timeout after max attempts")
         } else {
             XCTFail("Expected failed state after max reconnection attempts, got \(apiClient.connectionState)")
         }

@@ -5,7 +5,7 @@ import SwiftData
 @Model
 final class Insight {
     @Attribute(.unique) var id: UUID
-    @Attribute(.indexed) var timestampSeconds: Double
+    var timestampSeconds: Double
     var quote: String
     var theme: String
     var source: InsightSource

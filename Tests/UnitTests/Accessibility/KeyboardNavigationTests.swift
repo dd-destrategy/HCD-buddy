@@ -241,7 +241,7 @@ final class KeyboardShortcutsTests: XCTestCase {
     }
 
     func testDismissPromptShortcut_isEscape() {
-        XCTAssertEqual(KeyboardShortcuts.dismissPrompt, KeyEquivalent(.escape))
+        XCTAssertEqual(KeyboardShortcuts.dismissPrompt, KeyEquivalent.escape)
     }
 
     // MARK: - Test: Insight Shortcuts

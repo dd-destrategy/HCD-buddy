@@ -594,5 +594,9 @@ final class MockTranscriptVirtualizationManager: TranscriptVirtualizationManager
 final class MockSessionManagerForTranscript: SessionManager {
     init() {
         // Initialize with minimal setup for testing
+        super.init(
+            audioCapturerProvider: { MockAudioCaptureService() },
+            apiClientProvider: { MockRealtimeAPIClient() }
+        )
     }
 }

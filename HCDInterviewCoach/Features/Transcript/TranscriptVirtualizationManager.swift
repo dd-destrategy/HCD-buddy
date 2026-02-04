@@ -21,7 +21,7 @@ import SwiftData
 /// - Unloads utterances outside the visible window
 /// - Supports search within full transcript (loads on-demand)
 @MainActor
-final class TranscriptVirtualizationManager: ObservableObject {
+class TranscriptVirtualizationManager: ObservableObject {
 
     // MARK: - Configuration
 

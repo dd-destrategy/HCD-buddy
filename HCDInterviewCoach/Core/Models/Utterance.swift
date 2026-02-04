@@ -7,7 +7,7 @@ final class Utterance {
     @Attribute(.unique) var id: UUID
     var speaker: Speaker
     var text: String
-    @Attribute(.indexed) var timestampSeconds: Double
+    var timestampSeconds: Double
     var confidence: Double?
     var createdAt: Date
 

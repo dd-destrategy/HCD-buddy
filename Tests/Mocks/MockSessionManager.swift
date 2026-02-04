@@ -7,6 +7,7 @@
 //
 
 import Foundation
+@testable import HCDInterviewCoach
 
 /// Mock session manager for testing
 @MainActor
@@ -41,7 +42,7 @@ final class MockSessionManager: SessionManaging {
         set { _sessionState = newValue }
     }
 
-    private var (sessionStateContinuation, sessionStateStream) = AsyncStream<SessionState>.makeStream()
+    private var (sessionStateStream, sessionStateContinuation) = AsyncStream<SessionState>.makeStream()
 
     var stateStream: AsyncStream<SessionState> {
         sessionStateStream
@@ -55,9 +56,9 @@ final class MockSessionManager: SessionManaging {
 
         let sessionId = UUID()
         currentSessionId = sessionId
-        _sessionState = .setup
+        _sessionState = .configuring
 
-        sessionStateContinuation.yield(.setup)
+        sessionStateContinuation.yield(.configuring)
 
         return sessionId
     }
@@ -66,14 +67,14 @@ final class MockSessionManager: SessionManaging {
         startSessionCallCount += 1
 
         if shouldThrowOnStart, let error = errorToThrow {
-            _sessionState = .failed
-            sessionStateContinuation.yield(.failed)
+            _sessionState = .failed(error)
+            sessionStateContinuation.yield(.failed(error))
             throw error
         }
 
-        _sessionState = .streaming
+        _sessionState = .running
         sessionStarted = true
-        sessionStateContinuation.yield(.streaming)
+        sessionStateContinuation.yield(.running)
     }
 
     func pauseSession() async {
@@ -85,18 +86,18 @@ final class MockSessionManager: SessionManaging {
 
     func resumeSession() async {
         resumeSessionCallCount += 1
-        _sessionState = .streaming
+        _sessionState = .running
         sessionPaused = false
-        sessionStateContinuation.yield(.streaming)
+        sessionStateContinuation.yield(.running)
     }
 
-    func endSession() async throws -> SessionSummary {
+    func endSession() async throws -> MockSessionSummary {
         endSessionCallCount += 1
         _sessionState = .ended
         sessionEnded = true
         sessionStateContinuation.yield(.ended)
 
-        return SessionSummary(
+        return MockSessionSummary(
             sessionId: currentSessionId ?? UUID(),
             duration: 60.0,
             utteranceCount: 10,
@@ -143,25 +144,10 @@ protocol SessionManaging {
     func startSession() async throws
     func pauseSession() async
     func resumeSession() async
-    func endSession() async throws -> SessionSummary
 }
 
-/// Session state machine states
-enum SessionState: Equatable {
-    case idle
-    case setup
-    case connecting
-    case ready
-    case streaming
-    case paused
-    case reconnecting
-    case ending
-    case ended
-    case failed
-}
-
-/// Session summary returned after ending
-struct SessionSummary {
+/// Mock session summary returned after ending
+struct MockSessionSummary {
     let sessionId: UUID
     let duration: TimeInterval
     let utteranceCount: Int
@@ -170,8 +156,8 @@ struct SessionSummary {
     let coachingPromptCount: Int
 }
 
-/// Session errors
-enum SessionError: LocalizedError {
+/// Mock session errors for testing
+enum MockSessionError: LocalizedError {
     case notConnected
     case alreadyStarted
     case notStarted

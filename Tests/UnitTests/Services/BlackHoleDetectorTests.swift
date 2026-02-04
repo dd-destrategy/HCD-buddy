@@ -99,7 +99,7 @@ final class BlackHoleDetectorTests: XCTestCase {
 
     // MARK: - Device Info Tests
 
-    func testGetBlackHoleInfo_withInstalledDevice() {
+    func testGetBlackHoleInfo_withInstalledDevice() throws {
         // Given: BlackHole is installed
         let status = BlackHoleDetector.detectBlackHole()
 
@@ -116,7 +116,7 @@ final class BlackHoleDetectorTests: XCTestCase {
         XCTAssertNotNil(info?["name"])
     }
 
-    func testGetBlackHoleInfo_withUnknownVersionDevice() {
+    func testGetBlackHoleInfo_withUnknownVersionDevice() throws {
         // Given: BlackHole is installed but unknown version
         let status = BlackHoleDetector.detectBlackHole()
 
@@ -132,7 +132,7 @@ final class BlackHoleDetectorTests: XCTestCase {
         XCTAssertNotNil(info)
     }
 
-    func testGetBlackHoleInfo_returnsExpectedKeys() {
+    func testGetBlackHoleInfo_returnsExpectedKeys() throws {
         // Given: BlackHole is installed
         let status = BlackHoleDetector.detectBlackHole()
 
@@ -151,7 +151,7 @@ final class BlackHoleDetectorTests: XCTestCase {
         // Note: Other keys may or may not be present depending on device
     }
 
-    func testGetBlackHoleInfo_nameContainsBlackHole() {
+    func testGetBlackHoleInfo_nameContainsBlackHole() throws {
         // Given: BlackHole is installed
         let status = BlackHoleDetector.detectBlackHole()
 
@@ -170,7 +170,7 @@ final class BlackHoleDetectorTests: XCTestCase {
         XCTAssertTrue(name.contains("BlackHole"))
     }
 
-    func testGetBlackHoleInfo_inputChannelsForBlackHole2ch() {
+    func testGetBlackHoleInfo_inputChannelsForBlackHole2ch() throws {
         // Given: BlackHole 2ch is installed
         let status = BlackHoleDetector.detectBlackHole()
 
@@ -188,7 +188,7 @@ final class BlackHoleDetectorTests: XCTestCase {
         XCTAssertEqual(inputChannels, 2)
     }
 
-    func testGetBlackHoleInfo_outputChannelsForBlackHole2ch() {
+    func testGetBlackHoleInfo_outputChannelsForBlackHole2ch() throws {
         // Given: BlackHole 2ch is installed
         let status = BlackHoleDetector.detectBlackHole()
 
@@ -206,7 +206,7 @@ final class BlackHoleDetectorTests: XCTestCase {
         XCTAssertEqual(outputChannels, 2)
     }
 
-    func testGetBlackHoleInfo_sampleRate() {
+    func testGetBlackHoleInfo_sampleRate() throws {
         // Given: BlackHole is installed
         let status = BlackHoleDetector.detectBlackHole()
 
@@ -226,7 +226,7 @@ final class BlackHoleDetectorTests: XCTestCase {
         XCTAssertTrue([44100.0, 48000.0, 88200.0, 96000.0, 176400.0, 192000.0].contains(sampleRate) || sampleRate > 0)
     }
 
-    func testGetBlackHoleInfo_hasUID() {
+    func testGetBlackHoleInfo_hasUID() throws {
         // Given: BlackHole is installed
         let status = BlackHoleDetector.detectBlackHole()
 
@@ -246,7 +246,7 @@ final class BlackHoleDetectorTests: XCTestCase {
         _ = info["uid"]
     }
 
-    func testGetBlackHoleInfo_hasManufacturer() {
+    func testGetBlackHoleInfo_hasManufacturer() throws {
         // Given: BlackHole is installed
         let status = BlackHoleDetector.detectBlackHole()
 
@@ -350,7 +350,7 @@ final class BlackHoleDetectorTests: XCTestCase {
         }
     }
 
-    func testGetBlackHoleInfo_threadSafe() async {
+    func testGetBlackHoleInfo_threadSafe() async throws {
         // Given: BlackHole is installed
         let status = BlackHoleDetector.detectBlackHole()
 

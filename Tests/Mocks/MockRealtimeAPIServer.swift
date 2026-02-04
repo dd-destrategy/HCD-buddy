@@ -8,6 +8,7 @@
 
 import Foundation
 import Network
+@testable import HCDInterviewCoach
 
 /// Mock Realtime API server for integration testing
 /// Simulates OpenAI Realtime API WebSocket behavior

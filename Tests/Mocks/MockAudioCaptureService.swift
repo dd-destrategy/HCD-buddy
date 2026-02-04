@@ -8,6 +8,7 @@
 
 import Foundation
 import AVFoundation
+@testable import HCDInterviewCoach
 
 /// Mock audio capture service for testing
 @MainActor

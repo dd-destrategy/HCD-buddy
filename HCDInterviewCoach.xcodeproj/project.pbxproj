@@ -107,6 +107,12 @@
 		97E8B4BA0D9BF7DECB26346A /* ExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12AEFD1B6780147E85B484AA /* ExportService.swift */; };
 		97EC498D8721BB6FB0D80262 /* InsightDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBB70E19BEEEB4ACF9713EE3 /* InsightDetailSheet.swift */; };
 		9850EAA4AD71D47CB07EE50D /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = F50E8F3DE90F1AE226098E6F /* Colors.swift */; };
+		AA11110001A1B1C1D1E1F101 /* CornerRadius.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11110001F1A1B1C1D1E1F1 /* CornerRadius.swift */; };
+		BB22220002A2B2C2D2E2F202 /* LiquidGlass.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB22220002F2A2B2C2D2E2F2 /* LiquidGlass.swift */; };
+		CC33330003A3B3C3D3E3F303 /* LiquidGlassExamples.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC33330003F3A3B3C3D3E3F3 /* LiquidGlassExamples.swift */; };
+		DD44440004A4B4C4D4E4F404 /* Shadows.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD44440004F4A4B4C4D4E4F4 /* Shadows.swift */; };
+		EE55550005A5B5C5D5E5F505 /* Spacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE55550005F5A5B5C5D5E5F5 /* Spacing.swift */; };
+		FF66660006A6B6C6D6E6F606 /* Typography.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF66660006F6A6B6C6D6E6F6 /* Typography.swift */; };
 		9C38A10A1735777C02233523 /* AudioStreamingServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61431F3A6B93FF4E8E2C9316 /* AudioStreamingServiceTests.swift */; };
 		9D61869B95F215B3251AE356 /* ConnectionQualityMonitorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F70ACCB80A9E9D328D86E5DF /* ConnectionQualityMonitorTests.swift */; };
 		9E4D93A3CEC10453FB97C230 /* MultiOutputDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4A9BF84E7BC92B5193AFC98 /* MultiOutputDetectorTests.swift */; };
@@ -317,7 +323,13 @@
 		EBB70E19BEEEB4ACF9713EE3 /* InsightDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightDetailSheet.swift; sourceTree = "<group>"; };
 		EE5BE737DD538E18FC02720F /* CertificatePinningTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertificatePinningTests.swift; sourceTree = "<group>"; };
 		EFE5599BDF9AF7F36ACFAE67 /* TranscriptVirtualizationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptVirtualizationManager.swift; sourceTree = "<group>"; };
+		AA11110001F1A1B1C1D1E1F1 /* CornerRadius.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CornerRadius.swift; sourceTree = "<group>"; };
+		BB22220002F2A2B2C2D2E2F2 /* LiquidGlass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiquidGlass.swift; sourceTree = "<group>"; };
+		CC33330003F3A3B3C3D3E3F3 /* LiquidGlassExamples.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiquidGlassExamples.swift; sourceTree = "<group>"; };
+		DD44440004F4A4B4C4D4E4F4 /* Shadows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shadows.swift; sourceTree = "<group>"; };
+		EE55550005F5A5B5C5D5E5F5 /* Spacing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spacing.swift; sourceTree = "<group>"; };
 		F50E8F3DE90F1AE226098E6F /* Colors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Colors.swift; sourceTree = "<group>"; };
+		FF66660006F6A6B6C6D6E6F6 /* Typography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Typography.swift; sourceTree = "<group>"; };
 		F5A5D45341836B8FA004DF5F /* AudioSetupCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSetupCoordinatorTests.swift; sourceTree = "<group>"; };
 		F70ACCB80A9E9D328D86E5DF /* ConnectionQualityMonitorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionQualityMonitorTests.swift; sourceTree = "<group>"; };
 		F80CAFBCD2F154186F91DED1 /* AIReflectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIReflectionView.swift; sourceTree = "<group>"; };
@@ -610,6 +622,12 @@
 			isa = PBXGroup;
 			children = (
 				F50E8F3DE90F1AE226098E6F /* Colors.swift */,
+				AA11110001F1A1B1C1D1E1F1 /* CornerRadius.swift */,
+				BB22220002F2A2B2C2D2E2F2 /* LiquidGlass.swift */,
+				CC33330003F3A3B3C3D3E3F3 /* LiquidGlassExamples.swift */,
+				DD44440004F4A4B4C4D4E4F4 /* Shadows.swift */,
+				EE55550005F5A5B5C5D5E5F5 /* Spacing.swift */,
+				FF66660006F6A6B6C6D6E6F6 /* Typography.swift */,
 				29884402CF78A2147731AA9B /* Accessibility */,
 			);
 			path = DesignSystem;
@@ -973,6 +991,7 @@
 				126947AB2E7A3E5BD6825C1F /* CoachingViewModel.swift in Sources */,
 				33939950B9B1AE56B7922434 /* ColorIndependence.swift in Sources */,
 				9850EAA4AD71D47CB07EE50D /* Colors.swift in Sources */,
+				AA11110001A1B1C1D1E1F101 /* CornerRadius.swift in Sources */,
 				0ACC8D46E0DF2A1BA6C63040 /* CompleteStepView.swift in Sources */,
 				B869B0D39F8F7123F581CA8B /* ConnectionQualityMonitor.swift in Sources */,
 				A5CADC371D59D16FBF9B12EB /* ConsentTemplateView.swift in Sources */,
@@ -997,6 +1016,8 @@
 				723C1ADE26E0C2E4DA6042FF /* InsightsViewModel.swift in Sources */,
 				B505E84AF0A55C89DDB1AD45 /* InterviewTemplate.swift in Sources */,
 				01282C8B9BB2D26F42DA755A /* JSONExporter.swift in Sources */,
+				BB22220002A2B2C2D2E2F202 /* LiquidGlass.swift in Sources */,
+				CC33330003A3B3C3D3E3F303 /* LiquidGlassExamples.swift in Sources */,
 				622AC7545ED16E7FCE92B754 /* KeyboardNavigationModifiers.swift in Sources */,
 				328DEB9B1382E6AFC985FD3A /* KeychainService.swift in Sources */,
 				B7AEAD29D4A723230800E549 /* KeychainServiceProtocol.swift in Sources */,
@@ -1017,12 +1038,14 @@
 				9F414D1D87BBBD6E6669DFFA /* SessionMode.swift in Sources */,
 				F8109E8C82BDEDAF58DF31C9 /* SessionModeSelector.swift in Sources */,
 				393092173D36A6FC228ABFD1 /* SessionRecoveryService.swift in Sources */,
+				DD44440004A4B4C4D4E4F404 /* Shadows.swift in Sources */,
 				578AE6C5B92149656A8DB107 /* SessionSetupView.swift in Sources */,
 				09B0B5A86042ACB9B7849DBA /* SessionState.swift in Sources */,
 				350D175AEA614861B6585A09 /* SessionStatisticsView.swift in Sources */,
 				F9C7FADEE9E2ACBB69678C27 /* SettingsExports.swift in Sources */,
 				AF04461B205454CDA263601C /* SettingsView.swift in Sources */,
 				DEB6CC518A42D4F44A818E55 /* Speaker.swift in Sources */,
+				EE55550005A5B5C5D5E5F505 /* Spacing.swift in Sources */,
 				4522FB437074718696AACE94 /* SpeakerLabelView.swift in Sources */,
 				53991CAB032ED815DCFA4449 /* SystemAudioStepView.swift in Sources */,
 				33246A66580491B8C57ACC08 /* TemplateManager.swift in Sources */,
@@ -1039,6 +1062,7 @@
 				30FC30CFA44D970B3E734722 /* TopicStatus.swift in Sources */,
 				902D820A2904152923895B65 /* TopicStatusIndicator.swift in Sources */,
 				693FC7EBA26BA26332B428DD /* TranscriptSearchView.swift in Sources */,
+				FF66660006A6B6C6D6E6F606 /* Typography.swift in Sources */,
 				2289CC71205E7248939BB817 /* TranscriptView.swift in Sources */,
 				41ABD109E07CD16ADAF70AB6 /* TranscriptViewModel.swift in Sources */,
 				2D181756CA15B46C1300D811 /* TranscriptVirtualizationManager.swift in Sources */,
@@ -1184,9 +1208,11 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
+				GENERATE_INFOPLIST_FILE = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hcdbuddy.HCDInterviewCoachTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HCDInterviewCoach.app/Contents/MacOS/HCDInterviewCoach";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HCD Interview Coach.app/Contents/MacOS/HCD Interview Coach";
 			};
 			name = Debug;
 		};
@@ -1264,9 +1290,11 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
+				GENERATE_INFOPLIST_FILE = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hcdbuddy.HCDInterviewCoachTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HCDInterviewCoach.app/Contents/MacOS/HCDInterviewCoach";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HCD Interview Coach.app/Contents/MacOS/HCD Interview Coach";
 			};
 			name = Release;
 		};
@@ -1282,6 +1310,7 @@
 					"@executable_path/../Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.hcdbuddy.HCDInterviewCoach;
+				PRODUCT_MODULE_NAME = HCDInterviewCoach;
 				PRODUCT_NAME = "HCD Interview Coach";
 				SDKROOT = macosx;
 			};
@@ -1299,6 +1328,7 @@
 					"@executable_path/../Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.hcdbuddy.HCDInterviewCoach;
+				PRODUCT_MODULE_NAME = HCDInterviewCoach;
 				PRODUCT_NAME = "HCD Interview Coach";
 				SDKROOT = macosx;
 			};

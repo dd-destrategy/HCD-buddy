@@ -8,6 +8,7 @@
 
 import Foundation
 import Security
+@testable import HCDInterviewCoach
 
 /// Mock keychain service for testing
 final class MockKeychainService: KeychainService {

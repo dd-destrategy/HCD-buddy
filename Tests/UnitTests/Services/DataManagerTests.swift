@@ -70,10 +70,9 @@ final class DataManagerTests: XCTestCase {
         speaker: Speaker = .interviewer
     ) -> Utterance {
         return Utterance(
-            text: text,
             speaker: speaker,
-            timestamp: Date().timeIntervalSince1970,
-            session: session
+            text: text,
+            timestampSeconds: Date().timeIntervalSince1970
         )
     }
 
@@ -82,10 +81,10 @@ final class DataManagerTests: XCTestCase {
         text: String = "Test insight text"
     ) -> Insight {
         return Insight(
-            text: text,
-            timestamp: Date().timeIntervalSince1970,
-            source: .manual,
-            session: session
+            timestampSeconds: Date().timeIntervalSince1970,
+            quote: text,
+            theme: "",
+            source: .userAdded
         )
     }
 
@@ -131,8 +130,9 @@ final class DataManagerTests: XCTestCase {
         try testContext.save()
 
         // Then: Session should be saved
+        let sessionId = session.id
         let fetchDescriptor = FetchDescriptor<Session>(
-            predicate: #Predicate { $0.id == session.id }
+            predicate: #Predicate { $0.id == sessionId }
         )
         let fetchedSessions = try testContext.fetch(fetchDescriptor)
 
@@ -155,8 +155,9 @@ final class DataManagerTests: XCTestCase {
         try testContext.save()
 
         // Then: All metadata should be preserved
+        let sessionId = session.id
         let fetchDescriptor = FetchDescriptor<Session>(
-            predicate: #Predicate { $0.id == session.id }
+            predicate: #Predicate { $0.id == sessionId }
         )
         let fetched = try testContext.fetch(fetchDescriptor).first
 

@@ -213,7 +213,7 @@ struct LiquidGlassModifier: ViewModifier {
         } else {
             ZStack {
                 // Base material blur
-                material.material
+                Color.clear.background(material.material)
 
                 // Color tint overlay
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
@@ -447,7 +447,7 @@ struct GlassButtonModifier: ViewModifier {
             }
         } else {
             ZStack {
-                Material.ultraThinMaterial
+                Color.clear.background(.ultraThinMaterial)
                 if isHovered {
                     Color.white.opacity(colorScheme == .dark ? 0.08 : 0.3)
                 }
@@ -530,7 +530,7 @@ struct GlassSheetModifier: ViewModifier {
                 : Color(white: 0.98)
         } else {
             ZStack {
-                Material.thickMaterial
+                Color.clear.background(.thickMaterial)
                 Color.white.opacity(colorScheme == .dark ? 0.03 : 0.5)
             }
         }
@@ -599,7 +599,7 @@ struct GlassFloatingModifier: ViewModifier {
                 : Color(white: 0.96)
         } else {
             ZStack {
-                Material.regularMaterial
+                Color.clear.background(.regularMaterial)
                 Color.white.opacity(colorScheme == .dark ? 0.05 : 0.4)
 
                 // Animated glow effect

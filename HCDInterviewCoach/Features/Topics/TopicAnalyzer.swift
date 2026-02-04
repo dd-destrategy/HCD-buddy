@@ -21,12 +21,12 @@ import NaturalLanguage
 /// 3. Conversation depth analysis (follow-up questions, elaboration)
 /// 4. Speaker pattern analysis (interviewer probing vs participant explanation)
 @MainActor
-final class TopicAnalyzer: ObservableObject {
+class TopicAnalyzer: ObservableObject {
 
     // MARK: - Published State
 
     /// Current topic coverage results
-    @Published private(set) var topicCoverages: [String: TopicCoverage] = [:]
+    @Published var topicCoverages: [String: TopicCoverage] = [:]
 
     /// Whether analysis is currently running
     @Published private(set) var isAnalyzing: Bool = false

@@ -55,13 +55,30 @@ enum ExportFormat: String, CaseIterable, Identifiable {
 // MARK: - Export Error
 
 /// Errors that can occur during export
-enum ExportError: LocalizedError {
+enum ExportError: LocalizedError, Equatable {
     case emptySession
     case invalidData
     case encodingFailed(String)
     case fileWriteFailed(String)
     case cancelled
     case unknown(Error)
+
+    static func == (lhs: ExportError, rhs: ExportError) -> Bool {
+        switch (lhs, rhs) {
+        case (.emptySession, .emptySession),
+             (.invalidData, .invalidData),
+             (.cancelled, .cancelled):
+            return true
+        case (.encodingFailed(let l), .encodingFailed(let r)):
+            return l == r
+        case (.fileWriteFailed(let l), .fileWriteFailed(let r)):
+            return l == r
+        case (.unknown(let l), .unknown(let r)):
+            return l.localizedDescription == r.localizedDescription
+        default:
+            return false
+        }
+    }
 
     var errorDescription: String? {
         switch self {

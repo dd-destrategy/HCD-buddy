@@ -60,7 +60,7 @@ struct AudioChunk: Sendable {
 }
 
 /// Real-time audio levels for system and microphone inputs
-struct AudioLevels: Sendable {
+struct AudioLevels: Sendable, Equatable {
     /// System audio level (0.0 = silence, 1.0 = maximum)
     let systemLevel: Float // 0.0 - 1.0
 
@@ -78,7 +78,7 @@ struct AudioLevels: Sendable {
 }
 
 /// Errors that can occur during audio capture
-enum AudioCaptureError: Error, LocalizedError {
+enum AudioCaptureError: Error, LocalizedError, Equatable {
     /// BlackHole virtual audio device is not installed
     case blackHoleNotInstalled
 
@@ -97,6 +97,21 @@ enum AudioCaptureError: Error, LocalizedError {
     /// Invalid audio device configuration
     case invalidDeviceConfiguration
 
+    /// Failed to create the required output audio format
+    case failedToCreateOutputFormat
+
+    /// Failed to configure audio session
+    case failedToConfigureAudioSession(Error)
+
+    /// Failed to set up microphone input
+    case failedToSetupMicrophone(Error)
+
+    /// Failed to start audio engine
+    case failedToStartEngine(Error)
+
+    /// Audio device not found
+    case deviceNotFound
+
     var errorDescription: String? {
         switch self {
         case .blackHoleNotInstalled:
@@ -111,6 +126,37 @@ enum AudioCaptureError: Error, LocalizedError {
             return "Microphone permission denied. Please grant microphone access in System Settings."
         case .invalidDeviceConfiguration:
             return "Invalid audio device configuration detected."
+        case .failedToCreateOutputFormat:
+            return "Failed to create required audio format (24kHz, 16-bit mono PCM)"
+        case .failedToConfigureAudioSession(let error):
+            return "Failed to configure audio session: \(error.localizedDescription)"
+        case .failedToSetupMicrophone(let error):
+            return "Failed to set up microphone input: \(error.localizedDescription)"
+        case .failedToStartEngine(let error):
+            return "Failed to start audio engine: \(error.localizedDescription)"
+        case .deviceNotFound:
+            return "Multi-Output Device not found"
+        }
+    }
+
+    static func == (lhs: AudioCaptureError, rhs: AudioCaptureError) -> Bool {
+        switch (lhs, rhs) {
+        case (.blackHoleNotInstalled, .blackHoleNotInstalled),
+             (.multiOutputNotConfigured, .multiOutputNotConfigured),
+             (.formatConversionError, .formatConversionError),
+             (.microphonePermissionDenied, .microphonePermissionDenied),
+             (.invalidDeviceConfiguration, .invalidDeviceConfiguration),
+             (.failedToCreateOutputFormat, .failedToCreateOutputFormat),
+             (.deviceNotFound, .deviceNotFound):
+            return true
+        case (.captureFailure(let a), .captureFailure(let b)):
+            return a == b
+        case (.failedToConfigureAudioSession(let a), .failedToConfigureAudioSession(let b)),
+             (.failedToSetupMicrophone(let a), .failedToSetupMicrophone(let b)),
+             (.failedToStartEngine(let a), .failedToStartEngine(let b)):
+            return a.localizedDescription == b.localizedDescription
+        default:
+            return false
         }
     }
 }

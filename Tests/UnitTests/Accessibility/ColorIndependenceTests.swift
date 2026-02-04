@@ -93,7 +93,7 @@ final class ColorIndependenceTests: XCTestCase {
     // MARK: - Test: Topic Status Indicator View
 
     func testTopicStatusIndicator_creation() {
-        let indicator = TopicStatusIndicator(status: .untouched)
+        let indicator = TopicStatusIndicator(status: .notStarted)
         XCTAssertNotNil(indicator)
     }
 
@@ -108,12 +108,12 @@ final class ColorIndependenceTests: XCTestCase {
     }
 
     func testTopicStatusIndicator_defaultLabelIsFalse() {
-        let indicator = TopicStatusIndicator(status: .touched)
+        let indicator = TopicStatusIndicator(status: .mentioned)
         XCTAssertFalse(indicator.showLabel)
     }
 
     func testTopicStatusIndicator_bodyExists() {
-        let indicator = TopicStatusIndicator(status: .untouched)
+        let indicator = TopicStatusIndicator(status: .notStarted)
         XCTAssertNotNil(indicator.body)
     }
 

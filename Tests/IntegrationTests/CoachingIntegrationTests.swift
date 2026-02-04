@@ -552,17 +552,4 @@ final class CoachingIntegrationTests: IntegrationTestCase {
 }
 
 // MARK: - CoachingPreferences Test Extension
-
-extension CoachingPreferences {
-    /// Resets preferences to a known test state
-    /// Note: This extension is also defined in CoachingServiceTests but duplicated here
-    /// for integration test independence
-    @MainActor
-    func setupForTesting(enabled: Bool, onboardingComplete: Bool, level: CoachingLevel) {
-        self.isCoachingEnabled = enabled
-        self.hasCompletedOnboarding = onboardingComplete
-        self.coachingLevel = level
-        self.customSensitivity = 1.0
-        self.customAutoDismissDuration = nil
-    }
-}
+// Note: setupForTesting is defined in CoachingServiceTests.swift extension on CoachingPreferences
