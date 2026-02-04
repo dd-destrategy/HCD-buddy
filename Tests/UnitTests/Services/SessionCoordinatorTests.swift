@@ -7,6 +7,7 @@
 //
 
 import XCTest
+import SwiftData
 @testable import HCDInterviewCoach
 
 @MainActor
@@ -678,16 +679,23 @@ final class SessionCoordinatorFactoryTests: XCTestCase {
     }
 
     func testCreateForTesting_acceptsCustomDataManager() async throws {
-        // Given: Mock dependencies and data manager
+        // Given: Mock dependencies and in-memory data manager
         let mockAudio = MockAudioCaptureService()
         let mockAPI = MockRealtimeAPIClient()
 
-        // When: Create test coordinator
-        // Note: In actual test, would inject mock DataManager
+        let schema = Schema([
+            Session.self, Utterance.self, Insight.self,
+            TopicStatus.self, CoachingEvent.self
+        ])
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: schema, configurations: [config])
+        let testDataManager = DataManager(container: container)
+
+        // When: Create test coordinator with custom data manager
         let coordinator = SessionCoordinatorFactory.createForTesting(
             audioCapture: mockAudio,
             apiClient: mockAPI,
-            dataManager: .shared
+            dataManager: testDataManager
         )
 
         // Then: Should be valid coordinator

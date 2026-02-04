@@ -45,6 +45,13 @@ final class DataManagerTests: XCTestCase {
     }
 
     override func tearDown() {
+        // Delete model objects before destroying container to prevent SwiftData crash
+        if let context = testContext {
+            for obj in (try? context.fetch(FetchDescriptor<Session>())) ?? [] { context.delete(obj) }
+            for obj in (try? context.fetch(FetchDescriptor<Utterance>())) ?? [] { context.delete(obj) }
+            for obj in (try? context.fetch(FetchDescriptor<Insight>())) ?? [] { context.delete(obj) }
+            try? context.save()
+        }
         testContext = nil
         testContainer = nil
         super.tearDown()

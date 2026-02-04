@@ -58,6 +58,12 @@ final class InsightFlaggingServiceTests: XCTestCase {
 
     override func tearDown() {
         flaggingService = nil
+        // Delete model objects before destroying container to prevent SwiftData crash
+        if let context = modelContainer?.mainContext {
+            for obj in (try? context.fetch(FetchDescriptor<Insight>())) ?? [] { context.delete(obj) }
+            for obj in (try? context.fetch(FetchDescriptor<Session>())) ?? [] { context.delete(obj) }
+            try? context.save()
+        }
         testSession = nil
         dataManager = nil
         modelContainer = nil

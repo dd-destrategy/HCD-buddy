@@ -58,6 +58,16 @@ class IntegrationTestCase: XCTestCase {
         mockAudioCapture?.reset()
         await mockAPIClient?.reset()
 
+        // Delete model objects before destroying container to prevent SwiftData crash
+        if let context = testContext {
+            for obj in (try? context.fetch(FetchDescriptor<Session>())) ?? [] { context.delete(obj) }
+            for obj in (try? context.fetch(FetchDescriptor<Utterance>())) ?? [] { context.delete(obj) }
+            for obj in (try? context.fetch(FetchDescriptor<Insight>())) ?? [] { context.delete(obj) }
+            for obj in (try? context.fetch(FetchDescriptor<CoachingEvent>())) ?? [] { context.delete(obj) }
+            for obj in (try? context.fetch(FetchDescriptor<TopicStatus>())) ?? [] { context.delete(obj) }
+            try? context.save()
+        }
+
         // Clean up container
         testContext = nil
         testDataManager = nil

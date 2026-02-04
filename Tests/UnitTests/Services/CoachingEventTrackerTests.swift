@@ -66,6 +66,12 @@ final class CoachingEventTrackerTests: XCTestCase {
         preferences.resetStatistics()
         eventTracker = nil
         preferences = nil
+        // Delete model objects before destroying container to prevent SwiftData crash
+        if let context = modelContainer?.mainContext {
+            for obj in (try? context.fetch(FetchDescriptor<CoachingEvent>())) ?? [] { context.delete(obj) }
+            for obj in (try? context.fetch(FetchDescriptor<Session>())) ?? [] { context.delete(obj) }
+            try? context.save()
+        }
         testSession = nil
         modelContainer = nil
         super.tearDown()
