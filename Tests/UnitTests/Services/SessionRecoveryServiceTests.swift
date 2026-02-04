@@ -572,13 +572,15 @@ final class SessionRecoveryServiceTests: XCTestCase {
     // MARK: - Test: Recovery History
 
     func testRecoveryHistory_tracksAttempts() async {
-        // Given: Multiple recovery attempts
+        // Given: Multiple failed recovery attempts (failures don't reset attempt counter)
         let error = createRecoverableError(kind: .connectionLost)
 
         for _ in 0..<2 {
             let strategy = await recoveryService.determineStrategy(for: error)
             if case .retry = strategy {
-                _ = await recoveryService.executeRecovery(strategy: strategy) { _ in }
+                _ = await recoveryService.executeRecovery(strategy: strategy) { _ in
+                    throw TestError.simulatedFailure
+                }
             }
         }
 

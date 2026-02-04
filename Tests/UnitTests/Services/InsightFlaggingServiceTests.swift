@@ -53,7 +53,7 @@ final class InsightFlaggingServiceTests: XCTestCase {
         modelContainer.mainContext.insert(testSession)
         try? modelContainer.mainContext.save()
 
-        flaggingService = InsightFlaggingService(session: testSession, dataManager: dataManager)
+        flaggingService = TestableInsightFlaggingService(session: testSession, testContext: modelContainer.mainContext)
     }
 
     override func tearDown() {
@@ -585,6 +585,23 @@ final class InsightFlaggingServiceTests: XCTestCase {
     }
 }
 
+// MARK: - Testable InsightFlaggingService Subclass
+
+/// Subclass that overrides modelContext to use a test container instead of DataManager.shared
+@MainActor
+final class TestableInsightFlaggingService: InsightFlaggingService {
+    private let testContext: ModelContext
+
+    init(session: Session?, testContext: ModelContext) {
+        self.testContext = testContext
+        super.init(session: session)
+    }
+
+    override var modelContext: ModelContext {
+        testContext
+    }
+}
+
 // MARK: - Mock Data Manager
 
 /// Mock DataManager for testing without actual database operations
@@ -604,15 +621,5 @@ final class MockDataManager {
         if mainContext.hasChanges {
             try mainContext.save()
         }
-    }
-}
-
-// MARK: - InsightFlaggingService Extension for Testing
-
-extension InsightFlaggingService {
-    /// Convenience initializer for testing with mock data manager
-    @MainActor
-    convenience init(session: Session?, dataManager: MockDataManager) {
-        self.init(session: session)
     }
 }

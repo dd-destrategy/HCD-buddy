@@ -71,7 +71,7 @@ final class ConnectionQualityMonitor: ObservableObject {
     @Published private(set) var quality: ConnectionQuality = .disconnected
 
     /// Current network path status
-    @Published private(set) var isNetworkAvailable: Bool = false
+    @Published var isNetworkAvailable: Bool = false
 
     /// Whether monitoring is active
     @Published private(set) var isMonitoring: Bool = false

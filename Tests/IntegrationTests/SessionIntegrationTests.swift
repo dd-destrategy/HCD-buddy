@@ -248,7 +248,7 @@ final class SessionIntegrationTests: IntegrationTestCase {
 
         // Verify degraded mode features
         XCTAssertTrue(sessionManager.degradedMode?.availableFeatures.contains("Audio capture") ?? false)
-        XCTAssertTrue(sessionManager.degradedMode?.availableFeatures.contains("Transcription") ?? false)
+        XCTAssertTrue(sessionManager.degradedMode?.availableFeatures.contains("Real-time transcription") ?? false)
     }
 
     // MARK: - Test: Session Export

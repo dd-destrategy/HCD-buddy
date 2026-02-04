@@ -259,19 +259,25 @@ class SessionManager: ObservableObject {
         // Stop connection monitoring
         connectionMonitor.stop()
 
-        // Stop coordinator
+        // Finalize and stop coordinator
         if let coordinator = coordinator {
-            await coordinator.stop()
             try await coordinator.finalizeSession()
+            await coordinator.stop()
         }
 
         // Finish transcription stream
         transcriptionStreamProvider.finish()
 
-        // Update session
+        // Update session with final timestamp and duration
         if let session = currentSession {
             session.endedAt = Date()
-            session.totalDurationSeconds = elapsedTime
+            // Use timer-based elapsed time if available, otherwise fall back to
+            // the actual wall-clock duration computed from startedAt
+            if elapsedTime > 0 {
+                session.totalDurationSeconds = elapsedTime
+            } else if session.totalDurationSeconds <= 0 {
+                session.totalDurationSeconds = session.durationSeconds
+            }
             try dataManager.save()
             AppLogger.shared.info("Session ended: \(session.id), duration: \(formattedElapsedTime)")
         }

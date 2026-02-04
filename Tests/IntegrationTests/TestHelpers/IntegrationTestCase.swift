@@ -23,6 +23,9 @@ class IntegrationTestCase: XCTestCase {
     /// Test model context for data operations
     var testContext: ModelContext!
 
+    /// Test DataManager backed by the in-memory container
+    var testDataManager: DataManager!
+
     /// Mock audio capture service for testing
     var mockAudioCapture: MockAudioCaptureService!
 
@@ -40,9 +43,10 @@ class IntegrationTestCase: XCTestCase {
     override func setUp() async throws {
         try await super.setUp()
 
-        // Create in-memory SwiftData container
+        // Create in-memory SwiftData container and test DataManager
         testContainer = try createInMemoryContainer()
         testContext = testContainer.mainContext
+        testDataManager = DataManager(container: testContainer)
 
         // Create fresh mocks
         mockAudioCapture = MockAudioCaptureService()
@@ -56,6 +60,7 @@ class IntegrationTestCase: XCTestCase {
 
         // Clean up container
         testContext = nil
+        testDataManager = nil
         testContainer = nil
         mockAudioCapture = nil
         mockAPIClient = nil
@@ -90,7 +95,7 @@ class IntegrationTestCase: XCTestCase {
 
     // MARK: - Session Manager Factory
 
-    /// Creates a SessionManager configured with test mocks
+    /// Creates a SessionManager configured with test mocks and in-memory DataManager
     /// - Returns: SessionManager ready for testing
     func createTestSessionManager() -> SessionManager {
         return SessionManager(
@@ -99,7 +104,8 @@ class IntegrationTestCase: XCTestCase {
             },
             apiClientProvider: { [weak self] in
                 self?.mockAPIClient ?? MockRealtimeAPIClient()
-            }
+            },
+            dataManager: testDataManager
         )
     }
 

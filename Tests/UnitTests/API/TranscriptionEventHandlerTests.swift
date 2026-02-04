@@ -555,10 +555,16 @@ final class TranscriptionEventHandlerTests: XCTestCase {
 
     func testStatistics_parseSuccessRate() {
         // Given: Some successful and some failed parses
+        // Parse a delta (succeeds) and a complete (succeeds) to build up totalEvents
+        _ = eventHandler.parseDelta(createDeltaEvent(delta: "Partial text"))
         _ = eventHandler.parseComplete(createCompleteEvent(transcript: "Success"))
+        // Now trigger a parse error
         _ = eventHandler.parseComplete(RealtimeEvent(type: .transcriptionComplete, payload: [:], timestamp: Date()))  // Fail
 
         // Then: Success rate should reflect both
+        // totalEvents = deltaEventsProcessed(1) + completeEventsProcessed(1) = 2
+        // parseErrors = 1
+        // successRate = (2 - 1) / 2 = 0.5
         let successRate = eventHandler.statistics.parseSuccessRate
         XCTAssertGreaterThan(successRate, 0)
         XCTAssertLessThan(successRate, 1.0)

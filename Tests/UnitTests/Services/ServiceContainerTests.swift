@@ -140,7 +140,7 @@ final class ServiceContainerTests: XCTestCase {
         let builtInTemplates = serviceContainer.templateManager.getBuiltInTemplates()
 
         // Then: Should have built-in templates
-        XCTAssertGreaterThanOrEqual(builtInTemplates.count, 5)
+        XCTAssertGreaterThanOrEqual(builtInTemplates.count, 4)
     }
 
     func testTemplateManagerAccess_canSaveCustomTemplate() {

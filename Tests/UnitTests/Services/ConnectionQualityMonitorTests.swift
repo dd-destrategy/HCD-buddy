@@ -17,6 +17,9 @@ final class ConnectionQualityMonitorTests: XCTestCase {
     override func setUp() {
         super.setUp()
         monitor = ConnectionQualityMonitor()
+        // In test environment, NWPathMonitor may not report network availability,
+        // so we set it explicitly to allow quality calculations to proceed.
+        monitor.isNetworkAvailable = true
     }
 
     override func tearDown() {
@@ -58,14 +61,14 @@ final class ConnectionQualityMonitorTests: XCTestCase {
         // Given: Monitor started
         monitor.start()
 
-        // When: Record mostly successes with 1% error rate
-        for _ in 0..<99 {
+        // When: Record an error followed by many successes
+        // Note: sliding window keeps only last 10 measurements
+        monitor.recordError()
+        for _ in 0..<20 {
             monitor.recordSuccess(latencyMs: 50)
         }
-        monitor.recordError()
 
-        // Then: Quality should still be excellent (1% error rate allowed)
-        // Note: Uses sliding window, so depends on window size
+        // Then: Quality should still be excellent (error is outside window)
         let quality = monitor.quality
         XCTAssertTrue(quality == .excellent || quality == .good)
     }
@@ -168,11 +171,13 @@ final class ConnectionQualityMonitorTests: XCTestCase {
         // Given: Monitor started
         monitor.start()
 
-        // When: Record with high error rate (~25%)
-        for _ in 0..<7 {
+        // When: Record with high error rate (~20%)
+        // Note: sliding window keeps only last 10 measurements
+        // 2 errors in 10 = 20% > fairErrorRate(10%) → .poor
+        for _ in 0..<8 {
             monitor.recordSuccess(latencyMs: 100)
         }
-        for _ in 0..<3 {
+        for _ in 0..<2 {
             monitor.recordError()
         }
 

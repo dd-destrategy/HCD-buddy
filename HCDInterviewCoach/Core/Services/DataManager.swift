@@ -87,6 +87,13 @@ final class DataManager {
         }
     }
 
+    /// Creates a DataManager backed by the given ModelContainer.
+    /// Intended for testing with in-memory containers.
+    init(container: ModelContainer) {
+        self.container = container
+        self.initializationError = nil
+    }
+
     /// Ensures the container is available, throwing an error if not
     /// - Returns: The model container
     /// - Throws: DataManagerError.containerUnavailable if the database failed to initialize

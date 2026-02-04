@@ -321,8 +321,8 @@ final class InsightsViewModel: ObservableObject {
 
     private func setupBindings() {
         // Bind to flagging service insights
+        // Note: Both ViewModel and Service are @MainActor, so no need for receive(on:)
         flaggingService.$insights
-            .receive(on: DispatchQueue.main)
             .sink { [weak self] insights in
                 self?.insights = insights
             }
@@ -330,7 +330,6 @@ final class InsightsViewModel: ObservableObject {
 
         // Bind to flagging status
         flaggingService.$flaggingStatus
-            .receive(on: DispatchQueue.main)
             .sink { [weak self] status in
                 self?.flaggingStatus = status
 

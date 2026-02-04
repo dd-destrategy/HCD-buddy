@@ -83,7 +83,7 @@ final class CoachingIntegrationTests: IntegrationTestCase {
 
         // And no prompts should be shown even if function calls come in
         let event = createTestFunctionCallEvent(
-            name: "show_nudge",
+            name: "general_tip",
             arguments: ["text": "Test prompt", "reason": "Test", "confidence": "0.95"],
             timestamp: 1.0
         )
@@ -165,7 +165,7 @@ final class CoachingIntegrationTests: IntegrationTestCase {
 
         // When: Low-confidence function call is received
         let event = createTestFunctionCallEvent(
-            name: "show_nudge",
+            name: "general_tip",
             arguments: [
                 "text": "Maybe ask about this?",
                 "reason": "Unclear opportunity",
@@ -231,7 +231,7 @@ final class CoachingIntegrationTests: IntegrationTestCase {
         coachingService.startSession(session)
 
         let event = createTestFunctionCallEvent(
-            name: "show_nudge",
+            name: "general_tip",
             arguments: ["text": "Test prompt", "reason": "Test", "confidence": "0.95"],
             timestamp: 1.0
         )
@@ -293,7 +293,7 @@ final class CoachingIntegrationTests: IntegrationTestCase {
 
         // Force prompt count to max by showing prompts
         let event1 = createTestFunctionCallEvent(
-            name: "show_nudge",
+            name: "general_tip",
             arguments: ["text": "First", "reason": "Test", "confidence": "0.95"],
             timestamp: 1.0
         )
@@ -304,7 +304,7 @@ final class CoachingIntegrationTests: IntegrationTestCase {
         // If at max, additional prompts should be blocked
         if coachingService.hasReachedMaxPrompts {
             let extraEvent = createTestFunctionCallEvent(
-                name: "show_nudge",
+                name: "general_tip",
                 arguments: ["text": "Extra prompt", "reason": "Should be blocked", "confidence": "0.99"],
                 timestamp: 300.0
             )
@@ -330,7 +330,7 @@ final class CoachingIntegrationTests: IntegrationTestCase {
 
         // When: Show a prompt
         let event = createTestFunctionCallEvent(
-            name: "show_nudge",
+            name: "general_tip",
             arguments: ["text": "Test prompt", "reason": "Test", "confidence": "0.95"],
             timestamp: 1.0
         )
@@ -362,7 +362,7 @@ final class CoachingIntegrationTests: IntegrationTestCase {
 
         // And a prompt is received immediately after
         let event = createTestFunctionCallEvent(
-            name: "show_nudge",
+            name: "general_tip",
             arguments: ["text": "Prompt after speech", "reason": "Test", "confidence": "0.95"],
             timestamp: 1.0
         )
@@ -506,7 +506,7 @@ final class CoachingIntegrationTests: IntegrationTestCase {
 
         // Show a prompt
         let event = createTestFunctionCallEvent(
-            name: "show_nudge",
+            name: "general_tip",
             arguments: ["text": "Test", "reason": "Test", "confidence": "0.95"],
             timestamp: 1.0
         )
@@ -535,7 +535,7 @@ final class CoachingIntegrationTests: IntegrationTestCase {
 
         // Show a prompt
         let event = createTestFunctionCallEvent(
-            name: "show_nudge",
+            name: "general_tip",
             arguments: ["text": "Test prompt", "reason": "Test", "confidence": "0.95"],
             timestamp: 1.0
         )

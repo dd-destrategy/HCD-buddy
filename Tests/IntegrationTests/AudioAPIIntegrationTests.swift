@@ -295,7 +295,8 @@ final class AudioAPIIntegrationTests: IntegrationTestCase {
                 // Return a mock that simulates failure
                 let client = MockRealtimeAPIClient()
                 return client
-            }
+            },
+            dataManager: testDataManager
         )
 
         // When: Try to configure and connect
@@ -472,6 +473,8 @@ final class AudioAPIIntegrationTests: IntegrationTestCase {
         // Full mode should enable all features
         XCTAssertEqual(fullConfig.sessionMode, .full)
 
+        // End session properly before resetting (reset requires ended/error state)
+        try await sessionManager.end()
         await sessionManager.reset()
 
         // Test Transcription Only mode
@@ -481,6 +484,7 @@ final class AudioAPIIntegrationTests: IntegrationTestCase {
         // Transcription mode should work without coaching functions
         XCTAssertEqual(transcriptionConfig.sessionMode, .transcriptionOnly)
 
+        try await sessionManager.end()
         await sessionManager.reset()
 
         // Test Observer Only mode

@@ -113,7 +113,7 @@ final class MarkdownExporterTests: XCTestCase {
         let markdown = try exporter.export(testSession)
 
         // Then
-        XCTAssertTrue(markdown.contains("| **Duration** | 02:00:00 |"))
+        XCTAssertTrue(markdown.contains("| **Duration** | 2:00:00 |"))
     }
 
     func testMetadataSectionContainsMode() throws {

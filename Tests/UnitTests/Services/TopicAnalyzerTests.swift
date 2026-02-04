@@ -36,12 +36,15 @@ final class TopicAnalyzerTests: XCTestCase {
 
     // MARK: - Test: Analyze Utterance
 
-    func testAnalyzeUtterance_detectsKeywordMatch() {
+    func testAnalyzeUtterance_detectsKeywordMatch() async throws {
         // Given: Topics configured with keywords
         configureAnalyzerWithTopics(["User Experience"], keywords: ["User Experience": ["usability", "interface", "design"]])
 
         // When: Analyze an utterance containing a keyword
         analyzer.analyze(text: "The usability of this interface is really important to us", speaker: .participant, timestamp: 60.0)
+
+        // Wait for async analysis to complete
+        try await Task.sleep(nanoseconds: 100_000_000)
 
         // Then: Topic should be detected
         let coverage = analyzer.topicCoverages["User Experience"]

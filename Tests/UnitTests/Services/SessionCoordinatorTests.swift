@@ -136,27 +136,14 @@ final class SessionCoordinatorTests: XCTestCase {
 
     func testStartAudioAndAPI_connectionFailure() async throws {
         // Given: API client configured to fail
-        await mockAPIClient.reset()
-        mockAudioCapture.reset()
-
-        // Create new mock that will fail
         let failingAPIClient = MockRealtimeAPIClient()
-        await failingAPIClient.reset()
-
-        // Configure to throw on connect
-        Task {
-            await MainActor.run {
-                // Access the actor-isolated properties
-            }
-        }
+        failingAPIClient.shouldThrowOnConnect = true
+        failingAPIClient.connectionErrorToThrow = .networkUnavailable
 
         let failCoordinator = SessionCoordinator(
             audioCapture: mockAudioCapture,
             apiClient: failingAPIClient
         )
-
-        // Set up the mock to fail
-        await setMockToFail(failingAPIClient)
 
         let config = createTestConfig()
         let session = createTestSession()
@@ -168,14 +155,6 @@ final class SessionCoordinatorTests: XCTestCase {
         } catch let error as SessionError {
             XCTAssertEqual(error.kind, .connectionFailed)
         }
-    }
-
-    private func setMockToFail(_ mock: MockRealtimeAPIClient) async {
-        await mock.reset()
-        // The mock needs to be configured via actor-isolated methods
-        // We'll simulate connection failure by setting flags
-        let _ = await mock.shouldThrowOnConnect
-        // Note: In real test, mock would need method to configure failure
     }
 
     // MARK: - Test: Stop Audio and API

@@ -7,6 +7,7 @@
 //
 
 import XCTest
+import SwiftData
 @testable import HCDInterviewCoach
 
 @MainActor
@@ -15,15 +16,34 @@ final class SessionManagerTests: XCTestCase {
     var sessionManager: SessionManager!
     var mockAudioCapturer: MockAudioCaptureService!
     var mockAPIClient: MockRealtimeAPIClient!
+    var testContainer: ModelContainer!
+    var testDataManager: DataManager!
 
     override func setUp() {
         super.setUp()
         mockAudioCapturer = MockAudioCaptureService()
         mockAPIClient = MockRealtimeAPIClient()
 
+        // Create in-memory SwiftData container for testing
+        let schema = Schema([
+            Session.self,
+            Utterance.self,
+            Insight.self,
+            TopicStatus.self,
+            CoachingEvent.self
+        ])
+        let configuration = ModelConfiguration(
+            schema: schema,
+            isStoredInMemoryOnly: true,
+            allowsSave: true
+        )
+        testContainer = try! ModelContainer(for: schema, configurations: [configuration])
+        testDataManager = DataManager(container: testContainer)
+
         sessionManager = SessionManager(
             audioCapturerProvider: { [weak self] in self?.mockAudioCapturer ?? MockAudioCaptureService() },
-            apiClientProvider: { [weak self] in self?.mockAPIClient ?? MockRealtimeAPIClient() }
+            apiClientProvider: { [weak self] in self?.mockAPIClient ?? MockRealtimeAPIClient() },
+            dataManager: testDataManager
         )
     }
 
@@ -31,6 +51,8 @@ final class SessionManagerTests: XCTestCase {
         sessionManager = nil
         mockAudioCapturer = nil
         mockAPIClient = nil
+        testDataManager = nil
+        testContainer = nil
         super.tearDown()
     }
 

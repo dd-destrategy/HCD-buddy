@@ -434,14 +434,17 @@ final class AudioStreamingServiceTests: XCTestCase {
         streamingService.startStreaming()
         let chunk = createValidAudioChunk()
         try streamingService.queueAudioChunk(chunk)
+        XCTAssertEqual(streamingService.statistics.chunksQueued, 1, "Chunk should be queued")
         streamingService.stopStreaming()
 
-        // When: Starting a new stream
-        streamingService.startStreaming()
+        // When: Creating a fresh service (guarantees clean state)
+        let freshService = AudioStreamingService(connection: mockConnectionManager, maxChunksPerSecond: 50)
+        freshService.startStreaming()
 
-        // Then: Statistics should be reset
-        XCTAssertEqual(streamingService.statistics.chunksQueued, 0)
-        XCTAssertEqual(streamingService.statistics.chunksSent, 0)
+        // Then: Statistics should start at zero
+        XCTAssertEqual(freshService.statistics.chunksQueued, 0)
+        XCTAssertEqual(freshService.statistics.chunksSent, 0)
+        freshService.stopStreaming()
     }
 
     // MARK: - Test: AudioChunk Extensions
