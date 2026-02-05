@@ -2,36 +2,38 @@ import SwiftUI
 
 /// Coaching settings view
 /// Provides options to enable/disable coaching and configure prompt behavior
+/// Enhanced with Liquid Glass UI styling
 struct CoachingSettingsView: View {
     @EnvironmentObject private var settings: AppSettings
     @State private var showPromptPreview: Bool = false
     @State private var showResetConfirmation: Bool = false
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                VStack(alignment: .leading, spacing: 12) {
-                    Toggle("Enable Coaching", isOn: $settings.coachingEnabled)
-                        .help("Enable AI-powered coaching prompts during interviews")
+            VStack(alignment: .leading, spacing: Spacing.xl) {
+                // Enable Coaching Section
+                SettingsSection(title: "Coaching Mode") {
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
+                        Toggle("Enable Coaching", isOn: $settings.coachingEnabled)
+                            .help("Enable AI-powered coaching prompts during interviews")
 
-                    Text("When enabled, the coach will provide real-time prompts to help you ask better interview questions")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        Text("When enabled, the coach will provide real-time prompts to help you ask better interview questions")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                 }
 
                 if settings.coachingEnabled {
-                    Divider()
-
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Auto-Dismiss Time")
-                            .font(.headline)
-
-                        VStack(alignment: .leading, spacing: 8) {
+                    // Auto-Dismiss Section
+                    SettingsSection(title: "Auto-Dismiss Time") {
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
                             Slider(
                                 value: $settings.autoDismissTime,
                                 in: 5 ... 15,
                                 step: 0.5
                             )
+                            .accentColor(.accentColor)
 
                             HStack {
                                 Text("5 seconds")
@@ -41,93 +43,109 @@ struct CoachingSettingsView: View {
                                 Text(settings.autoDismissTimeFormatted)
                                     .font(.caption)
                                     .fontWeight(.semibold)
+                                    .foregroundColor(.accentColor)
                                 Spacer()
                                 Text("15 seconds")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
-                        }
 
-                        Text("Coaching prompts will automatically dismiss after this duration")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                            Text("Coaching prompts will automatically dismiss after this duration")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
                     }
 
-                    Divider()
-
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Maximum Prompts Per Session")
-                            .font(.headline)
-
-                        HStack {
-                            Button(action: decreaseMaxPrompts) {
-                                Image(systemName: "minus.circle.fill")
-                                    .font(.title3)
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                            .help("Decrease maximum prompts")
-
-                            Spacer()
-
-                            Text(String(settings.maxPromptsPerSession))
-                                .font(.headline)
-                                .frame(width: 50)
-
-                            Spacer()
-
-                            Button(action: increaseMaxPrompts) {
-                                Image(systemName: "plus.circle.fill")
-                                    .font(.title3)
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                            .help("Increase maximum prompts")
-                        }
-
-                        Text("The coach will show up to this many prompts during a single session (minimum 1, maximum 5)")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-
-                    Divider()
-
-                    VStack(alignment: .leading, spacing: 12) {
-                        Button(action: { showPromptPreview = true }) {
+                    // Max Prompts Section
+                    SettingsSection(title: "Maximum Prompts Per Session") {
+                        VStack(alignment: .leading, spacing: Spacing.md) {
                             HStack {
-                                Image(systemName: "eye")
-                                Text("Preview Coaching Prompt")
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.bordered)
-                        .help("See an example of what coaching prompts look like")
+                                Button(action: decreaseMaxPrompts) {
+                                    Image(systemName: "minus.circle.fill")
+                                        .font(.title2)
+                                        .foregroundColor(settings.maxPromptsPerSession > 1 ? .accentColor : .secondary)
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                .help("Decrease maximum prompts")
+                                .disabled(settings.maxPromptsPerSession <= 1)
 
-                        Text("This is a simulation of a coaching prompt that appears during interviews")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                                Spacer()
+
+                                Text(String(settings.maxPromptsPerSession))
+                                    .font(.title)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.primary)
+                                    .frame(width: 60)
+                                    .padding(.vertical, Spacing.sm)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: CornerRadius.medium)
+                                            .fill(colorScheme == .dark
+                                                ? Color.white.opacity(0.05)
+                                                : Color.black.opacity(0.03))
+                                    )
+
+                                Spacer()
+
+                                Button(action: increaseMaxPrompts) {
+                                    Image(systemName: "plus.circle.fill")
+                                        .font(.title2)
+                                        .foregroundColor(settings.maxPromptsPerSession < 5 ? .accentColor : .secondary)
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                .help("Increase maximum prompts")
+                                .disabled(settings.maxPromptsPerSession >= 5)
+                            }
+
+                            Text("The coach will show up to this many prompts during a single session (minimum 1, maximum 5)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+
+                    // Preview Button Section
+                    SettingsSection(title: "Preview") {
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
+                            Button(action: { showPromptPreview = true }) {
+                                HStack {
+                                    Image(systemName: "eye")
+                                    Text("Preview Coaching Prompt")
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, Spacing.sm)
+                            }
+                            .glassButton(style: .secondary)
+                            .help("See an example of what coaching prompts look like")
+
+                            Text("This is a simulation of a coaching prompt that appears during interviews")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
                     }
                 }
 
-                Divider()
-
-                VStack(alignment: .leading, spacing: 12) {
-                    Button(action: { showResetConfirmation = true }) {
-                        HStack {
-                            Image(systemName: "arrow.counterclockwise")
-                            Text("Reset to Defaults")
+                // Reset Section
+                SettingsSection(title: "Reset") {
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
+                        Button(action: { showResetConfirmation = true }) {
+                            HStack {
+                                Image(systemName: "arrow.counterclockwise")
+                                Text("Reset to Defaults")
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, Spacing.sm)
                         }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.bordered)
-                    .help("Reset all coaching settings to their default values")
+                        .glassButton(style: .secondary)
+                        .help("Reset all coaching settings to their default values")
 
-                    Text("This will reset coaching settings to recommended defaults")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        Text("This will reset coaching settings to recommended defaults")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                 }
 
                 Spacer()
             }
-            .padding(24)
+            .padding(Spacing.xl)
         }
         .sheet(isPresented: $showPromptPreview) {
             CoachingPromptPreviewView(isPresented: $showPromptPreview)
@@ -161,11 +179,14 @@ struct CoachingSettingsView: View {
 }
 
 // MARK: - Coaching Prompt Preview View
+
 struct CoachingPromptPreviewView: View {
     @Binding var isPresented: Bool
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: Spacing.xl) {
+            // Header
             HStack {
                 Text("Coaching Prompt Preview")
                     .font(.headline)
@@ -178,13 +199,14 @@ struct CoachingPromptPreviewView: View {
                 .buttonStyle(PlainButtonStyle())
             }
 
-            VStack(alignment: .leading, spacing: 12) {
+            // Sample Coaching Prompt
+            VStack(alignment: .leading, spacing: Spacing.md) {
                 HStack {
                     Image(systemName: "brain.fill")
                         .font(.title2)
-                        .foregroundColor(.blue)
+                        .foregroundColor(.accentColor)
 
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 2) {
                         Text("Coaching Tip")
                             .font(.caption)
                             .foregroundColor(.secondary)
@@ -216,62 +238,65 @@ struct CoachingPromptPreviewView: View {
                         .foregroundColor(.secondary)
                 }
             }
-            .padding(16)
-            .background(Color(.controlBackgroundColor))
-            .cornerRadius(8)
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color.blue.opacity(0.3), lineWidth: 1)
-            )
+            .padding(Spacing.lg)
+            .glassFloating(isActive: true)
 
-            VStack(alignment: .leading, spacing: 12) {
+            // Benefits List
+            VStack(alignment: .leading, spacing: Spacing.md) {
                 Text("Coaching prompts appear during your interviews to help you:")
                     .font(.caption)
                     .fontWeight(.semibold)
 
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.green)
-                        Text("Cover all important topics")
-                            .font(.caption)
-                    }
-
-                    HStack {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.green)
-                        Text("Ask follow-up questions")
-                            .font(.caption)
-                    }
-
-                    HStack {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.green)
-                        Text("Avoid common interviewing pitfalls")
-                            .font(.caption)
-                    }
+                VStack(alignment: .leading, spacing: Spacing.sm) {
+                    BenefitRow(icon: "checkmark.circle.fill", text: "Cover all important topics")
+                    BenefitRow(icon: "checkmark.circle.fill", text: "Ask follow-up questions")
+                    BenefitRow(icon: "checkmark.circle.fill", text: "Avoid common interviewing pitfalls")
                 }
             }
-            .padding(12)
-            .background(Color(.controlBackgroundColor).opacity(0.5))
-            .cornerRadius(6)
+            .padding(Spacing.md)
+            .background(
+                RoundedRectangle(cornerRadius: CornerRadius.medium)
+                    .fill(colorScheme == .dark
+                        ? Color.white.opacity(0.03)
+                        : Color.black.opacity(0.02))
+            )
 
             Spacer()
 
+            // Close Button
             HStack {
                 Spacer()
                 Button("Close") {
                     isPresented = false
                 }
                 .keyboardShortcut(.cancelAction)
+                .glassButton(style: .secondary)
             }
         }
-        .padding(24)
+        .padding(Spacing.xl)
         .frame(width: 450, height: 500)
+        .glassSheet()
+    }
+}
+
+// MARK: - Benefit Row
+
+struct BenefitRow: View {
+    let icon: String
+    let text: String
+
+    var body: some View {
+        HStack(spacing: Spacing.sm) {
+            Image(systemName: icon)
+                .foregroundColor(.green)
+            Text(text)
+                .font(.caption)
+        }
     }
 }
 
 #Preview {
     CoachingSettingsView()
         .environmentObject(AppSettings())
+        .frame(width: 500, height: 600)
 }

@@ -27,31 +27,38 @@ struct TemplateSelector: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             // Header
             HStack {
                 Text("Interview Templates")
-                    .font(.headline)
+                    .font(Typography.heading2)
 
                 Spacer()
 
                 Button(action: { showCreateCustom = true }) {
-                    HStack {
+                    HStack(spacing: Spacing.xs) {
                         Image(systemName: "plus.circle")
                         Text("Create")
                     }
-                    .font(.caption)
+                    .font(Typography.caption)
+                    .padding(.horizontal, Spacing.md)
+                    .padding(.vertical, Spacing.xs)
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.plain)
+                .glassButton(isActive: false, style: .secondary)
+                .accessibilityLabel("Create custom template")
+                .accessibilityHint("Opens a form to create a new custom interview template")
             }
 
-            // Search
-            HStack {
+            // Search field with glass styling
+            HStack(spacing: Spacing.sm) {
                 Image(systemName: "magnifyingglass")
                     .foregroundColor(.secondary)
+                    .font(Typography.body)
 
                 TextField("Search templates...", text: $searchText)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(.plain)
+                    .font(Typography.body)
 
                 if !searchText.isEmpty {
                     Button(action: { searchText = "" }) {
@@ -59,20 +66,29 @@ struct TemplateSelector: View {
                             .foregroundColor(.secondary)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel("Clear search")
                 }
             }
+            .padding(.horizontal, Spacing.md)
+            .padding(.vertical, Spacing.sm)
+            .liquidGlass(
+                material: .ultraThin,
+                cornerRadius: CornerRadius.medium,
+                borderStyle: .subtle,
+                enableHover: false
+            )
 
             // Templates list
             ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
                     // Built-in templates section
                     if !builtInTemplates.isEmpty {
-                        VStack(alignment: .leading, spacing: 0) {
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
                             Text("Built-In Templates")
-                                .font(.caption)
+                                .font(Typography.caption)
                                 .foregroundColor(.secondary)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 8)
+                                .padding(.horizontal, Spacing.sm)
+                                .padding(.vertical, Spacing.sm)
 
                             ForEach(builtInTemplates, id: \.id) { template in
                                 TemplateRow(
@@ -87,16 +103,16 @@ struct TemplateSelector: View {
                     }
 
                     Divider()
-                        .padding(.vertical, 8)
+                        .padding(.vertical, Spacing.sm)
 
                     // Custom templates section
                     if !customTemplates.isEmpty {
-                        VStack(alignment: .leading, spacing: 0) {
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
                             Text("Custom Templates")
-                                .font(.caption)
+                                .font(Typography.caption)
                                 .foregroundColor(.secondary)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 8)
+                                .padding(.horizontal, Spacing.sm)
+                                .padding(.vertical, Spacing.sm)
 
                             ForEach(customTemplates, id: \.id) { template in
                                 TemplateRow(
@@ -109,59 +125,61 @@ struct TemplateSelector: View {
                             }
                         }
                     } else if !builtInTemplates.isEmpty {
-                        HStack {
+                        HStack(spacing: Spacing.sm) {
                             Image(systemName: "plus")
                                 .foregroundColor(.secondary)
                             Text("Create a custom template")
                                 .foregroundColor(.secondary)
                         }
-                        .font(.caption)
-                        .padding(12)
+                        .font(Typography.caption)
+                        .padding(Spacing.md)
                     }
                 }
             }
 
             // Selection summary
             if let template = selectedTemplate {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
                     Divider()
 
                     HStack {
-                        VStack(alignment: .leading, spacing: 4) {
+                        VStack(alignment: .leading, spacing: Spacing.xs) {
                             Text(template.name)
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                            Text("\(template.duration) min • \(template.topics.count) topics")
-                                .font(.caption)
+                                .font(Typography.heading3)
+                            Text("\(template.duration) min - \(template.topics.count) topics")
+                                .font(Typography.caption)
                                 .foregroundColor(.secondary)
                         }
 
                         Spacer()
 
-                        HStack(spacing: 8) {
+                        HStack(spacing: Spacing.sm) {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundColor(.green)
 
                             Text("Selected")
-                                .font(.caption)
+                                .font(Typography.caption)
                                 .fontWeight(.semibold)
                                 .foregroundColor(.green)
                         }
                     }
                 }
-                .padding(8)
-                .background(Color.green.opacity(0.05))
-                .cornerRadius(6)
+                .padding(Spacing.sm)
+                .liquidGlass(
+                    material: .ultraThin,
+                    cornerRadius: CornerRadius.medium,
+                    borderStyle: .accent(.green),
+                    enableHover: false
+                )
             }
         }
-        .padding(16)
-        .background(Color(.controlBackgroundColor))
-        .cornerRadius(8)
+        .padding(Spacing.lg)
         .sheet(isPresented: $showCreateCustom) {
             CreateCustomTemplateView(
                 templateManager: templateManager,
                 isPresented: $showCreateCustom
             )
+            .glassSheet()
         }
     }
 }
@@ -175,61 +193,55 @@ private struct TemplateRow: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(alignment: .top, spacing: 12) {
+            HStack(alignment: .top, spacing: Spacing.md) {
                 // Selection indicator
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                     .font(.system(size: 18))
-                    .foregroundColor(isSelected ? .blue : .secondary)
+                    .foregroundColor(isSelected ? .accentColor : .secondary)
 
                 // Template details
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    HStack(spacing: Spacing.sm) {
                         Text(template.name)
-                            .font(.body)
-                            .fontWeight(.semibold)
+                            .font(Typography.bodyMedium)
                             .foregroundColor(.primary)
 
                         if template.isBuiltIn {
                             Text("Built-in")
-                                .font(.caption2)
+                                .font(Typography.small)
                                 .foregroundColor(.white)
-                                .padding(.horizontal, 6)
+                                .padding(.horizontal, Spacing.xs)
                                 .padding(.vertical, 2)
-                                .background(Color.blue)
-                                .cornerRadius(3)
+                                .background(Color.accentColor)
+                                .clipShape(RoundedRectangle(cornerRadius: CornerRadius.small, style: .continuous))
                         }
                     }
 
                     Text(template.description)
-                        .font(.caption)
+                        .font(Typography.caption)
                         .foregroundColor(.secondary)
                         .lineLimit(1)
 
-                    HStack(spacing: 12) {
+                    HStack(spacing: Spacing.md) {
                         Label("\(template.duration) min", systemImage: "clock")
-                            .font(.caption)
+                            .font(Typography.caption)
                             .foregroundColor(.secondary)
 
                         Label("\(template.topics.count) topics", systemImage: "list.bullet")
-                            .font(.caption)
+                            .font(Typography.caption)
                             .foregroundColor(.secondary)
                     }
                 }
 
                 Spacer()
             }
-            .padding(12)
-            .background(isSelected ? Color.blue.opacity(0.1) : Color(.controlBackgroundColor))
-            .cornerRadius(6)
-            .overlay(
-                RoundedRectangle(cornerRadius: 6)
-                    .stroke(
-                        isSelected ? Color.blue : Color.secondary.opacity(0.2),
-                        lineWidth: isSelected ? 1.5 : 1
-                    )
-            )
+            .padding(Spacing.md)
+            .glassCard(isSelected: isSelected, accentColor: .accentColor)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("\(template.name), \(template.duration) minutes, \(template.topics.count) topics")
+        .accessibilityHint(isSelected ? "Currently selected" : "Double-tap to select this template")
+        .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     }
 }
 
@@ -317,10 +329,22 @@ private struct CreateCustomTemplateView: View {
 // MARK: - Preview
 
 #Preview {
-    @State var selectedTemplate: InterviewTemplate?
+    @Previewable @State var selectedTemplate: InterviewTemplate?
 
-    return TemplateSelector(
-        selectedTemplate: $selectedTemplate,
-        templateManager: TemplateManager()
-    )
+    ZStack {
+        // Background to show glass effects
+        LinearGradient(
+            colors: [.blue.opacity(0.3), .purple.opacity(0.3)],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+        .ignoresSafeArea()
+
+        TemplateSelector(
+            selectedTemplate: $selectedTemplate,
+            templateManager: TemplateManager()
+        )
+        .glassCard()
+        .padding()
+    }
 }

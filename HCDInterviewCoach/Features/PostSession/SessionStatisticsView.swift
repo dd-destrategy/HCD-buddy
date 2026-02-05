@@ -19,7 +19,7 @@ struct SessionStatisticsView: View {
     @State private var animateStats = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             // Section header
             HStack {
                 Image(systemName: "chart.bar.fill")
@@ -27,7 +27,7 @@ struct SessionStatisticsView: View {
                     .foregroundColor(.blue)
 
                 Text("Session Statistics")
-                    .font(.headline)
+                    .font(Typography.heading3)
 
                 Spacer()
             }
@@ -35,7 +35,7 @@ struct SessionStatisticsView: View {
             .accessibilityAddTraits(.isHeader)
 
             // Statistics grid
-            LazyVGrid(columns: gridColumns, spacing: 12) {
+            LazyVGrid(columns: gridColumns, spacing: Spacing.md) {
                 StatisticCard(
                     title: "Duration",
                     value: statistics.formattedDuration,
@@ -73,7 +73,7 @@ struct SessionStatisticsView: View {
             }
 
             // Detailed breakdown
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: Spacing.md) {
                 BreakdownRow(
                     label: "Participant Utterances",
                     value: statistics.participantUtterances,
@@ -91,32 +91,34 @@ struct SessionStatisticsView: View {
                 Divider()
 
                 HStack {
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
                         Text("Avg. Utterance Length")
-                            .font(.caption)
+                            .font(Typography.caption)
                             .foregroundColor(.secondary)
 
                         Text("\(Int(statistics.averageUtteranceLength)) words")
-                            .font(.body)
-                            .fontWeight(.medium)
+                            .font(Typography.bodyMedium)
                     }
 
                     Spacer()
 
-                    VStack(alignment: .trailing, spacing: 4) {
+                    VStack(alignment: .trailing, spacing: Spacing.xs) {
                         Text("Words per Minute")
-                            .font(.caption)
+                            .font(Typography.caption)
                             .foregroundColor(.secondary)
 
                         Text("\(Int(statistics.wordsPerMinute))")
-                            .font(.body)
-                            .fontWeight(.medium)
+                            .font(Typography.bodyMedium)
                     }
                 }
             }
-            .padding(12)
-            .background(Color(.controlBackgroundColor))
-            .cornerRadius(8)
+            .padding(Spacing.md)
+            .liquidGlass(
+                material: .ultraThin,
+                cornerRadius: CornerRadius.medium,
+                borderStyle: .subtle,
+                enableHover: false
+            )
         }
         .onAppear {
             if !reduceMotion {
@@ -131,8 +133,8 @@ struct SessionStatisticsView: View {
 
     private var gridColumns: [GridItem] {
         [
-            GridItem(.flexible(), spacing: 12),
-            GridItem(.flexible(), spacing: 12)
+            GridItem(.flexible(), spacing: Spacing.md),
+            GridItem(.flexible(), spacing: Spacing.md)
         ]
     }
 }
@@ -153,7 +155,7 @@ struct StatisticCard: View {
     @State private var showCard = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
             HStack {
                 Image(systemName: icon)
                     .font(.title2)
@@ -163,22 +165,16 @@ struct StatisticCard: View {
             }
 
             Text(value)
-                .font(.title)
-                .fontWeight(.bold)
+                .font(Typography.heading1)
                 .foregroundColor(.primary)
 
             Text(title)
-                .font(.caption)
+                .font(Typography.caption)
                 .foregroundColor(.secondary)
         }
-        .padding(12)
+        .padding(Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(color.opacity(0.1))
-        .cornerRadius(10)
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(color.opacity(0.2), lineWidth: 1)
-        )
+        .glassCard(accentColor: color)
         .opacity(showCard ? 1 : 0)
         .scaleEffect(showCard ? 1 : 0.9)
         .accessibilityElement(children: .combine)
@@ -212,33 +208,32 @@ struct BreakdownRow: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
             HStack {
                 Text(label)
-                    .font(.subheadline)
+                    .font(Typography.body)
                     .foregroundColor(.primary)
 
                 Spacer()
 
                 Text("\(value)")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
+                    .font(Typography.bodyMedium)
                     .foregroundColor(.primary)
 
                 Text("(\(Int(percentage * 100))%)")
-                    .font(.caption)
+                    .font(Typography.caption)
                     .foregroundColor(.secondary)
             }
 
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
                     // Background
-                    RoundedRectangle(cornerRadius: 3)
+                    RoundedRectangle(cornerRadius: CornerRadius.small)
                         .fill(color.opacity(0.2))
                         .frame(height: 6)
 
                     // Progress fill
-                    RoundedRectangle(cornerRadius: 3)
+                    RoundedRectangle(cornerRadius: CornerRadius.small)
                         .fill(color)
                         .frame(width: geometry.size.width * percentage, height: 6)
                 }
@@ -257,7 +252,7 @@ struct CompactStatisticsView: View {
     let statistics: PostSessionStatistics
 
     var body: some View {
-        HStack(spacing: 20) {
+        HStack(spacing: Spacing.xl) {
             CompactStatItem(
                 icon: "clock.fill",
                 value: statistics.formattedDuration,
@@ -295,10 +290,9 @@ struct CompactStatisticsView: View {
                 color: .purple
             )
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(Color(.controlBackgroundColor))
-        .cornerRadius(8)
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.md)
+        .glassCard()
     }
 }
 
@@ -310,20 +304,19 @@ struct CompactStatItem: View {
     let color: Color
 
     var body: some View {
-        VStack(spacing: 4) {
-            HStack(spacing: 4) {
+        VStack(spacing: Spacing.xs) {
+            HStack(spacing: Spacing.xs) {
                 Image(systemName: icon)
-                    .font(.caption)
+                    .font(Typography.caption)
                     .foregroundColor(color)
 
                 Text(value)
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
+                    .font(Typography.bodyMedium)
                     .foregroundColor(.primary)
             }
 
             Text(label)
-                .font(.caption2)
+                .font(Typography.small)
                 .foregroundColor(.secondary)
         }
         .accessibilityElement(children: .combine)
@@ -343,13 +336,13 @@ struct CompactStatItem: View {
 
     let stats = PostSessionStatistics(session: session)
 
-    return VStack(spacing: 20) {
+    return VStack(spacing: Spacing.xl) {
         SessionStatisticsView(statistics: stats)
 
         Divider()
 
         CompactStatisticsView(statistics: stats)
     }
-    .padding()
+    .padding(Spacing.lg)
     .frame(width: 500)
 }

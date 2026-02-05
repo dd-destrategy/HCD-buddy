@@ -65,6 +65,16 @@ struct TranscriptView: View {
                     onNext: { viewModel.nextSearchResult() },
                     onClose: { closeSearch() }
                 )
+                .padding(.horizontal, Spacing.md)
+                .padding(.vertical, Spacing.sm)
+                .liquidGlass(
+                    material: .thin,
+                    cornerRadius: CornerRadius.medium,
+                    borderStyle: .subtle,
+                    enableHover: false
+                )
+                .padding(.horizontal, Spacing.sm)
+                .padding(.top, Spacing.xs)
                 .transition(reduceMotion ? .opacity : .move(edge: .top).combined(with: .opacity))
             }
 
@@ -75,7 +85,7 @@ struct TranscriptView: View {
             // Footer with stats and auto-scroll toggle
             transcriptFooter
         }
-        .background(Color(nsColor: .controlBackgroundColor))
+        .glassPanel(edge: .leading)
         .onAppear {
             viewModel.connect(to: sessionManager)
             setupInsightCallback()
@@ -108,10 +118,10 @@ struct TranscriptView: View {
     // MARK: - Header
 
     private var transcriptHeader: some View {
-        HStack {
+        HStack(spacing: Spacing.md) {
             // Title
             Label("Transcript", systemImage: "text.quote")
-                .font(.headline)
+                .font(Typography.heading3)
                 .foregroundColor(.primary)
 
             Spacer()
@@ -124,8 +134,10 @@ struct TranscriptView: View {
                 Image(systemName: isSearchVisible ? "magnifyingglass.circle.fill" : "magnifyingglass")
                     .font(.system(size: 14))
                     .foregroundColor(isSearchVisible ? .accentColor : .secondary)
+                    .frame(width: 28, height: 28)
             }
             .buttonStyle(.plain)
+            .glassButton(isActive: isSearchVisible, style: .ghost)
             .keyboardShortcut("f", modifiers: .command)
             .help("Search transcript (Cmd+F)")
             .accessibilityLabel(isSearchVisible ? "Close search" : "Search transcript")
@@ -139,24 +151,19 @@ struct TranscriptView: View {
                 Image(systemName: "square.and.arrow.up")
                     .font(.system(size: 14))
                     .foregroundColor(.secondary)
+                    .frame(width: 28, height: 28)
             }
             .menuStyle(.borderlessButton)
-            .frame(width: 24)
+            .frame(width: 28)
             .help("Export transcript")
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(Color(nsColor: .windowBackgroundColor))
-        .overlay(
-            Rectangle()
-                .fill(Color(nsColor: .separatorColor))
-                .frame(height: 1),
-            alignment: .bottom
-        )
+        .padding(.horizontal, Spacing.md)
+        .padding(.vertical, Spacing.sm)
+        .glassToolbar()
     }
 
     private var filterButtons: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: Spacing.xs) {
             FilterButton(
                 label: "All",
                 isSelected: viewModel.speakerFilter == nil,
@@ -177,6 +184,13 @@ struct TranscriptView: View {
                 action: { viewModel.filterBySpeaker(.participant) }
             )
         }
+        .padding(Spacing.xs)
+        .liquidGlass(
+            material: .ultraThin,
+            cornerRadius: CornerRadius.medium,
+            borderStyle: .subtle,
+            enableHover: false
+        )
     }
 
     // MARK: - Content
@@ -213,10 +227,11 @@ struct TranscriptView: View {
                             if index < viewModel.filteredUtterances.count - 1 {
                                 Divider()
                                     .padding(.leading, 74) // Align with text
+                                    .opacity(0.5)
                             }
                         }
                     }
-                    .padding(.vertical, 8)
+                    .padding(.vertical, Spacing.sm)
                 }
                 .onAppear { scrollProxy = proxy }
                 .onChange(of: viewModel.virtualizationManager.totalUtteranceCount) { _, _ in
@@ -246,19 +261,21 @@ struct TranscriptView: View {
     }
 
     private var emptyState: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: Spacing.lg) {
             Image(systemName: "text.quote")
                 .font(.system(size: 48))
                 .foregroundColor(.secondary.opacity(0.5))
 
             Text("No transcript yet")
-                .font(.headline)
+                .font(Typography.heading2)
                 .foregroundColor(.secondary)
 
             Text(viewModel.statusMessage)
-                .font(.subheadline)
+                .font(Typography.body)
                 .foregroundColor(.secondary.opacity(0.8))
         }
+        .padding(Spacing.xl)
+        .glassCard(isSelected: false)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Empty transcript")
@@ -284,34 +301,23 @@ struct TranscriptView: View {
             // Auto-scroll toggle
             autoScrollToggle
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(Color(nsColor: .windowBackgroundColor))
-        .overlay(
-            Rectangle()
-                .fill(Color(nsColor: .separatorColor))
-                .frame(height: 1),
-            alignment: .top
-        )
+        .padding(.horizontal, Spacing.md)
+        .padding(.vertical, Spacing.sm)
+        .glassToolbar()
     }
 
     private var statisticsView: some View {
         let stats = viewModel.statistics
 
-        return HStack(spacing: 12) {
-            Label("\(stats.totalUtterances)", systemImage: "text.bubble")
-                .help("Total utterances")
+        return HStack(spacing: Spacing.md) {
+            StatisticBadge(value: "\(stats.totalUtterances)", icon: "text.bubble", help: "Total utterances")
 
-            Label("\(stats.totalWords)", systemImage: "character.cursor.ibeam")
-                .help("Total words")
+            StatisticBadge(value: "\(stats.totalWords)", icon: "character.cursor.ibeam", help: "Total words")
 
             if stats.durationSeconds > 0 {
-                Label(stats.formattedDuration, systemImage: "clock")
-                    .help("Duration")
+                StatisticBadge(value: stats.formattedDuration, icon: "clock", help: "Duration")
             }
         }
-        .font(.caption)
-        .foregroundColor(.secondary)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(statisticsAccessibilityLabel(stats))
     }
@@ -331,7 +337,7 @@ struct TranscriptView: View {
         let stats = viewModel.virtualizationManager.memoryStats
 
         return Text("\(stats.loadedCount)/\(stats.totalCount) loaded")
-            .font(.caption2)
+            .font(Typography.small)
             .foregroundColor(.secondary.opacity(0.6))
             .help("Memory: \(stats.formattedMemory)")
     }
@@ -340,7 +346,7 @@ struct TranscriptView: View {
     private var autoScrollToggle: some View {
         Toggle(isOn: $viewModel.isAutoScrollEnabled) {
             Label("Auto-scroll", systemImage: "arrow.down.to.line")
-                .font(.caption)
+                .font(Typography.caption)
         }
         .toggleStyle(.switch)
         .controlSize(.small)
@@ -482,7 +488,7 @@ struct TranscriptView: View {
 
 // MARK: - Filter Button
 
-/// Small filter button for speaker filtering
+/// Small filter button for speaker filtering with glass styling
 private struct FilterButton: View {
     let label: String
     var color: Color = .secondary
@@ -490,22 +496,43 @@ private struct FilterButton: View {
     let action: () -> Void
 
     @Environment(\.colorScheme) private var colorScheme
+    @State private var isHovered = false
 
     var body: some View {
         Button(action: action) {
             Text(label)
-                .font(.system(size: 10, weight: isSelected ? .semibold : .medium))
+                .font(Typography.small)
+                .fontWeight(isSelected ? .semibold : .medium)
                 .foregroundColor(isSelected ? (label == "All" ? .accentColor : color) : .secondary)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 3)
+                .padding(.horizontal, Spacing.sm)
+                .padding(.vertical, Spacing.xs)
                 .background(
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(isSelected ? selectedBackground : Color.clear)
+                    RoundedRectangle(cornerRadius: CornerRadius.small, style: .continuous)
+                        .fill(buttonBackground)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: CornerRadius.small, style: .continuous)
+                        .stroke(
+                            isSelected ? selectedBorderColor.opacity(0.3) : Color.clear,
+                            lineWidth: 1
+                        )
                 )
         }
         .buttonStyle(.plain)
+        .onHover { isHovered = $0 }
         .accessibilityLabel("Filter: \(label)")
         .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private var buttonBackground: Color {
+        if isSelected {
+            return selectedBackground
+        } else if isHovered {
+            return colorScheme == .dark
+                ? Color.white.opacity(0.05)
+                : Color.black.opacity(0.03)
+        }
+        return Color.clear
     }
 
     private var selectedBackground: Color {
@@ -513,6 +540,43 @@ private struct FilterButton: View {
             return Color.accentColor.opacity(colorScheme == .dark ? 0.2 : 0.1)
         }
         return color.opacity(colorScheme == .dark ? 0.2 : 0.1)
+    }
+
+    private var selectedBorderColor: Color {
+        label == "All" ? .accentColor : color
+    }
+}
+
+// MARK: - Statistic Badge
+
+/// Badge for displaying statistics with subtle glass background
+private struct StatisticBadge: View {
+    let value: String
+    let icon: String
+    let help: String
+
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        Label(value, systemImage: icon)
+            .font(Typography.caption)
+            .foregroundColor(.secondary)
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, Spacing.xs)
+            .background(
+                RoundedRectangle(cornerRadius: CornerRadius.small, style: .continuous)
+                    .fill(colorScheme == .dark
+                        ? Color.white.opacity(0.05)
+                        : Color.black.opacity(0.03))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: CornerRadius.small, style: .continuous)
+                    .stroke(
+                        Color.white.opacity(colorScheme == .dark ? 0.1 : 0.3),
+                        lineWidth: 0.5
+                    )
+            )
+            .help(help)
     }
 }
 

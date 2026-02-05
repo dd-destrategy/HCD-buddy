@@ -154,7 +154,10 @@ class SessionManager: ObservableObject {
             connectionMonitor.start()
 
             // Save the session
-            dataManager.mainContext.insert(session)
+            guard let context = dataManager.mainContext else {
+                throw SessionError(kind: .invalidConfiguration, underlyingError: nil, context: "Database unavailable")
+            }
+            context.insert(session)
             try dataManager.save()
 
             transitionTo(.ready, reason: "Configuration complete")

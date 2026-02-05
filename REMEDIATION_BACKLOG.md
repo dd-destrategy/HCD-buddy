@@ -100,17 +100,18 @@
 
 ---
 
-## EPIC R7: User Journey Optimization
+## EPIC R7: User Journey Optimization ✅ DONE
 **Priority:** P2 (Medium)
 **Estimated Effort:** 2 days
 **Agents:** UX Engineer, Content Writer
+**Status:** Completed in commit 167e56d
 
 ### Stories
-- [ ] R7-S1: Add troubleshooting tips to audio setup wizard
-- [ ] R7-S2: Create video tutorial placeholders/links
-- [ ] R7-S3: Improve error messages in setup flow
-- [ ] R7-S4: Add "skip for now" option for advanced setup
-- [ ] R7-S5: Create FAQ document for common issues
+- [x] R7-S1: Add troubleshooting tips to audio setup wizard
+- [x] R7-S2: Create video tutorial placeholders/links
+- [x] R7-S3: Improve error messages in setup flow
+- [x] R7-S4: Add "skip for now" option for advanced setup
+- [x] R7-S5: Create FAQ document for common issues
 
 ---
 
@@ -168,13 +169,13 @@
 | R4: Data Model | P1 | 4 hours | 5 | ✅ Done |
 | R5: API Hardening | P1 | 1 day | 5 | ✅ Done |
 | R6: Animation | P2 | 1 day | 6 | ✅ Done |
-| R7: User Journey | P2 | 2 days | 5 | ⏳ Pending |
+| R7: User Journey | P2 | 2 days | 5 | ✅ Done |
 | R8: Documentation | P2 | 1 day | 5 | ✅ Done |
 | R9: i18n | P3 | 2 weeks | 6 | ⏳ Pending |
 | R10: SwiftUI | P2 | 4 hours | 4 | ✅ Done |
 
 **Total Stories:** 53
-**Completed:** 43/53 (81%)
-**Remaining:** R7 (User Journey) + R9 (i18n) = 11 stories
+**Completed:** 48/53 (91%)
+**Remaining:** R9 (i18n) = 6 stories
 **Critical Path:** ✅ Complete (R1 → R5 → R3 all done)
 **Reference Commit:** `7289398`

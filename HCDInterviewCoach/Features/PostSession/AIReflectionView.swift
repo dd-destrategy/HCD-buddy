@@ -19,7 +19,7 @@ struct AIReflectionView: View {
     @State private var isExpanded = true
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             // Header with expand/collapse
             Button(action: { toggleExpanded() }) {
                 HStack {
@@ -29,7 +29,7 @@ struct AIReflectionView: View {
                         .symbolRenderingMode(.multicolor)
 
                     Text("AI Reflection")
-                        .font(.headline)
+                        .font(Typography.heading3)
                         .foregroundColor(.primary)
 
                     Spacer()
@@ -40,7 +40,7 @@ struct AIReflectionView: View {
                     }
 
                     Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .font(.caption)
+                        .font(Typography.caption)
                         .foregroundColor(.secondary)
                 }
             }
@@ -52,13 +52,8 @@ struct AIReflectionView: View {
                     .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
-        .padding(16)
-        .background(Color(.controlBackgroundColor))
-        .cornerRadius(10)
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.purple.opacity(0.2), lineWidth: 1)
-        )
+        .padding(Spacing.lg)
+        .glassCard(accentColor: .purple)
         .onAppear {
             if viewModel.reflectionState == .idle {
                 Task {
@@ -90,42 +85,45 @@ struct AIReflectionView: View {
     // MARK: - State Views
 
     private var idleView: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: Spacing.md) {
             Text("Generate an AI-powered reflection on your interview session.")
-                .font(.subheadline)
+                .font(Typography.body)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
 
             Button(action: { Task { await viewModel.generateReflection() } }) {
-                HStack {
+                HStack(spacing: Spacing.sm) {
                     Image(systemName: "sparkles")
                     Text("Generate Reflection")
+                        .font(Typography.bodyMedium)
                 }
+                .padding(.horizontal, Spacing.lg)
+                .padding(.vertical, Spacing.sm)
             }
-            .buttonStyle(.borderedProminent)
-            .tint(.purple)
+            .buttonStyle(.plain)
+            .glassButton(isActive: true, style: .primary)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 20)
+        .padding(.vertical, Spacing.xl)
     }
 
     private var loadingView: some View {
-        VStack(spacing: 16) {
-            HStack(spacing: 12) {
+        VStack(spacing: Spacing.lg) {
+            HStack(spacing: Spacing.md) {
                 LoadingSparkles()
 
                 Text("Analyzing interview...")
-                    .font(.subheadline)
+                    .font(Typography.body)
                     .foregroundColor(.secondary)
             }
 
             // Animated loading placeholders
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
                 LoadingPlaceholderLine(width: 1.0)
                 LoadingPlaceholderLine(width: 0.9)
                 LoadingPlaceholderLine(width: 0.85)
 
-                Spacer().frame(height: 8)
+                Spacer().frame(height: Spacing.sm)
 
                 LoadingPlaceholderLine(width: 0.95)
                 LoadingPlaceholderLine(width: 0.88)
@@ -133,31 +131,37 @@ struct AIReflectionView: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 12)
+        .padding(.vertical, Spacing.md)
     }
 
     private func completedView(reflection: String) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             // Reflection text with paragraph styling
             Text(reflection)
-                .font(.body)
+                .font(Typography.body)
                 .foregroundColor(.primary)
                 .lineSpacing(4)
                 .textSelection(.enabled)
 
             // Actions
-            HStack {
+            HStack(spacing: Spacing.sm) {
                 Button(action: copyReflection) {
                     Label("Copy", systemImage: "doc.on.doc")
+                        .font(Typography.caption)
+                        .padding(.horizontal, Spacing.md)
+                        .padding(.vertical, Spacing.sm)
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.small)
+                .buttonStyle(.plain)
+                .glassButton(style: .secondary)
 
                 Button(action: { Task { await viewModel.retryReflection() } }) {
                     Label("Regenerate", systemImage: "arrow.clockwise")
+                        .font(Typography.caption)
+                        .padding(.horizontal, Spacing.md)
+                        .padding(.vertical, Spacing.sm)
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.small)
+                .buttonStyle(.plain)
+                .glassButton(style: .secondary)
 
                 Spacer()
             }
@@ -165,32 +169,35 @@ struct AIReflectionView: View {
     }
 
     private func errorView(error: String) -> some View {
-        VStack(spacing: 12) {
+        VStack(spacing: Spacing.md) {
             HStack {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .foregroundColor(.orange)
 
                 Text("Unable to generate reflection")
-                    .font(.subheadline)
+                    .font(Typography.body)
                     .foregroundColor(.primary)
             }
 
             Text(error)
-                .font(.caption)
+                .font(Typography.caption)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
 
             Button(action: { Task { await viewModel.retryReflection() } }) {
-                HStack {
+                HStack(spacing: Spacing.sm) {
                     Image(systemName: "arrow.clockwise")
                     Text("Try Again")
+                        .font(Typography.bodyMedium)
                 }
+                .padding(.horizontal, Spacing.lg)
+                .padding(.vertical, Spacing.sm)
             }
-            .buttonStyle(.borderedProminent)
-            .tint(.purple)
+            .buttonStyle(.plain)
+            .glassButton(isActive: true, style: .primary)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 12)
+        .padding(.vertical, Spacing.md)
     }
 
     // MARK: - Actions
@@ -285,7 +292,7 @@ struct ReflectionCard: View {
     var onRegenerate: (() -> Void)?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             HStack {
                 Image(systemName: "sparkles")
                     .font(.title3)
@@ -293,46 +300,47 @@ struct ReflectionCard: View {
                     .symbolRenderingMode(.multicolor)
 
                 Text("AI Reflection")
-                    .font(.headline)
+                    .font(Typography.heading3)
 
                 Spacer()
             }
 
             Text(reflection)
-                .font(.body)
+                .font(Typography.body)
                 .foregroundColor(.primary)
                 .lineSpacing(4)
                 .textSelection(.enabled)
 
             if onCopy != nil || onRegenerate != nil {
-                HStack {
+                HStack(spacing: Spacing.sm) {
                     if let onCopy = onCopy {
                         Button(action: onCopy) {
                             Label("Copy", systemImage: "doc.on.doc")
+                                .font(Typography.caption)
+                                .padding(.horizontal, Spacing.md)
+                                .padding(.vertical, Spacing.sm)
                         }
-                        .buttonStyle(.bordered)
-                        .controlSize(.small)
+                        .buttonStyle(.plain)
+                        .glassButton(style: .secondary)
                     }
 
                     if let onRegenerate = onRegenerate {
                         Button(action: onRegenerate) {
                             Label("Regenerate", systemImage: "arrow.clockwise")
+                                .font(Typography.caption)
+                                .padding(.horizontal, Spacing.md)
+                                .padding(.vertical, Spacing.sm)
                         }
-                        .buttonStyle(.bordered)
-                        .controlSize(.small)
+                        .buttonStyle(.plain)
+                        .glassButton(style: .secondary)
                     }
 
                     Spacer()
                 }
             }
         }
-        .padding(16)
-        .background(Color(.controlBackgroundColor))
-        .cornerRadius(10)
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.purple.opacity(0.2), lineWidth: 1)
-        )
+        .padding(Spacing.lg)
+        .glassCard(accentColor: .purple)
     }
 }
 

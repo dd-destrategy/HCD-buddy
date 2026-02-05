@@ -106,10 +106,16 @@ final class DataManager {
 
     /// Custom store URL in Application Support directory with encryption
     private static var customStoreURL: URL {
-        let appSupport = FileManager.default.urls(
+        guard let appSupport = FileManager.default.urls(
             for: .applicationSupportDirectory,
             in: .userDomainMask
-        ).first!
+        ).first else {
+            // Fallback to temporary directory if Application Support is unavailable
+            AppLogger.shared.warning("Application Support directory unavailable, using temporary directory")
+            return FileManager.default.temporaryDirectory
+                .appendingPathComponent("HCDInterviewCoach")
+                .appendingPathComponent("HCDInterviewCoach.sqlite")
+        }
 
         let appDirectory = appSupport.appendingPathComponent("HCDInterviewCoach", isDirectory: true)
 
@@ -153,29 +159,23 @@ final class DataManager {
         }
     }
 
-    /// Get the main context
-    /// - Returns: The main model context
-    /// - Note: If the database failed to initialize, this will log an error and return a context
-    ///         that will fail on operations. Use `isOperational` to check if DB is available,
-    ///         or `safeMainContext` for an optional version.
-    var mainContext: ModelContext {
+    /// Get the main context as an optional
+    /// - Returns: The main model context, or nil if the database is unavailable
+    /// - Note: If the database failed to initialize, this returns nil and logs an error.
+    ///         Use `isOperational` to check if DB is available before attempting operations.
+    var mainContext: ModelContext? {
         guard let context = container?.mainContext else {
             // Log the access attempt for debugging
             AppLogger.shared.error("Attempted to access mainContext but database is unavailable. Check isOperational before accessing.")
-            // Return a placeholder context that will fail on operations
-            // This allows the app to continue running and show appropriate error UI
-            preconditionFailure(
-                "Database unavailable: \(initializationError?.localizedDescription ?? "Unknown error"). " +
-                "Check DataManager.shared.isOperational before accessing mainContext."
-            )
+            return nil
         }
         return context
     }
 
-    /// Get the main context as an optional
+    /// Alias for mainContext for backward compatibility
     /// - Returns: The main model context, or nil if the database is unavailable
     var safeMainContext: ModelContext? {
-        container?.mainContext
+        mainContext
     }
 
     /// Get the main context, throwing if unavailable

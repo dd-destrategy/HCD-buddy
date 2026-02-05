@@ -5,11 +5,11 @@ struct SessionModeSelector: View {
     @Binding var selectedMode: SessionMode
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             Text("Session Mode")
-                .font(.headline)
+                .font(Typography.heading3)
 
-            VStack(spacing: 10) {
+            VStack(spacing: Spacing.sm) {
                 ForEach(SessionMode.allCases, id: \.self) { mode in
                     ModeOptionView(
                         mode: mode,
@@ -21,9 +21,13 @@ struct SessionModeSelector: View {
                 }
             }
         }
-        .padding(16)
-        .background(Color(.controlBackgroundColor))
-        .cornerRadius(8)
+        .padding(Spacing.lg)
+        .liquidGlass(
+            material: .thin,
+            cornerRadius: CornerRadius.large,
+            borderStyle: .subtle,
+            enableHover: false
+        )
     }
 }
 
@@ -36,39 +40,33 @@ private struct ModeOptionView: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(alignment: .top, spacing: 12) {
+            HStack(alignment: .top, spacing: Spacing.md) {
                 // Selection indicator
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                     .font(.system(size: 20))
-                    .foregroundColor(isSelected ? .blue : .secondary)
+                    .foregroundColor(isSelected ? .accentColor : .secondary)
 
                 // Mode details
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text(mode.displayName)
-                        .font(.body)
-                        .fontWeight(.semibold)
+                        .font(Typography.bodyMedium)
                         .foregroundColor(.primary)
 
                     Text(mode.description)
-                        .font(.caption)
+                        .font(Typography.caption)
                         .foregroundColor(.secondary)
                         .lineLimit(2)
                 }
 
                 Spacer()
             }
-            .padding(12)
-            .background(isSelected ? Color.blue.opacity(0.1) : Color(.controlBackgroundColor))
-            .cornerRadius(6)
-            .overlay(
-                RoundedRectangle(cornerRadius: 6)
-                    .stroke(
-                        isSelected ? Color.blue : Color.clear,
-                        lineWidth: 1.5
-                    )
-            )
+            .padding(Spacing.md)
+            .glassButton(isActive: isSelected, style: isSelected ? .primary : .secondary)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("\(mode.displayName)")
+        .accessibilityHint(isSelected ? "Currently selected" : "Double-tap to select \(mode.displayName) mode")
+        .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     }
 }
 
@@ -77,11 +75,21 @@ private struct ModeOptionView: View {
 #Preview {
     @Previewable @State var selectedMode: SessionMode = .full
 
-    VStack(spacing: 20) {
-        SessionModeSelector(selectedMode: $selectedMode)
-        Text("Selected: \(selectedMode.displayName)")
-            .font(.caption)
-            .foregroundColor(.secondary)
+    ZStack {
+        // Background to show glass effects
+        LinearGradient(
+            colors: [.blue.opacity(0.3), .purple.opacity(0.3)],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+        .ignoresSafeArea()
+
+        VStack(spacing: Spacing.xl) {
+            SessionModeSelector(selectedMode: $selectedMode)
+            Text("Selected: \(selectedMode.displayName)")
+                .font(Typography.caption)
+                .foregroundColor(.secondary)
+        }
+        .padding()
     }
-    .padding()
 }

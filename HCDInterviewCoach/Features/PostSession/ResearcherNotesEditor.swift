@@ -22,7 +22,7 @@ struct ResearcherNotesEditor: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             // Header
             Button(action: { toggleExpanded() }) {
                 HStack {
@@ -31,19 +31,19 @@ struct ResearcherNotesEditor: View {
                         .foregroundColor(.blue)
 
                     Text("Researcher Notes")
-                        .font(.headline)
+                        .font(Typography.heading3)
                         .foregroundColor(.primary)
 
                     Spacer()
 
                     if !notes.isEmpty {
                         Text("\(wordCount) words")
-                            .font(.caption)
+                            .font(Typography.caption)
                             .foregroundColor(.secondary)
                     }
 
                     Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .font(.caption)
+                        .font(Typography.caption)
                         .foregroundColor(.secondary)
                 }
             }
@@ -60,46 +60,54 @@ struct ResearcherNotesEditor: View {
 
                     // Text editor
                     TextEditor(text: $notes)
-                        .font(.body)
+                        .font(Typography.body)
                         .frame(minHeight: 120, maxHeight: 300)
                         .scrollContentBackground(.hidden)
-                        .padding(12)
-                        .background(Color(.textBackgroundColor))
-                        .cornerRadius(8)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(isFocused ? Color.accentColor : Color.gray.opacity(0.3), lineWidth: 1)
+                        .padding(Spacing.md)
+                        .liquidGlass(
+                            material: .ultraThin,
+                            cornerRadius: CornerRadius.medium,
+                            borderStyle: isFocused ? .accent(.accentColor) : .subtle,
+                            enableHover: false
                         )
                         .focused($isFocused)
                         .accessibilityLabel("Researcher notes text editor")
                         .accessibilityHint("Enter your notes and observations from the session")
 
                     // Footer with actions
-                    HStack {
+                    HStack(spacing: Spacing.sm) {
                         Button(action: { toggleFormatting() }) {
                             Label("Format", systemImage: "textformat")
+                                .font(Typography.caption)
+                                .padding(.horizontal, Spacing.md)
+                                .padding(.vertical, Spacing.sm)
                         }
-                        .buttonStyle(.bordered)
-                        .controlSize(.small)
+                        .buttonStyle(.plain)
+                        .glassButton(style: .secondary)
 
                         Button(action: insertTimestamp) {
                             Label("Timestamp", systemImage: "clock")
+                                .font(Typography.caption)
+                                .padding(.horizontal, Spacing.md)
+                                .padding(.vertical, Spacing.sm)
                         }
-                        .buttonStyle(.bordered)
-                        .controlSize(.small)
+                        .buttonStyle(.plain)
+                        .glassButton(style: .secondary)
 
                         Spacer()
 
                         if !notes.isEmpty {
                             Button(action: clearNotes) {
                                 Label("Clear", systemImage: "trash")
+                                    .font(Typography.caption)
+                                    .padding(.horizontal, Spacing.md)
+                                    .padding(.vertical, Spacing.sm)
                             }
-                            .buttonStyle(.bordered)
-                            .controlSize(.small)
-                            .tint(.red)
+                            .buttonStyle(.plain)
+                            .glassButton(style: .destructive)
                         }
                     }
-                    .padding(.top, 8)
+                    .padding(.top, Spacing.sm)
                 }
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
@@ -109,19 +117,14 @@ struct ResearcherNotesEditor: View {
                 quickTemplatesView
             }
         }
-        .padding(16)
-        .background(Color(.controlBackgroundColor))
-        .cornerRadius(10)
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.blue.opacity(0.2), lineWidth: 1)
-        )
+        .padding(Spacing.lg)
+        .glassCard(accentColor: .blue)
     }
 
     // MARK: - Subviews
 
     private var formattingToolbar: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: Spacing.sm) {
             FormatButton(icon: "bold", action: { insertFormatting("**", "**") })
             FormatButton(icon: "italic", action: { insertFormatting("_", "_") })
             FormatButton(icon: "list.bullet", action: { insertPrefix("- ") })
@@ -135,19 +138,23 @@ struct ResearcherNotesEditor: View {
             FormatButton(icon: "eye", action: { insertPrefix("[Observation] ") })
             FormatButton(icon: "questionmark.circle", action: { insertPrefix("[Follow-up] ") })
         }
-        .padding(8)
-        .background(Color(.controlBackgroundColor))
-        .cornerRadius(6)
-        .padding(.bottom, 8)
+        .padding(Spacing.sm)
+        .liquidGlass(
+            material: .ultraThin,
+            cornerRadius: CornerRadius.medium,
+            borderStyle: .subtle,
+            enableHover: false
+        )
+        .padding(.bottom, Spacing.sm)
     }
 
     private var quickTemplatesView: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
             Text("Quick Templates")
-                .font(.caption)
+                .font(Typography.caption)
                 .foregroundColor(.secondary)
 
-            HStack(spacing: 8) {
+            HStack(spacing: Spacing.sm) {
                 TemplateButton(label: "Key Findings", action: {
                     applyTemplate(keyFindingsTemplate)
                 })
@@ -161,7 +168,7 @@ struct ResearcherNotesEditor: View {
                 })
             }
         }
-        .padding(.top, 8)
+        .padding(.top, Spacing.sm)
     }
 
     // MARK: - Computed Properties
@@ -272,11 +279,11 @@ private struct FormatButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: icon)
-                .font(.caption)
+                .font(Typography.caption)
                 .frame(width: 24, height: 24)
         }
-        .buttonStyle(.bordered)
-        .controlSize(.small)
+        .buttonStyle(.plain)
+        .glassButton(style: .ghost)
     }
 }
 
@@ -290,10 +297,12 @@ private struct TemplateButton: View {
     var body: some View {
         Button(action: action) {
             Text(label)
-                .font(.caption)
+                .font(Typography.caption)
+                .padding(.horizontal, Spacing.md)
+                .padding(.vertical, Spacing.sm)
         }
-        .buttonStyle(.bordered)
-        .controlSize(.small)
+        .buttonStyle(.plain)
+        .glassButton(style: .secondary)
     }
 }
 
@@ -317,46 +326,48 @@ struct InsightEditor: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             // Header
             HStack {
                 Text("Edit Insight")
-                    .font(.headline)
+                    .font(Typography.heading3)
 
                 Spacer()
 
                 Button(action: onDelete) {
                     Image(systemName: "trash")
                         .foregroundColor(.red)
+                        .padding(Spacing.sm)
                 }
                 .buttonStyle(.plain)
+                .glassButton(style: .destructive)
                 .accessibilityLabel("Delete insight")
             }
 
             // Quote field
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text("Quote")
-                    .font(.caption)
+                    .font(Typography.caption)
                     .foregroundColor(.secondary)
 
                 TextEditor(text: $quote)
-                    .font(.body)
+                    .font(Typography.body)
                     .frame(minHeight: 60, maxHeight: 120)
                     .scrollContentBackground(.hidden)
-                    .padding(8)
-                    .background(Color(.textBackgroundColor))
-                    .cornerRadius(6)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 6)
-                            .stroke(focusedField == .quote ? Color.accentColor : Color.gray.opacity(0.3), lineWidth: 1)
+                    .padding(Spacing.sm)
+                    .liquidGlass(
+                        material: .ultraThin,
+                        cornerRadius: CornerRadius.medium,
+                        borderStyle: focusedField == .quote ? .accent(.accentColor) : .subtle,
+                        enableHover: false
                     )
                     .focused($focusedField, equals: .quote)
             }
 
             // Theme field
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text("Theme")
-                    .font(.caption)
+                    .font(Typography.caption)
                     .foregroundColor(.secondary)
 
                 TextField("e.g., User Frustration", text: $theme)
@@ -365,9 +376,9 @@ struct InsightEditor: View {
             }
 
             // Tags field
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text("Tags (comma separated)")
-                    .font(.caption)
+                    .font(Typography.caption)
                     .foregroundColor(.secondary)
 
                 TextField("e.g., pain-point, onboarding, priority", text: $tagsText)
@@ -377,20 +388,30 @@ struct InsightEditor: View {
 
             // Actions
             HStack {
-                Button("Cancel", action: onCancel)
-                    .buttonStyle(.bordered)
+                Button(action: onCancel) {
+                    Text("Cancel")
+                        .font(Typography.bodyMedium)
+                        .padding(.horizontal, Spacing.lg)
+                        .padding(.vertical, Spacing.sm)
+                }
+                .buttonStyle(.plain)
+                .glassButton(style: .secondary)
 
                 Spacer()
 
-                Button("Save", action: saveInsight)
-                    .buttonStyle(.borderedProminent)
-                    .disabled(quote.isEmpty || theme.isEmpty)
+                Button(action: saveInsight) {
+                    Text("Save")
+                        .font(Typography.bodyMedium)
+                        .padding(.horizontal, Spacing.lg)
+                        .padding(.vertical, Spacing.sm)
+                }
+                .buttonStyle(.plain)
+                .glassButton(isActive: true, style: .primary)
+                .disabled(quote.isEmpty || theme.isEmpty)
             }
         }
-        .padding(16)
-        .background(Color(.controlBackgroundColor))
-        .cornerRadius(10)
-        .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
+        .padding(Spacing.lg)
+        .glassFloating(isActive: true)
         .onAppear {
             quote = insight.quote
             theme = insight.theme
@@ -417,7 +438,7 @@ struct InsightsListView: View {
     @State private var editingInsightId: UUID?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             // Header
             HStack {
                 Image(systemName: "lightbulb.fill")
@@ -425,18 +446,18 @@ struct InsightsListView: View {
                     .foregroundColor(.orange)
 
                 Text("Insights (\(viewModel.editableInsights.count))")
-                    .font(.headline)
+                    .font(Typography.heading3)
 
                 Spacer()
 
                 if viewModel.editableInsights.contains(where: { $0.isModified }) {
                     Text("Modified")
-                        .font(.caption)
+                        .font(Typography.caption)
                         .foregroundColor(.orange)
-                        .padding(.horizontal, 8)
+                        .padding(.horizontal, Spacing.sm)
                         .padding(.vertical, 2)
                         .background(Color.orange.opacity(0.15))
-                        .cornerRadius(4)
+                        .cornerRadius(CornerRadius.small)
                 }
             }
             .accessibilityElement(children: .combine)
@@ -445,7 +466,7 @@ struct InsightsListView: View {
             if viewModel.editableInsights.isEmpty {
                 emptyStateView
             } else {
-                LazyVStack(spacing: 8) {
+                LazyVStack(spacing: Spacing.sm) {
                     ForEach(viewModel.editableInsights) { insight in
                         if editingInsightId == insight.id {
                             InsightEditor(
@@ -470,32 +491,27 @@ struct InsightsListView: View {
                 }
             }
         }
-        .padding(16)
-        .background(Color(.controlBackgroundColor))
-        .cornerRadius(10)
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.orange.opacity(0.2), lineWidth: 1)
-        )
+        .padding(Spacing.lg)
+        .glassCard(accentColor: .orange)
     }
 
     private var emptyStateView: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: Spacing.sm) {
             Image(systemName: "lightbulb")
                 .font(.largeTitle)
                 .foregroundColor(.secondary)
 
             Text("No Insights Captured")
-                .font(.subheadline)
+                .font(Typography.body)
                 .foregroundColor(.secondary)
 
             Text("No insights were flagged during this session.")
-                .font(.caption)
+                .font(Typography.caption)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 24)
+        .padding(.vertical, Spacing.xl)
     }
 }
 
@@ -508,12 +524,11 @@ struct InsightRow: View {
 
     var body: some View {
         Button(action: onTap) {
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
                 // Theme and modified indicator
                 HStack {
                     Text(insight.theme)
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
+                        .font(Typography.bodyMedium)
                         .foregroundColor(.primary)
 
                     if insight.isModified {
@@ -525,35 +540,40 @@ struct InsightRow: View {
                     Spacer()
 
                     Image(systemName: "pencil")
-                        .font(.caption)
+                        .font(Typography.caption)
                         .foregroundColor(.secondary)
                 }
 
                 // Quote
                 Text("\"\(insight.quote)\"")
-                    .font(.body)
+                    .font(Typography.body)
                     .foregroundColor(.secondary)
                     .lineLimit(2)
                     .italic()
 
                 // Tags
                 if !insight.tags.isEmpty {
-                    HStack(spacing: 4) {
+                    HStack(spacing: Spacing.xs) {
                         ForEach(insight.tags, id: \.self) { tag in
                             Text(tag)
-                                .font(.caption2)
+                                .font(Typography.small)
                                 .foregroundColor(.blue)
-                                .padding(.horizontal, 6)
+                                .padding(.horizontal, Spacing.sm)
                                 .padding(.vertical, 2)
                                 .background(Color.blue.opacity(0.1))
-                                .cornerRadius(4)
+                                .cornerRadius(CornerRadius.small)
                         }
                     }
                 }
             }
-            .padding(12)
-            .background(Color(.textBackgroundColor))
-            .cornerRadius(8)
+            .padding(Spacing.md)
+            .liquidGlass(
+                material: .ultraThin,
+                cornerRadius: CornerRadius.medium,
+                borderStyle: .subtle,
+                enableHover: true,
+                enablePress: true
+            )
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .combine)

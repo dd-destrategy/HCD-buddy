@@ -279,7 +279,7 @@ final class ServiceContainerTests: XCTestCase {
                         projectName: "Concurrent Project",
                         sessionMode: .full
                     )
-                    dataManager.mainContext.insert(session)
+                    dataManager.mainContext?.insert(session)
                     try? dataManager.save()
                 }
             }

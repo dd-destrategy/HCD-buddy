@@ -51,7 +51,7 @@ struct PostSessionSummaryView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 24) {
+                VStack(spacing: Spacing.xl) {
                     // Header with session info
                     headerSection
 
@@ -81,9 +81,9 @@ struct PostSessionSummaryView: View {
 
                     // Bottom spacing
                     Spacer()
-                        .frame(height: 40)
+                        .frame(height: Spacing.xxl)
                 }
-                .padding(24)
+                .padding(Spacing.xl)
             }
             .navigationTitle("Session Summary")
             .toolbar {
@@ -137,15 +137,14 @@ struct PostSessionSummaryView: View {
     // MARK: - Header Section
 
     private var headerSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text(session.participantName)
-                        .font(.title)
-                        .fontWeight(.bold)
+                        .font(Typography.heading1)
 
                     Text(session.projectName)
-                        .font(.title3)
+                        .font(Typography.heading3)
                         .foregroundColor(.secondary)
                 }
 
@@ -155,32 +154,35 @@ struct PostSessionSummaryView: View {
                 sessionModeBadge
             }
 
-            HStack(spacing: 16) {
+            HStack(spacing: Spacing.lg) {
                 Label(formattedDate, systemImage: "calendar")
-                    .font(.subheadline)
+                    .font(Typography.body)
                     .foregroundColor(.secondary)
 
                 Label(viewModel.statistics.formattedDuration, systemImage: "clock")
-                    .font(.subheadline)
+                    .font(Typography.body)
                     .foregroundColor(.secondary)
             }
         }
-        .padding(20)
-        .background(Color(.controlBackgroundColor))
-        .cornerRadius(12)
+        .padding(Spacing.xl)
+        .glassCard()
     }
 
     private var sessionModeBadge: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: Spacing.xs) {
             Image(systemName: modeIcon)
             Text(session.sessionMode.displayName)
         }
-        .font(.caption)
+        .font(Typography.caption)
         .foregroundColor(modeColor)
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background(modeColor.opacity(0.15))
-        .cornerRadius(6)
+        .padding(.horizontal, Spacing.md)
+        .padding(.vertical, Spacing.sm)
+        .liquidGlass(
+            material: .thin,
+            cornerRadius: CornerRadius.medium,
+            borderStyle: .accent(modeColor),
+            enableHover: false
+        )
     }
 
     private var modeIcon: String {
@@ -212,23 +214,23 @@ struct PostSessionSummaryView: View {
     // MARK: - Export Section
 
     private var exportSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             HStack {
                 Image(systemName: "square.and.arrow.up")
                     .font(.title3)
                     .foregroundColor(.green)
 
                 Text("Export Session")
-                    .font(.headline)
+                    .font(Typography.heading3)
 
                 Spacer()
             }
 
             Text("Export your session data for further analysis or sharing.")
-                .font(.subheadline)
+                .font(Typography.body)
                 .foregroundColor(.secondary)
 
-            HStack(spacing: 12) {
+            HStack(spacing: Spacing.md) {
                 ForEach(ExportFormat.allCases) { format in
                     ExportFormatButton(
                         format: format,
@@ -242,7 +244,9 @@ struct PostSessionSummaryView: View {
                 Button(action: { showExportSheet = true }) {
                     Label("More Options", systemImage: "ellipsis.circle")
                 }
-                .buttonStyle(.bordered)
+                .padding(.horizontal, Spacing.md)
+                .padding(.vertical, Spacing.sm)
+                .glassButton(style: .secondary)
             }
 
             if let error = viewModel.exportError {
@@ -251,19 +255,14 @@ struct PostSessionSummaryView: View {
                         .foregroundColor(.orange)
 
                     Text(error)
-                        .font(.caption)
+                        .font(Typography.caption)
                         .foregroundColor(.secondary)
                 }
-                .padding(.top, 4)
+                .padding(.top, Spacing.xs)
             }
         }
-        .padding(16)
-        .background(Color(.controlBackgroundColor))
-        .cornerRadius(10)
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.green.opacity(0.2), lineWidth: 1)
-        )
+        .padding(Spacing.lg)
+        .glassCard(accentColor: .green)
     }
 
     // MARK: - Actions
@@ -326,22 +325,31 @@ private struct ExportFormatButton: View {
     let isExporting: Bool
     let action: () -> Void
 
+    private var buttonColor: Color {
+        format == .markdown ? .blue : .purple
+    }
+
     var body: some View {
         Button(action: action) {
-            HStack {
+            HStack(spacing: Spacing.sm) {
                 if isExporting {
                     ProgressView()
                         .controlSize(.small)
                 } else {
                     Image(systemName: format.icon)
+                        .foregroundColor(buttonColor)
                 }
 
                 Text(format.displayName)
+                    .font(Typography.bodyMedium)
             }
+            .padding(.horizontal, Spacing.lg)
+            .padding(.vertical, Spacing.sm)
         }
-        .buttonStyle(.borderedProminent)
-        .tint(format == .markdown ? .blue : .purple)
+        .buttonStyle(.plain)
+        .glassButton(isActive: true, style: .primary)
         .disabled(isExporting)
+        .opacity(isExporting ? 0.6 : 1.0)
     }
 }
 
@@ -364,7 +372,7 @@ private struct ExportOptionsSheet: View {
             // Header
             HStack {
                 Text("Export Options")
-                    .font(.headline)
+                    .font(Typography.heading2)
 
                 Spacer()
 
@@ -375,7 +383,7 @@ private struct ExportOptionsSheet: View {
                 }
                 .buttonStyle(.plain)
             }
-            .padding()
+            .padding(Spacing.lg)
 
             Divider()
 
@@ -402,7 +410,7 @@ private struct ExportOptionsSheet: View {
 
                 Section {
                     Text("The export will be saved to your Documents folder.")
-                        .font(.caption)
+                        .font(Typography.caption)
                         .foregroundColor(.secondary)
                 }
             }
@@ -415,7 +423,9 @@ private struct ExportOptionsSheet: View {
                 Button("Cancel") {
                     dismiss()
                 }
-                .buttonStyle(.bordered)
+                .padding(.horizontal, Spacing.lg)
+                .padding(.vertical, Spacing.sm)
+                .glassButton(style: .secondary)
 
                 Spacer()
 
@@ -427,13 +437,17 @@ private struct ExportOptionsSheet: View {
                         }
                         Text("Export")
                     }
+                    .padding(.horizontal, Spacing.lg)
+                    .padding(.vertical, Spacing.sm)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.plain)
+                .glassButton(isActive: true, style: .primary)
                 .disabled(viewModel.isExporting)
             }
-            .padding()
+            .padding(Spacing.lg)
         }
         .frame(width: 400, height: 400)
+        .glassSheet()
     }
 
     private func exportSession() {
@@ -450,17 +464,17 @@ private struct ExportSuccessBanner: View {
     let onDismiss: () -> Void
 
     var body: some View {
-        HStack {
+        HStack(spacing: Spacing.md) {
             Image(systemName: "checkmark.circle.fill")
                 .foregroundColor(.green)
+                .font(.title3)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text("Export Successful")
-                    .font(.subheadline)
-                    .fontWeight(.medium)
+                    .font(Typography.bodyMedium)
 
                 Text(url.lastPathComponent)
-                    .font(.caption)
+                    .font(Typography.caption)
                     .foregroundColor(.secondary)
             }
 
@@ -468,9 +482,12 @@ private struct ExportSuccessBanner: View {
 
             Button(action: revealInFinder) {
                 Text("Show in Finder")
+                    .font(Typography.caption)
+                    .padding(.horizontal, Spacing.md)
+                    .padding(.vertical, Spacing.sm)
             }
-            .buttonStyle(.bordered)
-            .controlSize(.small)
+            .buttonStyle(.plain)
+            .glassButton(style: .secondary)
 
             Button(action: onDismiss) {
                 Image(systemName: "xmark")
@@ -479,12 +496,10 @@ private struct ExportSuccessBanner: View {
             .buttonStyle(.plain)
             .foregroundColor(.secondary)
         }
-        .padding(12)
-        .background(.regularMaterial)
-        .cornerRadius(10)
-        .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
-        .padding(.horizontal, 24)
-        .padding(.bottom, 12)
+        .padding(Spacing.md)
+        .glassFloating(isActive: true)
+        .padding(.horizontal, Spacing.xl)
+        .padding(.bottom, Spacing.md)
     }
 
     private func revealInFinder() {

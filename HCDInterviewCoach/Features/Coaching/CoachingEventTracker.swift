@@ -243,13 +243,18 @@ final class CoachingEventTracker: ObservableObject {
 
     /// Get all coaching events across sessions with pagination
     func getAllEvents(limit: Int = 100, offset: Int = 0) async throws -> [CoachingEvent] {
+        guard let context = dataManager.mainContext else {
+            AppLogger.shared.error("Cannot fetch coaching events: database unavailable")
+            return []
+        }
+
         var descriptor = FetchDescriptor<CoachingEvent>(
             sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
         )
         descriptor.fetchLimit = limit
         descriptor.fetchOffset = offset
 
-        return try dataManager.mainContext.fetch(descriptor)
+        return try context.fetch(descriptor)
     }
 
     // MARK: - Private Methods

@@ -44,29 +44,34 @@ struct WizardStepView<Content: View, FooterContent: View>: View {
         self.footer = footer()
     }
 
+    // MARK: - Environment
+
+    @Environment(\.colorScheme) private var colorScheme
+
     // MARK: - Body
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header
+            // Header with glass styling
             stepHeader
 
-            Divider()
-                .padding(.horizontal)
+            // Glass divider
+            glassDivider
 
-            // Content
+            // Content area with glass background
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: Spacing.xl) {
                     content
                 }
-                .padding(24)
+                .padding(Spacing.xl)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .background(contentBackground)
 
-            Divider()
-                .padding(.horizontal)
+            // Glass divider
+            glassDivider
 
-            // Footer
+            // Footer with glass styling
             stepFooter
         }
         .frame(minWidth: 500, minHeight: 400)
@@ -74,38 +79,106 @@ struct WizardStepView<Content: View, FooterContent: View>: View {
         .accessibilityLabel("Step \(step.rawValue + 1): \(title)")
     }
 
+    // MARK: - Glass Divider
+
+    private var glassDivider: some View {
+        Rectangle()
+            .fill(
+                LinearGradient(
+                    colors: [
+                        Color.white.opacity(colorScheme == .dark ? 0.1 : 0.5),
+                        Color.white.opacity(colorScheme == .dark ? 0.02 : 0.15),
+                        Color.white.opacity(colorScheme == .dark ? 0.1 : 0.5)
+                    ],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
+            .frame(height: 1)
+            .padding(.horizontal, Spacing.lg)
+    }
+
+    // MARK: - Content Background
+
+    private var contentBackground: some View {
+        Color.clear
+            .background(.ultraThinMaterial.opacity(0.3))
+    }
+
     // MARK: - Header
 
     private var stepHeader: some View {
-        HStack(spacing: 16) {
-            // Step icon
+        HStack(spacing: Spacing.lg) {
+            // Step icon with glass styling
             ZStack {
+                // Outer glow ring
                 Circle()
-                    .fill(iconColor.opacity(0.15))
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                iconColor.opacity(0.2),
+                                iconColor.opacity(0.05),
+                                Color.clear
+                            ],
+                            center: .center,
+                            startRadius: 20,
+                            endRadius: 40
+                        )
+                    )
+                    .frame(width: 64, height: 64)
+
+                // Glass circle
+                Circle()
+                    .fill(.ultraThinMaterial)
                     .frame(width: 56, height: 56)
+                    .overlay(
+                        Circle()
+                            .stroke(
+                                LinearGradient(
+                                    colors: [
+                                        iconColor.opacity(0.5),
+                                        iconColor.opacity(0.2),
+                                        Color.white.opacity(colorScheme == .dark ? 0.1 : 0.3)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1.5
+                            )
+                    )
+                    .shadow(color: iconColor.opacity(0.25), radius: 8, x: 0, y: 4)
 
                 Image(systemName: iconName)
-                    .font(.system(size: 24))
+                    .font(.system(size: 24, weight: .medium))
                     .foregroundColor(iconColor)
             }
             .accessibilityHidden(true)
 
-            VStack(alignment: .leading, spacing: 4) {
-                // Step indicator
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                // Step indicator with glass pill
                 Text("Step \(step.rawValue + 1) of \(AudioSetupStep.allCases.count)")
-                    .font(.caption)
+                    .font(Typography.caption)
                     .foregroundColor(.secondary)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.vertical, Spacing.xs)
+                    .background(
+                        Capsule()
+                            .fill(.ultraThinMaterial)
+                            .overlay(
+                                Capsule()
+                                    .stroke(Color.white.opacity(colorScheme == .dark ? 0.08 : 0.2), lineWidth: 0.5)
+                            )
+                    )
 
                 // Title
                 Text(title)
-                    .font(.title2)
-                    .fontWeight(.semibold)
+                    .font(Typography.heading1)
                     .foregroundColor(.primary)
 
                 // Subtitle
                 if let subtitle = subtitle {
                     Text(subtitle)
-                        .font(.subheadline)
+                        .font(Typography.body)
                         .foregroundColor(.secondary)
                         .lineLimit(2)
                 }
@@ -113,18 +186,18 @@ struct WizardStepView<Content: View, FooterContent: View>: View {
 
             Spacer()
         }
-        .padding(24)
-        .background(Color(NSColor.windowBackgroundColor))
+        .padding(Spacing.xl)
+        .background(.ultraThinMaterial.opacity(0.5))
     }
 
     // MARK: - Footer
 
     private var stepFooter: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Spacing.md) {
             footer
         }
-        .padding(20)
-        .background(Color(NSColor.windowBackgroundColor))
+        .padding(Spacing.xl)
+        .background(.ultraThinMaterial.opacity(0.5))
     }
 }
 
@@ -151,9 +224,10 @@ extension WizardStepView where FooterContent == EmptyView {
 
 // MARK: - Standard Navigation Buttons
 
-/// Standard "Back" button for wizard navigation
+/// Standard "Back" button for wizard navigation with glass styling
 struct WizardBackButton: View {
     @EnvironmentObject private var viewModel: AudioSetupViewModel
+    @Environment(\.colorScheme) private var colorScheme
     let action: (() -> Void)?
 
     init(action: (() -> Void)? = nil) {
@@ -168,24 +242,29 @@ struct WizardBackButton: View {
                 viewModel.previousStep()
             }
         }) {
-            HStack(spacing: 6) {
+            HStack(spacing: Spacing.xs) {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 12, weight: .semibold))
                 Text("Back")
+                    .font(Typography.bodyMedium)
             }
-            .frame(minWidth: 80)
+            .padding(.horizontal, Spacing.lg)
+            .padding(.vertical, Spacing.sm)
+            .glassButton(isActive: false, style: .secondary)
         }
-        .buttonStyle(.bordered)
+        .buttonStyle(.plain)
         .disabled(!viewModel.canGoBack)
+        .opacity(viewModel.canGoBack ? 1.0 : 0.5)
         .keyboardShortcut(.leftArrow, modifiers: .command)
         .accessibilityLabel("Go back to previous step")
         .accessibilityHint("Press Command Left Arrow")
     }
 }
 
-/// Standard "Next" button for wizard navigation
+/// Standard "Next" button for wizard navigation with glass styling
 struct WizardNextButton: View {
     @EnvironmentObject private var viewModel: AudioSetupViewModel
+    @Environment(\.colorScheme) private var colorScheme
     let title: String
     let action: (() -> Void)?
 
@@ -202,29 +281,50 @@ struct WizardNextButton: View {
                 viewModel.nextStep()
             }
         }) {
-            HStack(spacing: 6) {
+            HStack(spacing: Spacing.xs) {
                 Text(title)
+                    .font(Typography.bodyMedium)
                 Image(systemName: "chevron.right")
                     .font(.system(size: 12, weight: .semibold))
             }
-            .frame(minWidth: 100)
+            .foregroundColor(.white)
+            .padding(.horizontal, Spacing.xl)
+            .padding(.vertical, Spacing.sm)
+            .glassButton(isActive: true, style: .primary)
         }
-        .buttonStyle(.borderedProminent)
+        .buttonStyle(.plain)
         .disabled(!viewModel.canProceed)
+        .opacity(viewModel.canProceed ? 1.0 : 0.5)
         .keyboardShortcut(.return, modifiers: [])
         .accessibilityLabel(title)
         .accessibilityHint("Press Return to continue")
     }
 }
 
-/// Standard "Skip" button for optional steps
+/// Standard "Skip" button for optional steps with glass styling
 struct WizardSkipButton: View {
+    @Environment(\.colorScheme) private var colorScheme
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            Text("Skip")
-                .foregroundColor(.secondary)
+            HStack(spacing: Spacing.xs) {
+                Text("Skip")
+                    .font(Typography.body)
+                Image(systemName: "arrow.right.circle")
+                    .font(Typography.caption)
+            }
+            .foregroundColor(.secondary)
+            .padding(.horizontal, Spacing.md)
+            .padding(.vertical, Spacing.sm)
+            .background(
+                Capsule()
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        Capsule()
+                            .stroke(Color.white.opacity(colorScheme == .dark ? 0.08 : 0.2), lineWidth: 0.5)
+                    )
+            )
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Skip this step")
@@ -233,17 +333,28 @@ struct WizardSkipButton: View {
 
 // MARK: - Progress Indicator
 
-/// Visual progress indicator for the wizard
+/// Visual progress indicator for the wizard with glass styling
 struct WizardProgressIndicator: View {
     @EnvironmentObject private var viewModel: AudioSetupViewModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: Spacing.sm) {
             ForEach(AudioSetupStep.allCases) { step in
                 progressDot(for: step)
             }
         }
+        .padding(.horizontal, Spacing.md)
+        .padding(.vertical, Spacing.sm)
+        .background(
+            Capsule()
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    Capsule()
+                        .stroke(Color.white.opacity(colorScheme == .dark ? 0.1 : 0.3), lineWidth: 0.5)
+                )
+        )
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Progress: Step \(viewModel.currentStepNumber) of \(viewModel.totalSteps)")
     }
@@ -253,45 +364,86 @@ struct WizardProgressIndicator: View {
         let isCurrent = step == viewModel.currentStep
         let isComplete = step.rawValue < viewModel.currentStep.rawValue
 
-        Circle()
-            .fill(dotColor(isCurrent: isCurrent, isComplete: isComplete))
-            .frame(width: isCurrent ? 10 : 8, height: isCurrent ? 10 : 8)
-            .overlay {
-                if isComplete {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 6, weight: .bold))
-                        .foregroundColor(.white)
-                }
+        ZStack {
+            Circle()
+                .fill(dotBackground(isCurrent: isCurrent, isComplete: isComplete))
+                .frame(width: isCurrent ? 12 : 10, height: isCurrent ? 12 : 10)
+                .overlay(
+                    Circle()
+                        .stroke(
+                            dotBorderColor(isCurrent: isCurrent, isComplete: isComplete),
+                            lineWidth: 1
+                        )
+                )
+                .shadow(
+                    color: dotShadowColor(isCurrent: isCurrent, isComplete: isComplete),
+                    radius: isCurrent ? 4 : 2,
+                    x: 0,
+                    y: 1
+                )
+
+            if isComplete {
+                Image(systemName: "checkmark")
+                    .font(.system(size: 6, weight: .bold))
+                    .foregroundColor(.white)
             }
-            .animation(reduceMotion ? nil : .easeInOut(duration: AnimationTiming.normal), value: viewModel.currentStep)
+        }
+        .animation(reduceMotion ? nil : .easeInOut(duration: AnimationTiming.normal), value: viewModel.currentStep)
     }
 
-    private func dotColor(isCurrent: Bool, isComplete: Bool) -> Color {
+    private func dotBackground(isCurrent: Bool, isComplete: Bool) -> some ShapeStyle {
         if isCurrent {
-            return .accentColor
+            return AnyShapeStyle(Color.accentColor)
         } else if isComplete {
-            return .green
+            return AnyShapeStyle(Color.green)
         } else {
-            return Color.gray.opacity(0.3)
+            return AnyShapeStyle(Material.ultraThinMaterial)
+        }
+    }
+
+    private func dotBorderColor(isCurrent: Bool, isComplete: Bool) -> Color {
+        if isCurrent {
+            return Color.accentColor.opacity(0.5)
+        } else if isComplete {
+            return Color.green.opacity(0.5)
+        } else {
+            return Color.white.opacity(colorScheme == .dark ? 0.1 : 0.3)
+        }
+    }
+
+    private func dotShadowColor(isCurrent: Bool, isComplete: Bool) -> Color {
+        if isCurrent {
+            return Color.accentColor.opacity(0.3)
+        } else if isComplete {
+            return Color.green.opacity(0.2)
+        } else {
+            return Color.black.opacity(0.1)
         }
     }
 }
 
 // MARK: - Status Badge
 
-/// Displays the status of a setup check
+/// Displays the status of a setup check with glass styling
 struct SetupStatusBadge: View {
     let status: AudioSetupStatus
 
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: Spacing.sm) {
             statusIcon
             statusText
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(statusBackground)
-        .cornerRadius(8)
+        .padding(.horizontal, Spacing.md)
+        .padding(.vertical, Spacing.sm)
+        .background(statusGlassBackground)
+        .clipShape(Capsule())
+        .overlay(
+            Capsule()
+                .stroke(statusBorderGradient, lineWidth: 1)
+        )
+        .shadow(color: statusShadowColor, radius: 4, x: 0, y: 2)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilityDescription)
     }
@@ -300,7 +452,8 @@ struct SetupStatusBadge: View {
     private var statusIcon: some View {
         switch status {
         case .pending:
-            Image(systemName: "circle")
+            Image(systemName: "circle.dashed")
+                .font(Typography.body)
                 .foregroundColor(.secondary)
         case .checking:
             ProgressView()
@@ -308,12 +461,15 @@ struct SetupStatusBadge: View {
                 .frame(width: 16, height: 16)
         case .success:
             Image(systemName: "checkmark.circle.fill")
+                .font(Typography.body)
                 .foregroundColor(.green)
         case .failure:
             Image(systemName: "xmark.circle.fill")
+                .font(Typography.body)
                 .foregroundColor(.red)
         case .skipped:
             Image(systemName: "minus.circle.fill")
+                .font(Typography.body)
                 .foregroundColor(.orange)
         }
     }
@@ -332,30 +488,85 @@ struct SetupStatusBadge: View {
         case .success:
             Text("Verified")
                 .font(Typography.caption)
+                .fontWeight(.medium)
                 .foregroundColor(.green)
         case .failure:
             Text("Failed")
                 .font(Typography.caption)
+                .fontWeight(.medium)
                 .foregroundColor(.red)
         case .skipped:
             Text("Skipped")
                 .font(Typography.caption)
+                .fontWeight(.medium)
                 .foregroundColor(.orange)
         }
     }
 
-    private var statusBackground: Color {
+    @ViewBuilder
+    private var statusGlassBackground: some View {
+        ZStack {
+            // Glass material base
+            Material.ultraThinMaterial
+
+            // Status color tint
+            statusTintColor
+        }
+    }
+
+    private var statusTintColor: Color {
         switch status {
         case .pending:
-            return Color.gray.opacity(0.1)
+            return Color.gray.opacity(0.05)
         case .checking:
-            return Color.blue.opacity(0.1)
+            return Color.blue.opacity(0.08)
         case .success:
             return Color.green.opacity(0.1)
         case .failure:
             return Color.red.opacity(0.1)
         case .skipped:
-            return Color.orange.opacity(0.1)
+            return Color.orange.opacity(0.08)
+        }
+    }
+
+    private var statusBorderGradient: LinearGradient {
+        let baseColor: Color
+        switch status {
+        case .pending:
+            baseColor = .gray
+        case .checking:
+            baseColor = .blue
+        case .success:
+            baseColor = .green
+        case .failure:
+            baseColor = .red
+        case .skipped:
+            baseColor = .orange
+        }
+
+        return LinearGradient(
+            colors: [
+                baseColor.opacity(0.4),
+                baseColor.opacity(0.15),
+                Color.white.opacity(colorScheme == .dark ? 0.1 : 0.3)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    private var statusShadowColor: Color {
+        switch status {
+        case .pending:
+            return Color.black.opacity(0.05)
+        case .checking:
+            return Color.blue.opacity(0.15)
+        case .success:
+            return Color.green.opacity(0.2)
+        case .failure:
+            return Color.red.opacity(0.2)
+        case .skipped:
+            return Color.orange.opacity(0.15)
         }
     }
 
@@ -377,7 +588,7 @@ struct SetupStatusBadge: View {
 
 // MARK: - Info Box
 
-/// Styled information box for instructions and tips
+/// Styled information box for instructions and tips with glass styling
 struct WizardInfoBox: View {
     enum Style {
         case info
@@ -403,21 +614,12 @@ struct WizardInfoBox: View {
             }
         }
 
-        var backgroundColor: Color {
+        var tintOpacity: Double {
             switch self {
-            case .info: return Color.blue.opacity(0.1)
-            case .warning: return Color.orange.opacity(0.1)
-            case .tip: return Color.yellow.opacity(0.1)
-            case .error: return Color.red.opacity(0.1)
-            }
-        }
-
-        var borderColor: Color {
-            switch self {
-            case .info: return Color.blue.opacity(0.3)
-            case .warning: return Color.orange.opacity(0.3)
-            case .tip: return Color.yellow.opacity(0.3)
-            case .error: return Color.red.opacity(0.3)
+            case .info: return 0.08
+            case .warning: return 0.1
+            case .tip: return 0.08
+            case .error: return 0.12
             }
         }
     }
@@ -425,6 +627,8 @@ struct WizardInfoBox: View {
     let style: Style
     let title: String?
     let message: String
+
+    @Environment(\.colorScheme) private var colorScheme
 
     init(style: Style = .info, title: String? = nil, message: String) {
         self.style = style
@@ -434,10 +638,32 @@ struct WizardInfoBox: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: Spacing.md) {
-            Image(systemName: style.iconName)
-                .font(Typography.heading2)
-                .foregroundColor(style.iconColor)
-                .accessibilityHidden(true)
+            // Icon with glass circle background
+            ZStack {
+                Circle()
+                    .fill(.ultraThinMaterial)
+                    .frame(width: 36, height: 36)
+                    .overlay(
+                        Circle()
+                            .stroke(
+                                LinearGradient(
+                                    colors: [
+                                        style.iconColor.opacity(0.4),
+                                        style.iconColor.opacity(0.15)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
+                    )
+                    .shadow(color: style.iconColor.opacity(0.2), radius: 4, x: 0, y: 2)
+
+                Image(systemName: style.iconName)
+                    .font(Typography.heading3)
+                    .foregroundColor(style.iconColor)
+            }
+            .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 if let title = title {
@@ -455,30 +681,59 @@ struct WizardInfoBox: View {
             Spacer()
         }
         .padding(Spacing.lg)
-        .background(style.backgroundColor)
+        .background(infoBoxBackground)
+        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.large, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: CornerRadius.medium)
-                .stroke(style.borderColor, lineWidth: 1)
+            RoundedRectangle(cornerRadius: CornerRadius.large, style: .continuous)
+                .stroke(
+                    LinearGradient(
+                        colors: [
+                            style.iconColor.opacity(0.3),
+                            style.iconColor.opacity(0.1),
+                            Color.white.opacity(colorScheme == .dark ? 0.08 : 0.2)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
         )
-        .cornerRadius(CornerRadius.medium)
+        .shadow(color: style.iconColor.opacity(0.1), radius: 6, x: 0, y: 3)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(style == .warning ? "Warning" : style == .error ? "Error" : style == .tip ? "Tip" : "Information"): \(title ?? "") \(message)")
+    }
+
+    @ViewBuilder
+    private var infoBoxBackground: some View {
+        ZStack {
+            Material.ultraThinMaterial
+            style.iconColor.opacity(style.tintOpacity)
+        }
     }
 }
 
 // MARK: - Inline Troubleshooting Tip
 
 /// A subtle inline tip shown beneath status sections to help users who get stuck.
-/// Uses secondary text styling and a lightbulb icon to stay non-intrusive.
+/// Uses glass styling with secondary text styling and a lightbulb icon.
 struct InlineTroubleshootingTip: View {
     let message: String
 
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
         HStack(alignment: .top, spacing: Spacing.sm) {
-            Image(systemName: "lightbulb.fill")
-                .font(Typography.caption)
-                .foregroundColor(.orange)
-                .accessibilityHidden(true)
+            // Lightbulb with subtle glow
+            ZStack {
+                Circle()
+                    .fill(Color.orange.opacity(0.15))
+                    .frame(width: 24, height: 24)
+
+                Image(systemName: "lightbulb.fill")
+                    .font(Typography.caption)
+                    .foregroundColor(.orange)
+            }
+            .accessibilityHidden(true)
 
             Text(message)
                 .font(Typography.caption)
@@ -488,8 +743,18 @@ struct InlineTroubleshootingTip: View {
         .padding(Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: CornerRadius.medium)
-                .fill(Color.orange.opacity(0.06))
+            ZStack {
+                Material.ultraThinMaterial
+                Color.orange.opacity(0.04)
+            }
+        )
+        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.medium, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: CornerRadius.medium, style: .continuous)
+                .stroke(
+                    Color.orange.opacity(colorScheme == .dark ? 0.15 : 0.2),
+                    lineWidth: 0.5
+                )
         )
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Tip: \(message)")
@@ -499,7 +764,7 @@ struct InlineTroubleshootingTip: View {
 // MARK: - Troubleshooting Section
 
 /// An expandable "Having trouble?" section with common fixes for a wizard step.
-/// Stays collapsed by default so it does not clutter the screen.
+/// Uses glass styling and stays collapsed by default so it does not clutter the screen.
 struct TroubleshootingSection: View {
 
     /// Model for a single troubleshooting tip inside the section.
@@ -511,10 +776,11 @@ struct TroubleshootingSection: View {
     let tips: [Tip]
     @State private var isExpanded = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            // Toggle header
+            // Toggle header with glass button styling
             Button(action: {
                 if reduceMotion {
                     isExpanded.toggle()
@@ -525,9 +791,20 @@ struct TroubleshootingSection: View {
                 }
             }) {
                 HStack(spacing: Spacing.sm) {
-                    Image(systemName: "questionmark.circle.fill")
-                        .font(Typography.bodyMedium)
-                        .foregroundColor(.orange)
+                    // Question icon with glass background
+                    ZStack {
+                        Circle()
+                            .fill(.ultraThinMaterial)
+                            .frame(width: 28, height: 28)
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.orange.opacity(0.3), lineWidth: 0.5)
+                            )
+
+                        Image(systemName: "questionmark")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.orange)
+                    }
 
                     Text("Having trouble?")
                         .font(Typography.bodyMedium)
@@ -535,9 +812,12 @@ struct TroubleshootingSection: View {
 
                     Spacer()
 
-                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                    // Chevron with rotation
+                    Image(systemName: "chevron.right")
                         .font(Typography.caption)
                         .foregroundColor(.secondary)
+                        .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                        .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: isExpanded)
                 }
             }
             .buttonStyle(.plain)
@@ -545,15 +825,15 @@ struct TroubleshootingSection: View {
             .accessibilityHint(isExpanded ? "Collapse troubleshooting tips" : "Expand troubleshooting tips")
             .accessibilityAddTraits(.isButton)
 
-            // Expandable tip list
+            // Expandable tip list with glass cards
             if isExpanded {
                 VStack(alignment: .leading, spacing: Spacing.sm) {
                     ForEach(tips) { tip in
                         HStack(alignment: .top, spacing: Spacing.sm) {
                             Image(systemName: "wrench.and.screwdriver")
                                 .font(Typography.small)
-                                .foregroundColor(.secondary)
-                                .frame(width: 14, alignment: .center)
+                                .foregroundColor(.orange)
+                                .frame(width: 16, alignment: .center)
                                 .accessibilityHidden(true)
 
                             Text(tip.text)
@@ -561,20 +841,40 @@ struct TroubleshootingSection: View {
                                 .foregroundColor(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
+                        .padding(Spacing.sm)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(
+                            RoundedRectangle(cornerRadius: CornerRadius.small, style: .continuous)
+                                .fill(.ultraThinMaterial.opacity(0.5))
+                        )
                     }
                 }
-                .padding(.leading, Spacing.xl)
+                .padding(.leading, Spacing.lg)
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
         .padding(Spacing.lg)
         .background(
-            RoundedRectangle(cornerRadius: CornerRadius.medium)
-                .fill(Color.orange.opacity(0.06))
+            ZStack {
+                Material.ultraThinMaterial
+                Color.orange.opacity(0.04)
+            }
         )
+        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.large, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: CornerRadius.medium)
-                .stroke(Color.orange.opacity(0.15), lineWidth: 1)
+            RoundedRectangle(cornerRadius: CornerRadius.large, style: .continuous)
+                .stroke(
+                    LinearGradient(
+                        colors: [
+                            Color.orange.opacity(0.2),
+                            Color.orange.opacity(0.08),
+                            Color.white.opacity(colorScheme == .dark ? 0.05 : 0.15)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
         )
         .accessibilityElement(children: .contain)
     }
@@ -583,13 +883,11 @@ struct TroubleshootingSection: View {
 // MARK: - Setup Error View
 
 /// A comprehensive error display component for the audio setup wizard.
-/// Shows a structured error with:
+/// Shows a structured error with glass styling:
 /// - A clear title describing **what** went wrong
 /// - A reason explaining **why** it happened
 /// - Step-by-step instructions for **how** to fix it
 /// - A "Try Again" action button
-///
-/// Uses Typography tokens for consistent text styling.
 struct SetupErrorView: View {
     /// The setup error to display.
     let error: HCDError.AudioSetupError
@@ -602,14 +900,35 @@ struct SetupErrorView: View {
     /// SF Symbol name for the contextual action button.
     var actionIcon: String?
 
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
             // MARK: What went wrong
             HStack(alignment: .top, spacing: Spacing.md) {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .font(Typography.heading2)
-                    .foregroundColor(.red)
-                    .accessibilityHidden(true)
+                // Error icon with glass background
+                ZStack {
+                    Circle()
+                        .fill(.ultraThinMaterial)
+                        .frame(width: 44, height: 44)
+                        .overlay(
+                            Circle()
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [Color.red.opacity(0.5), Color.red.opacity(0.2)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 1.5
+                                )
+                        )
+                        .shadow(color: Color.red.opacity(0.25), radius: 6, x: 0, y: 2)
+
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(Typography.heading2)
+                        .foregroundColor(.red)
+                }
+                .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text(error.errorDescription ?? "An error occurred")
@@ -625,24 +944,47 @@ struct SetupErrorView: View {
                 }
             }
 
-            Divider()
+            // Glass divider
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color.red.opacity(0.2),
+                            Color.red.opacity(0.05),
+                            Color.red.opacity(0.2)
+                        ],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .frame(height: 1)
 
             // MARK: How to fix it
             if let recovery = error.recoverySuggestion {
                 VStack(alignment: .leading, spacing: Spacing.sm) {
-                    Text("How to fix this")
-                        .font(Typography.heading3)
-                        .foregroundColor(.primary)
+                    HStack(spacing: Spacing.xs) {
+                        Image(systemName: "wrench.and.screwdriver.fill")
+                            .font(Typography.caption)
+                            .foregroundColor(.secondary)
+                        Text("How to fix this")
+                            .font(Typography.heading3)
+                            .foregroundColor(.primary)
+                    }
 
                     Text(recovery)
                         .font(Typography.caption)
                         .foregroundColor(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .lineSpacing(3)
+                        .padding(Spacing.md)
+                        .background(
+                            RoundedRectangle(cornerRadius: CornerRadius.medium, style: .continuous)
+                                .fill(.ultraThinMaterial.opacity(0.5))
+                        )
                 }
             }
 
-            // MARK: Action buttons
+            // MARK: Action buttons with glass styling
             HStack(spacing: Spacing.md) {
                 Button(action: onRetry) {
                     HStack(spacing: Spacing.xs) {
@@ -651,8 +993,12 @@ struct SetupErrorView: View {
                         Text("Try Again")
                             .font(Typography.bodyMedium)
                     }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, Spacing.lg)
+                    .padding(.vertical, Spacing.sm)
+                    .glassButton(isActive: true, style: .primary)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.plain)
                 .accessibilityLabel("Try again")
                 .accessibilityHint("Re-runs the check for this step")
 
@@ -667,21 +1013,39 @@ struct SetupErrorView: View {
                             Text(actionLabel)
                                 .font(Typography.bodyMedium)
                         }
+                        .padding(.horizontal, Spacing.lg)
+                        .padding(.vertical, Spacing.sm)
+                        .glassButton(isActive: false, style: .secondary)
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.plain)
                     .accessibilityLabel(actionLabel)
                 }
             }
         }
         .padding(Spacing.lg)
         .background(
-            RoundedRectangle(cornerRadius: CornerRadius.large)
-                .fill(Color.red.opacity(0.06))
+            ZStack {
+                Material.ultraThinMaterial
+                Color.red.opacity(0.06)
+            }
         )
+        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.large, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: CornerRadius.large)
-                .stroke(Color.red.opacity(0.2), lineWidth: 1)
+            RoundedRectangle(cornerRadius: CornerRadius.large, style: .continuous)
+                .stroke(
+                    LinearGradient(
+                        colors: [
+                            Color.red.opacity(0.4),
+                            Color.red.opacity(0.15),
+                            Color.white.opacity(colorScheme == .dark ? 0.08 : 0.2)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1.5
+                )
         )
+        .shadow(color: Color.red.opacity(0.15), radius: 8, x: 0, y: 4)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Error: \(error.errorDescription ?? "Unknown error")")
     }
@@ -690,30 +1054,61 @@ struct SetupErrorView: View {
 // MARK: - Video Tutorial Link
 
 /// A subtle link component that points to a video tutorial for a wizard step.
-/// Shows a play icon alongside a descriptive label. Tapping opens the URL in the
-/// user's default browser. The URLs are placeholders that will be updated once
-/// tutorial videos are produced.
+/// Uses glass styling with a play icon alongside a descriptive label.
 struct VideoTutorialLink: View {
     let title: String
     let url: String
 
     @Environment(\.openURL) private var openURL
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var isHovered = false
 
     var body: some View {
         Button(action: openTutorial) {
             HStack(spacing: Spacing.sm) {
-                Image(systemName: "play.circle")
-                    .font(Typography.caption)
-                    .foregroundColor(.secondary)
-                    .accessibilityHidden(true)
+                // Play icon with glass circle
+                ZStack {
+                    Circle()
+                        .fill(.ultraThinMaterial)
+                        .frame(width: 24, height: 24)
+                        .overlay(
+                            Circle()
+                                .stroke(
+                                    Color.accentColor.opacity(isHovered ? 0.4 : 0.2),
+                                    lineWidth: 0.5
+                                )
+                        )
+
+                    Image(systemName: "play.fill")
+                        .font(.system(size: 8, weight: .bold))
+                        .foregroundColor(isHovered ? .accentColor : .secondary)
+                }
+                .accessibilityHidden(true)
 
                 Text(title)
                     .font(Typography.caption)
-                    .foregroundColor(.secondary)
-                    .underline()
+                    .foregroundColor(isHovered ? .accentColor : .secondary)
             }
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, Spacing.xs)
+            .background(
+                Capsule()
+                    .fill(.ultraThinMaterial.opacity(isHovered ? 1 : 0.5))
+                    .overlay(
+                        Capsule()
+                            .stroke(
+                                Color.white.opacity(colorScheme == .dark ? 0.08 : 0.2),
+                                lineWidth: 0.5
+                            )
+                    )
+            )
         }
         .buttonStyle(.plain)
+        .onHover { hovering in
+            withAnimation(.easeInOut(duration: 0.15)) {
+                isHovered = hovering
+            }
+        }
         .accessibilityLabel(title)
         .accessibilityHint("Opens video tutorial in your default web browser")
     }
@@ -726,12 +1121,14 @@ struct VideoTutorialLink: View {
 
 // MARK: - Instruction Step
 
-/// A numbered instruction step for guides
+/// A numbered instruction step for guides with glass styling
 struct InstructionStep: View {
     let number: Int
     let title: String
     let description: String?
     let isComplete: Bool
+
+    @Environment(\.colorScheme) private var colorScheme
 
     init(number: Int, title: String, description: String? = nil, isComplete: Bool = false) {
         self.number = number
@@ -741,12 +1138,38 @@ struct InstructionStep: View {
     }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            // Step number circle
+        HStack(alignment: .top, spacing: Spacing.md) {
+            // Step number circle with glass styling
             ZStack {
+                // Outer glow for complete state
+                if isComplete {
+                    Circle()
+                        .fill(Color.green.opacity(0.2))
+                        .frame(width: 36, height: 36)
+                }
+
                 Circle()
-                    .fill(isComplete ? Color.green : Color.accentColor)
-                    .frame(width: 28, height: 28)
+                    .fill(isComplete ? Color.green : .ultraThinMaterial)
+                    .frame(width: 30, height: 30)
+                    .overlay(
+                        Circle()
+                            .stroke(
+                                LinearGradient(
+                                    colors: isComplete
+                                        ? [Color.green.opacity(0.6), Color.green.opacity(0.3)]
+                                        : [Color.accentColor.opacity(0.5), Color.accentColor.opacity(0.2)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1.5
+                            )
+                    )
+                    .shadow(
+                        color: isComplete ? Color.green.opacity(0.25) : Color.accentColor.opacity(0.2),
+                        radius: 4,
+                        x: 0,
+                        y: 2
+                    )
 
                 if isComplete {
                     Image(systemName: "checkmark")
@@ -755,27 +1178,56 @@ struct InstructionStep: View {
                 } else {
                     Text("\(number)")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.white)
+                        .foregroundColor(colorScheme == .dark ? .white : .accentColor)
                 }
             }
             .accessibilityHidden(true)
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(title)
-                    .font(.body)
-                    .fontWeight(.medium)
+                    .font(Typography.bodyMedium)
                     .foregroundColor(.primary)
+                    .strikethrough(isComplete, color: .secondary)
 
                 if let description = description {
                     Text(description)
-                        .font(.subheadline)
+                        .font(Typography.caption)
                         .foregroundColor(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
 
             Spacer()
+
+            // Completion indicator
+            if isComplete {
+                Text("Done")
+                    .font(Typography.small)
+                    .foregroundColor(.green)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.vertical, Spacing.xs)
+                    .background(
+                        Capsule()
+                            .fill(Color.green.opacity(0.1))
+                            .overlay(
+                                Capsule()
+                                    .stroke(Color.green.opacity(0.2), lineWidth: 0.5)
+                            )
+                    )
+            }
         }
+        .padding(Spacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: CornerRadius.medium, style: .continuous)
+                .fill(.ultraThinMaterial.opacity(isComplete ? 0.3 : 0.5))
+                .overlay(
+                    RoundedRectangle(cornerRadius: CornerRadius.medium, style: .continuous)
+                        .stroke(
+                            Color.white.opacity(colorScheme == .dark ? 0.05 : 0.15),
+                            lineWidth: 0.5
+                        )
+                )
+        )
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Step \(number): \(title). \(description ?? "")")
         .accessibilityValue(isComplete ? "Completed" : "Not completed")

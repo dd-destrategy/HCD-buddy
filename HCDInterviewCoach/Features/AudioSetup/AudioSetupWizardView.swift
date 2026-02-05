@@ -46,7 +46,8 @@ struct AudioSetupWizardView: View {
             keyboardHints
         }
         .frame(minWidth: 620, idealWidth: 700, minHeight: 550, idealHeight: 650)
-        .background(Color(NSColor.windowBackgroundColor))
+        .background(wizardBackground)
+        .glassSheet()
         .environmentObject(viewModel)
         .keyboardNavigable(
             onEscape: { dismissWizard() }
@@ -69,28 +70,71 @@ struct AudioSetupWizardView: View {
         .accessibilityLabel("Audio Setup Wizard")
     }
 
+    // MARK: - Wizard Background
+
+    private var wizardBackground: some View {
+        ZStack {
+            // Gradient backdrop for glass effect visibility
+            LinearGradient(
+                colors: colorScheme == .dark
+                    ? [Color(white: 0.08), Color(white: 0.12)]
+                    : [Color(white: 0.94), Color(white: 0.98)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
+            // Subtle accent color wash
+            RadialGradient(
+                colors: [
+                    Color.accentColor.opacity(colorScheme == .dark ? 0.08 : 0.05),
+                    Color.clear
+                ],
+                center: .topTrailing,
+                startRadius: 50,
+                endRadius: 400
+            )
+        }
+    }
+
     // MARK: - Progress Bar
 
     private var progressBar: some View {
-        VStack(spacing: 8) {
-            // Progress track
+        VStack(spacing: Spacing.sm) {
+            // Progress track with glass styling
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
-                    // Background track
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(Color.gray.opacity(0.2))
-                        .frame(height: 4)
+                    // Background track - glass effect
+                    RoundedRectangle(cornerRadius: CornerRadius.small)
+                        .fill(.ultraThinMaterial)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: CornerRadius.small)
+                                .stroke(
+                                    Color.white.opacity(colorScheme == .dark ? 0.1 : 0.3),
+                                    lineWidth: 0.5
+                                )
+                        )
+                        .frame(height: 6)
 
-                    // Progress fill
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(Color.accentColor)
-                        .frame(width: geometry.size.width * viewModel.currentStep.progressPercentage, height: 4)
+                    // Progress fill with glow
+                    RoundedRectangle(cornerRadius: CornerRadius.small)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color.accentColor,
+                                    Color.accentColor.opacity(0.8)
+                                ],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(width: geometry.size.width * viewModel.currentStep.progressPercentage, height: 6)
+                        .shadow(color: Color.accentColor.opacity(0.4), radius: 4, x: 0, y: 0)
                         .animation(reduceMotion ? nil : .easeInOut(duration: AnimationTiming.normal), value: viewModel.currentStep)
                 }
             }
-            .frame(height: 4)
+            .frame(height: 6)
 
-            // Step indicators
+            // Step indicators with glass styling
             HStack {
                 ForEach(AudioSetupStep.allCases) { step in
                     stepIndicator(for: step)
@@ -100,10 +144,9 @@ struct AudioSetupWizardView: View {
                 }
             }
         }
-        .padding(.horizontal, 24)
-        .padding(.top, 16)
-        .padding(.bottom, 8)
-        .background(Color(NSColor.windowBackgroundColor))
+        .padding(.horizontal, Spacing.xl)
+        .padding(.top, Spacing.lg)
+        .padding(.bottom, Spacing.sm)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Progress: Step \(viewModel.currentStepNumber) of \(viewModel.totalSteps), \(viewModel.currentStep.title)")
     }
@@ -114,25 +157,39 @@ struct AudioSetupWizardView: View {
         let isComplete = step.rawValue < viewModel.currentStep.rawValue
         let isAccessible = step.rawValue <= viewModel.currentStep.rawValue
 
-        VStack(spacing: 4) {
+        VStack(spacing: Spacing.xs) {
             ZStack {
+                // Glass circle background
                 Circle()
-                    .fill(indicatorColor(isCurrent: isCurrent, isComplete: isComplete))
-                    .frame(width: 24, height: 24)
+                    .fill(indicatorMaterial(isCurrent: isCurrent, isComplete: isComplete))
+                    .frame(width: 28, height: 28)
+                    .overlay(
+                        Circle()
+                            .stroke(
+                                indicatorBorderGradient(isCurrent: isCurrent, isComplete: isComplete),
+                                lineWidth: 1.5
+                            )
+                    )
+                    .shadow(
+                        color: indicatorShadowColor(isCurrent: isCurrent, isComplete: isComplete),
+                        radius: isCurrent ? 6 : 3,
+                        x: 0,
+                        y: 2
+                    )
 
                 if isComplete {
                     Image(systemName: "checkmark")
-                        .font(.system(size: 10, weight: .bold))
+                        .font(.system(size: 11, weight: .bold))
                         .foregroundColor(.white)
                 } else {
                     Text("\(step.rawValue + 1)")
-                        .font(.system(size: 10, weight: .semibold))
+                        .font(.system(size: 11, weight: .semibold))
                         .foregroundColor(isCurrent ? .white : .secondary)
                 }
             }
 
             Text(step.title)
-                .font(.system(size: 9))
+                .font(Typography.small)
                 .foregroundColor(isCurrent ? .primary : .secondary)
                 .lineLimit(1)
         }
@@ -146,13 +203,48 @@ struct AudioSetupWizardView: View {
         }
     }
 
-    private func indicatorColor(isCurrent: Bool, isComplete: Bool) -> Color {
+    private func indicatorMaterial(isCurrent: Bool, isComplete: Bool) -> some ShapeStyle {
         if isComplete {
-            return .green
+            return AnyShapeStyle(Color.green)
         } else if isCurrent {
-            return .accentColor
+            return AnyShapeStyle(Color.accentColor)
         } else {
-            return Color.gray.opacity(0.3)
+            return AnyShapeStyle(Material.ultraThinMaterial)
+        }
+    }
+
+    private func indicatorBorderGradient(isCurrent: Bool, isComplete: Bool) -> LinearGradient {
+        if isComplete {
+            return LinearGradient(
+                colors: [Color.green.opacity(0.8), Color.green.opacity(0.4)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        } else if isCurrent {
+            return LinearGradient(
+                colors: [Color.accentColor.opacity(0.8), Color.accentColor.opacity(0.4)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        } else {
+            return LinearGradient(
+                colors: [
+                    Color.white.opacity(colorScheme == .dark ? 0.15 : 0.4),
+                    Color.white.opacity(colorScheme == .dark ? 0.05 : 0.15)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        }
+    }
+
+    private func indicatorShadowColor(isCurrent: Bool, isComplete: Bool) -> Color {
+        if isComplete {
+            return Color.green.opacity(0.3)
+        } else if isCurrent {
+            return Color.accentColor.opacity(0.3)
+        } else {
+            return Color.black.opacity(0.1)
         }
     }
 
@@ -211,29 +303,52 @@ struct AudioSetupWizardView: View {
     // MARK: - Keyboard Hints
 
     private var keyboardHints: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: Spacing.lg) {
             keyboardHint(key: "Esc", action: "Close")
             keyboardHint(key: "Return", action: "Continue")
             if viewModel.canGoBack {
                 keyboardHint(key: "Cmd+Left", action: "Back")
             }
         }
-        .font(.caption2)
+        .font(Typography.small)
         .foregroundColor(.secondary)
-        .padding(.horizontal, 24)
-        .padding(.vertical, 8)
-        .background(Color(NSColor.windowBackgroundColor).opacity(0.9))
+        .padding(.horizontal, Spacing.xl)
+        .padding(.vertical, Spacing.sm)
+        .background(.ultraThinMaterial)
+        .overlay(
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(colorScheme == .dark ? 0.08 : 0.3),
+                            Color.clear
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .frame(height: 1),
+            alignment: .top
+        )
         .accessibilityHidden(true)
     }
 
     private func keyboardHint(key: String, action: String) -> some View {
-        HStack(spacing: 4) {
+        HStack(spacing: Spacing.xs) {
             Text(key)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 2)
+                .font(Typography.small)
+                .padding(.horizontal, Spacing.sm)
+                .padding(.vertical, Spacing.xs)
                 .background(
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.gray.opacity(0.2))
+                    RoundedRectangle(cornerRadius: CornerRadius.small)
+                        .fill(.ultraThinMaterial)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: CornerRadius.small)
+                                .stroke(
+                                    Color.white.opacity(colorScheme == .dark ? 0.1 : 0.3),
+                                    lineWidth: 0.5
+                                )
+                        )
                 )
             Text(action)
         }
@@ -245,10 +360,26 @@ struct AudioSetupWizardView: View {
         Button(action: {
             skipEntireSetup()
         }) {
-            Text("I\u{2019}ll set this up later")
-                .font(Typography.caption)
-                .foregroundColor(.secondary)
-                .underline(color: .secondary.opacity(0.5))
+            HStack(spacing: Spacing.xs) {
+                Image(systemName: "clock.arrow.circlepath")
+                    .font(Typography.caption)
+                Text("I\u{2019}ll set this up later")
+                    .font(Typography.caption)
+            }
+            .foregroundColor(.secondary)
+            .padding(.horizontal, Spacing.md)
+            .padding(.vertical, Spacing.xs)
+            .background(
+                Capsule()
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        Capsule()
+                            .stroke(
+                                Color.white.opacity(colorScheme == .dark ? 0.08 : 0.2),
+                                lineWidth: 0.5
+                            )
+                    )
+            )
         }
         .buttonStyle(.plain)
         .padding(.top, Spacing.sm)

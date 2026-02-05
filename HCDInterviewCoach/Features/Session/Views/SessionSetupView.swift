@@ -8,43 +8,45 @@ struct SessionSetupView: View {
     @State private var selectedTemplate: InterviewTemplate?
     @State private var selectedMode: SessionMode = .full
 
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
                 // Header
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
                     Text("Start New Session")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
+                        .font(Typography.display)
                         .accessibilityAddTraits(.isHeader)
 
                     Text("Select a template and configure your session")
-                        .font(.body)
+                        .font(Typography.body)
                         .foregroundColor(.secondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(16)
-                .background(Color(.controlBackgroundColor))
+                .padding(Spacing.lg)
+                .glassToolbar()
                 .accessibilityElement(children: .combine)
                 .accessibilityLabel("Start New Session. Select a template and configure your session.")
 
                 // Scrollable content
                 ScrollView {
-                    VStack(spacing: 16) {
-                        // Template selector
+                    VStack(spacing: Spacing.lg) {
+                        // Template selector section
                         TemplateSelector(
                             selectedTemplate: $selectedTemplate,
                             templateManager: templateManager
                         )
+                        .glassCard()
                         .accessibilityElement(children: .contain)
                         .accessibilityLabel("Template selection")
                         .accessibilityHint("Choose an interview template to use for this session")
 
                         // Session mode selector
                         if selectedTemplate != nil {
-                            VStack(alignment: .leading, spacing: 12) {
+                            VStack(alignment: .leading, spacing: Spacing.md) {
                                 Text("Interview Configuration")
-                                    .font(.headline)
+                                    .font(Typography.heading2)
                                     .accessibilityAddTraits(.isHeader)
 
                                 SessionModeSelector(selectedMode: $selectedMode)
@@ -54,89 +56,103 @@ struct SessionSetupView: View {
 
                                 // Template topics display
                                 if let template = selectedTemplate {
-                                    VStack(alignment: .leading, spacing: 8) {
+                                    VStack(alignment: .leading, spacing: Spacing.sm) {
                                         Text("Topics to Cover")
-                                            .font(.subheadline)
-                                            .fontWeight(.semibold)
+                                            .font(Typography.heading3)
 
-                                        VStack(alignment: .leading, spacing: 4) {
+                                        VStack(alignment: .leading, spacing: Spacing.xs) {
                                             ForEach(template.topics, id: \.self) { topic in
-                                                HStack(spacing: 8) {
+                                                HStack(spacing: Spacing.sm) {
                                                     Image(systemName: "checkmark.circle")
-                                                        .foregroundColor(.blue)
-                                                        .font(.body)
+                                                        .foregroundColor(.accentColor)
+                                                        .font(Typography.body)
 
                                                     Text(topic)
-                                                        .font(.body)
+                                                        .font(Typography.body)
                                                         .foregroundColor(.primary)
 
                                                     Spacer()
                                                 }
-                                                .padding(.horizontal, 8)
-                                                .padding(.vertical, 4)
+                                                .padding(.horizontal, Spacing.sm)
+                                                .padding(.vertical, Spacing.xs)
                                             }
                                         }
-                                        .padding(12)
-                                        .background(Color(.controlBackgroundColor))
-                                        .cornerRadius(6)
+                                        .padding(Spacing.md)
+                                        .liquidGlass(
+                                            material: .thin,
+                                            cornerRadius: CornerRadius.medium,
+                                            borderStyle: .subtle,
+                                            enableHover: false
+                                        )
                                     }
                                 }
                             }
-                            .padding(16)
-                            .background(Color(.controlBackgroundColor))
-                            .cornerRadius(8)
+                            .padding(Spacing.lg)
+                            .glassCard()
                         }
 
                         // Consent disclosure
                         if let template = selectedTemplate {
-                            VStack(alignment: .leading, spacing: 12) {
+                            VStack(alignment: .leading, spacing: Spacing.md) {
                                 Text("Consent & Disclosure")
-                                    .font(.headline)
+                                    .font(Typography.heading2)
 
                                 ConsentTemplateView(
                                     variant: template.consentVariant,
                                     sessionMode: selectedMode
                                 )
                             }
+                            .padding(Spacing.lg)
+                            .glassCard()
                         }
 
                         Spacer()
-                            .frame(height: 20)
+                            .frame(height: Spacing.xl)
                     }
-                    .padding(16)
+                    .padding(Spacing.lg)
                 }
 
                 // Footer with action button
-                VStack(spacing: 12) {
+                VStack(spacing: Spacing.md) {
                     Divider()
 
                     if selectedTemplate != nil {
-                        HStack(spacing: 12) {
+                        HStack(spacing: Spacing.md) {
                             Button(action: { selectedTemplate = nil }) {
                                 Text("Back")
+                                    .font(Typography.bodyMedium)
+                                    .padding(.horizontal, Spacing.lg)
+                                    .padding(.vertical, Spacing.sm)
                             }
-                            .buttonStyle(.bordered)
+                            .buttonStyle(.plain)
+                            .glassButton(isActive: false, style: .secondary)
                             .accessibilityLabel("Back")
                             .accessibilityHint("Return to template selection")
 
                             Button(action: startSession) {
-                                HStack {
+                                HStack(spacing: Spacing.sm) {
                                     Image(systemName: "play.circle.fill")
                                     Text("Start Session")
                                 }
+                                .font(Typography.bodyMedium)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, Spacing.xl)
+                                .padding(.vertical, Spacing.sm)
                             }
-                            .buttonStyle(.borderedProminent)
+                            .buttonStyle(.plain)
+                            .glassButton(isActive: true, style: .primary)
                             .accessibilityLabel("Start Session")
                             .accessibilityHint("Begin the interview session with the selected template and mode")
                         }
-                        .padding(16)
+                        .padding(Spacing.lg)
                     } else {
                         Text("Select a template to begin")
-                            .font(.caption)
+                            .font(Typography.caption)
                             .foregroundColor(.secondary)
-                            .padding(16)
+                            .padding(Spacing.lg)
                     }
                 }
+                .glassToolbar()
             }
             .navigationTitle("Session Setup")
         }
@@ -161,11 +177,21 @@ struct SessionSetupView: View {
 // MARK: - Preview
 
 #Preview {
-    SessionSetupView(
-        templateManager: TemplateManager(),
-        onStartSession: { template, mode in
-            print("Starting session: \(template.name) in \(mode.displayName) mode")
-        }
-    )
+    ZStack {
+        // Background gradient to showcase glass effects
+        LinearGradient(
+            colors: [.blue.opacity(0.2), .purple.opacity(0.2), .cyan.opacity(0.2)],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+        .ignoresSafeArea()
+
+        SessionSetupView(
+            templateManager: TemplateManager(),
+            onStartSession: { template, mode in
+                print("Starting session: \(template.name) in \(mode.displayName) mode")
+            }
+        )
+    }
     .frame(minWidth: 600, minHeight: 800)
 }

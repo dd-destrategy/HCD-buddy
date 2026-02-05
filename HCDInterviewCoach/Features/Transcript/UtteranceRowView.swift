@@ -12,6 +12,7 @@ import SwiftUI
 
 /// Displays a single utterance in the transcript with speaker label, timestamp, and text.
 /// Supports speaker toggle, insight flagging, and search highlighting.
+/// Enhanced with Liquid Glass styling for hover and selection states.
 struct UtteranceRowView: View {
 
     // MARK: - Properties
@@ -48,28 +49,18 @@ struct UtteranceRowView: View {
     // MARK: - Environment
 
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     // MARK: - Body
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            // Timestamp
-            TimestampView(
-                timestampSeconds: utterance.timestampSeconds,
-                isHighlighted: isSelected,
-                style: .inline,
-                onTap: onTimestampTap
-            )
-            .frame(width: 50, alignment: .trailing)
+        HStack(alignment: .top, spacing: Spacing.md) {
+            // Timestamp badge with glass styling
+            timestampBadge
+                .frame(width: 54, alignment: .trailing)
 
-            // Speaker label
-            SpeakerLabelView(
-                speaker: utterance.speaker,
-                isEditable: onSpeakerToggle != nil,
-                wasManuallyEdited: utterance.wasManuallyEdited,
-                style: .default,
-                onToggle: onSpeakerToggle
-            )
+            // Speaker label with glass button styling
+            speakerLabel
 
             // Utterance text
             utteranceText
@@ -80,8 +71,8 @@ struct UtteranceRowView: View {
                 actionButtons
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.horizontal, Spacing.md)
+        .padding(.vertical, Spacing.sm)
         .background(rowBackground)
         .overlay(focusOverlay)
         .contentShape(Rectangle())
@@ -109,6 +100,55 @@ struct UtteranceRowView: View {
         }
     }
 
+    // MARK: - Timestamp Badge
+
+    private var timestampBadge: some View {
+        TimestampView(
+            timestampSeconds: utterance.timestampSeconds,
+            isHighlighted: isSelected,
+            style: .inline,
+            onTap: onTimestampTap
+        )
+        .font(Typography.caption)
+        .padding(.horizontal, Spacing.xs)
+        .padding(.vertical, 2)
+        .background(
+            RoundedRectangle(cornerRadius: CornerRadius.small, style: .continuous)
+                .fill(timestampBackground)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: CornerRadius.small, style: .continuous)
+                .stroke(
+                    Color.white.opacity(colorScheme == .dark ? 0.08 : 0.2),
+                    lineWidth: 0.5
+                )
+        )
+    }
+
+    private var timestampBackground: Color {
+        if reduceTransparency {
+            return colorScheme == .dark
+                ? Color(white: 0.2)
+                : Color(white: 0.9)
+        }
+        return colorScheme == .dark
+            ? Color.white.opacity(0.04)
+            : Color.black.opacity(0.03)
+    }
+
+    // MARK: - Speaker Label
+
+    private var speakerLabel: some View {
+        SpeakerLabelView(
+            speaker: utterance.speaker,
+            isEditable: onSpeakerToggle != nil,
+            wasManuallyEdited: utterance.wasManuallyEdited,
+            style: .default,
+            onToggle: onSpeakerToggle
+        )
+        .glassButton(isActive: isSelected, style: .ghost)
+    }
+
     // MARK: - Components
 
     private var utteranceText: some View {
@@ -123,7 +163,7 @@ struct UtteranceRowView: View {
 
     private var plainText: some View {
         Text(utterance.text)
-            .font(.body)
+            .font(Typography.body)
             .foregroundColor(.primary)
             .textSelection(.enabled)
             .lineSpacing(4)
@@ -131,7 +171,7 @@ struct UtteranceRowView: View {
 
     private var highlightedText: some View {
         Text(attributedText)
-            .font(.body)
+            .font(Typography.body)
             .textSelection(.enabled)
             .lineSpacing(4)
     }
@@ -163,22 +203,15 @@ struct UtteranceRowView: View {
     }
 
     private var actionButtons: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: Spacing.xs) {
             // Flag as insight button
             if onFlagInsight != nil {
-                Button(action: { onFlagInsight?() }) {
-                    Image(systemName: "lightbulb")
-                        .font(.system(size: 12))
-                        .foregroundColor(.secondary)
-                        .frame(width: 24, height: 24)
-                        .background(
-                            Circle()
-                                .fill(Color.secondary.opacity(0.1))
-                        )
-                }
-                .buttonStyle(.plain)
-                .help("Flag as insight")
-                .accessibilityLabel("Flag as insight")
+                ActionButton(
+                    icon: "lightbulb",
+                    help: "Flag as insight",
+                    accessibilityLabel: "Flag as insight",
+                    action: { onFlagInsight?() }
+                )
             }
 
             // More options menu
@@ -188,19 +221,34 @@ struct UtteranceRowView: View {
                 Image(systemName: "ellipsis")
                     .font(.system(size: 12))
                     .foregroundColor(.secondary)
-                    .frame(width: 24, height: 24)
-                    .background(
-                        Circle()
-                            .fill(Color.secondary.opacity(0.1))
-                    )
+                    .frame(width: 26, height: 26)
+                    .background(actionButtonBackground)
+                    .overlay(actionButtonBorder)
             }
             .menuStyle(.borderlessButton)
-            .frame(width: 24, height: 24)
+            .frame(width: 26, height: 26)
             .help("More options")
             .accessibilityLabel("More options")
             .accessibilityHint("Opens menu with additional actions")
         }
         .transition(.opacity.combined(with: .scale(scale: 0.8)))
+    }
+
+    private var actionButtonBackground: some View {
+        Circle()
+            .fill(reduceTransparency
+                ? (colorScheme == .dark ? Color(white: 0.25) : Color(white: 0.9))
+                : (colorScheme == .dark
+                    ? Color.white.opacity(0.08)
+                    : Color.black.opacity(0.05)))
+    }
+
+    private var actionButtonBorder: some View {
+        Circle()
+            .stroke(
+                Color.white.opacity(colorScheme == .dark ? 0.12 : 0.4),
+                lineWidth: 0.5
+            )
     }
 
     @ViewBuilder
@@ -245,11 +293,42 @@ struct UtteranceRowView: View {
     private var rowBackground: some View {
         Group {
             if isSelected {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(selectionColor)
+                ZStack {
+                    // Glass base
+                    RoundedRectangle(cornerRadius: CornerRadius.medium, style: .continuous)
+                        .fill(reduceTransparency
+                            ? selectionColorSolid
+                            : selectionColor)
+
+                    // Subtle border for glass effect
+                    RoundedRectangle(cornerRadius: CornerRadius.medium, style: .continuous)
+                        .stroke(
+                            LinearGradient(
+                                colors: [
+                                    Color.accentColor.opacity(colorScheme == .dark ? 0.4 : 0.3),
+                                    Color.accentColor.opacity(colorScheme == .dark ? 0.15 : 0.1)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                }
             } else if isHovering {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(hoverColor)
+                ZStack {
+                    // Glass hover background
+                    RoundedRectangle(cornerRadius: CornerRadius.medium, style: .continuous)
+                        .fill(reduceTransparency
+                            ? hoverColorSolid
+                            : hoverColor)
+
+                    // Subtle shimmer border on hover
+                    RoundedRectangle(cornerRadius: CornerRadius.medium, style: .continuous)
+                        .stroke(
+                            Color.white.opacity(colorScheme == .dark ? 0.1 : 0.25),
+                            lineWidth: 0.5
+                        )
+                }
             } else {
                 Color.clear
             }
@@ -259,21 +338,43 @@ struct UtteranceRowView: View {
     @ViewBuilder
     private var focusOverlay: some View {
         if isFocused {
-            RoundedRectangle(cornerRadius: 8)
-                .strokeBorder(Color.accentColor, lineWidth: 2)
+            RoundedRectangle(cornerRadius: CornerRadius.medium, style: .continuous)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [
+                            Color.accentColor,
+                            Color.accentColor.opacity(0.7)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 2
+                )
         }
     }
 
     // MARK: - Colors
 
     private var selectionColor: Color {
-        Color.accentColor.opacity(colorScheme == .dark ? 0.2 : 0.1)
+        Color.accentColor.opacity(colorScheme == .dark ? 0.15 : 0.08)
+    }
+
+    private var selectionColorSolid: Color {
+        colorScheme == .dark
+            ? Color.accentColor.opacity(0.25)
+            : Color.accentColor.opacity(0.15)
     }
 
     private var hoverColor: Color {
         colorScheme == .dark
-            ? Color.white.opacity(0.05)
+            ? Color.white.opacity(0.06)
             : Color.black.opacity(0.03)
+    }
+
+    private var hoverColorSolid: Color {
+        colorScheme == .dark
+            ? Color(white: 0.22)
+            : Color(white: 0.94)
     }
 
     // MARK: - Actions
@@ -296,6 +397,54 @@ struct UtteranceRowView: View {
         let text = "[\(utterance.formattedTimestamp)] \(utterance.speaker.displayName): \(utterance.text)"
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(text, forType: .string)
+    }
+}
+
+// MARK: - Action Button
+
+/// Reusable action button with glass styling for utterance row actions
+private struct ActionButton: View {
+    let icon: String
+    let help: String
+    let accessibilityLabel: String
+    let action: () -> Void
+
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: icon)
+                .font(.system(size: 12))
+                .foregroundColor(isHovered ? .primary : .secondary)
+                .frame(width: 26, height: 26)
+                .background(buttonBackground)
+                .overlay(buttonBorder)
+        }
+        .buttonStyle(.plain)
+        .onHover { isHovered = $0 }
+        .help(help)
+        .accessibilityLabel(accessibilityLabel)
+    }
+
+    private var buttonBackground: some View {
+        Circle()
+            .fill(reduceTransparency
+                ? (colorScheme == .dark ? Color(white: 0.25) : Color(white: 0.9))
+                : (isHovered
+                    ? (colorScheme == .dark ? Color.white.opacity(0.12) : Color.black.opacity(0.08))
+                    : (colorScheme == .dark ? Color.white.opacity(0.08) : Color.black.opacity(0.05))))
+    }
+
+    private var buttonBorder: some View {
+        Circle()
+            .stroke(
+                Color.white.opacity(isHovered
+                    ? (colorScheme == .dark ? 0.2 : 0.5)
+                    : (colorScheme == .dark ? 0.12 : 0.4)),
+                lineWidth: 0.5
+            )
     }
 }
 

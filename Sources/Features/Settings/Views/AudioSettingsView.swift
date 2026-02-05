@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Audio settings view
 /// Provides options for audio device management, audio setup, and troubleshooting
+/// Enhanced with Liquid Glass UI styling
 struct AudioSettingsView: View {
     @EnvironmentObject private var settings: AppSettings
     @State private var currentAudioDevice: String = "System Default"
@@ -9,46 +10,43 @@ struct AudioSettingsView: View {
     @State private var isTestingAudio: Bool = false
     @State private var audioTestResult: AudioTestResult?
     @State private var showAudioTestSheet: Bool = false
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Audio Output Device")
-                        .font(.headline)
+            VStack(alignment: .leading, spacing: Spacing.xl) {
+                // Audio Output Section
+                SettingsSection(title: "Audio Output Device") {
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: Spacing.xs) {
+                                Text(currentAudioDevice)
+                                    .font(.body)
+                                    .fontWeight(.medium)
 
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(currentAudioDevice)
-                                .font(.body)
-
-                            Text("Captures audio from video calls")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                                Text("Captures audio from video calls")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                                .font(.title3)
                         }
-                        Spacer()
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.green)
-                    }
-                    .padding(12)
-                    .background(Color(.controlBackgroundColor))
-                    .cornerRadius(6)
 
-                    Text("This is the multi-output device currently capturing system audio")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        Text("This is the multi-output device currently capturing system audio")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                 }
 
-                Divider()
-
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Audio Input Device")
-                        .font(.headline)
-
+                // Audio Input Section
+                SettingsSection(title: "Audio Input Device") {
                     HStack {
-                        VStack(alignment: .leading, spacing: 4) {
+                        VStack(alignment: .leading, spacing: Spacing.xs) {
                             Text(audioInputDevice)
                                 .font(.body)
+                                .fontWeight(.medium)
 
                             Text("Captures your microphone input")
                                 .font(.caption)
@@ -57,107 +55,80 @@ struct AudioSettingsView: View {
                         Spacer()
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundColor(.green)
-                    }
-                    .padding(12)
-                    .background(Color(.controlBackgroundColor))
-                    .cornerRadius(6)
-                }
-
-                Divider()
-
-                VStack(alignment: .leading, spacing: 12) {
-                    Button(action: { showAudioTestSheet = true }) {
-                        HStack {
-                            Image(systemName: "speaker.wave.2")
-                            Text("Test Audio Levels")
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.bordered)
-                    .help("Run a quick audio level test to verify both input sources")
-
-                    if let result = audioTestResult {
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Image(systemName: result.isSuccessful ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
-                                    .foregroundColor(result.isSuccessful ? .green : .orange)
-                                Text(result.message)
-                                    .font(.caption)
-                            }
-                        }
-                        .padding(12)
-                        .background(Color(.controlBackgroundColor))
-                        .cornerRadius(6)
+                            .font(.title3)
                     }
                 }
 
-                Divider()
-
-                VStack(alignment: .leading, spacing: 12) {
-                    Button(action: runAudioSetup) {
-                        HStack {
-                            Image(systemName: "gearshape")
-                            Text("Re-run Audio Setup Wizard")
+                // Audio Test Section
+                SettingsSection(title: "Audio Test") {
+                    VStack(alignment: .leading, spacing: Spacing.md) {
+                        Button(action: { showAudioTestSheet = true }) {
+                            HStack {
+                                Image(systemName: "speaker.wave.2")
+                                Text("Test Audio Levels")
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, Spacing.sm)
                         }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.bordered)
-                    .help("Run the audio setup wizard to reconfigure your audio devices")
+                        .glassButton(style: .secondary)
+                        .help("Run a quick audio level test to verify both input sources")
 
-                    Text("Use this if your audio devices have changed or audio capture is not working correctly")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        if let result = audioTestResult {
+                            AudioTestResultBadge(result: result)
+                        }
+                    }
                 }
 
-                Divider()
-
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Troubleshooting")
-                        .font(.headline)
-
-                    VStack(alignment: .leading, spacing: 12) {
-                        Link(destination: URL(string: "https://support.hcdinterviewcoach.com/audio-setup")!) {
+                // Audio Setup Section
+                SettingsSection(title: "Audio Setup") {
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
+                        Button(action: runAudioSetup) {
                             HStack {
-                                Image(systemName: "questionmark.circle")
-                                Text("Audio Setup Guide")
-                                    .foregroundColor(.blue)
-                                Spacer()
-                                Image(systemName: "arrow.up.right")
-                                    .font(.caption)
+                                Image(systemName: "gearshape")
+                                Text("Re-run Audio Setup Wizard")
                             }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, Spacing.sm)
                         }
+                        .glassButton(style: .secondary)
+                        .help("Run the audio setup wizard to reconfigure your audio devices")
 
-                        Divider()
+                        Text("Use this if your audio devices have changed or audio capture is not working correctly")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
 
-                        Link(destination: URL(string: "https://support.hcdinterviewcoach.com/audio-troubleshooting")!) {
-                            HStack {
-                                Image(systemName: "wrench.and.screwdriver")
-                                Text("Audio Troubleshooting")
-                                    .foregroundColor(.blue)
-                                Spacer()
-                                Image(systemName: "arrow.up.right")
-                                    .font(.caption)
-                            }
-                        }
+                // Troubleshooting Section
+                SettingsSection(title: "Troubleshooting") {
+                    VStack(alignment: .leading, spacing: 0) {
+                        SettingsLinkRow(
+                            icon: "questionmark.circle",
+                            title: "Audio Setup Guide",
+                            url: "https://support.hcdinterviewcoach.com/audio-setup"
+                        )
 
-                        Divider()
+                        Divider().opacity(0.3)
 
-                        Link(destination: URL(string: "https://support.hcdinterviewcoach.com/faq")!) {
-                            HStack {
-                                Image(systemName: "books.vertical")
-                                Text("Frequently Asked Questions")
-                                    .foregroundColor(.blue)
-                                Spacer()
-                                Image(systemName: "arrow.up.right")
-                                    .font(.caption)
-                            }
-                        }
+                        SettingsLinkRow(
+                            icon: "wrench.and.screwdriver",
+                            title: "Audio Troubleshooting",
+                            url: "https://support.hcdinterviewcoach.com/audio-troubleshooting"
+                        )
+
+                        Divider().opacity(0.3)
+
+                        SettingsLinkRow(
+                            icon: "books.vertical",
+                            title: "Frequently Asked Questions",
+                            url: "https://support.hcdinterviewcoach.com/faq"
+                        )
                     }
                 }
 
                 Spacer()
             }
-            .padding(24)
+            .padding(Spacing.xl)
         }
         .sheet(isPresented: $showAudioTestSheet) {
             AudioTestView(isPresented: $showAudioTestSheet, testResult: $audioTestResult)
@@ -171,7 +142,36 @@ struct AudioSettingsView: View {
     }
 }
 
+// MARK: - Audio Test Result Badge
+
+struct AudioTestResultBadge: View {
+    let result: AudioTestResult
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        HStack(spacing: Spacing.sm) {
+            Image(systemName: result.isSuccessful ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
+                .foregroundColor(result.isSuccessful ? .green : .orange)
+            Text(result.message)
+                .font(.caption)
+        }
+        .padding(Spacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: CornerRadius.medium)
+                .fill(result.isSuccessful
+                    ? Color.green.opacity(colorScheme == .dark ? 0.15 : 0.1)
+                    : Color.orange.opacity(colorScheme == .dark ? 0.15 : 0.1))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: CornerRadius.medium)
+                .stroke(result.isSuccessful ? Color.green.opacity(0.3) : Color.orange.opacity(0.3), lineWidth: 1)
+        )
+    }
+}
+
 // MARK: - Audio Test Result
+
 struct AudioTestResult {
     let isSuccessful: Bool
     let message: String
@@ -180,6 +180,7 @@ struct AudioTestResult {
 }
 
 // MARK: - Audio Test View
+
 struct AudioTestView: View {
     @Binding var isPresented: Bool
     @Binding var testResult: AudioTestResult?
@@ -188,9 +189,11 @@ struct AudioTestView: View {
     @State private var microphoneLevel: Double = 0.0
     @State private var isRunning: Bool = false
     @State private var audioTestTimer: Timer?
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: Spacing.xl) {
+            // Header
             HStack {
                 Text("Audio Level Test")
                     .font(.headline)
@@ -203,96 +206,71 @@ struct AudioTestView: View {
                 .buttonStyle(PlainButtonStyle())
             }
 
-            VStack(alignment: .leading, spacing: 16) {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Text("System Audio")
-                            .font(.subheadline)
-                        Spacer()
-                        Text(String(format: "%.0f%%", systemAudioLevel * 100))
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
+            // Audio Level Meters
+            VStack(alignment: .leading, spacing: Spacing.lg) {
+                AudioLevelMeter(
+                    label: "System Audio",
+                    level: systemAudioLevel
+                )
 
-                    GeometryReader { geometry in
-                        ZStack(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(Color(.controlBackgroundColor))
-
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(
-                                    systemAudioLevel > 0.8 ? Color.red :
-                                        systemAudioLevel > 0.5 ? Color.yellow :
-                                            Color.green
-                                )
-                                .frame(width: geometry.size.width * systemAudioLevel)
-                        }
-                    }
-                    .frame(height: 8)
-                }
-
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Text("Microphone")
-                            .font(.subheadline)
-                        Spacer()
-                        Text(String(format: "%.0f%%", microphoneLevel * 100))
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-
-                    GeometryReader { geometry in
-                        ZStack(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(Color(.controlBackgroundColor))
-
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(
-                                    microphoneLevel > 0.8 ? Color.red :
-                                        microphoneLevel > 0.5 ? Color.yellow :
-                                            Color.green
-                                )
-                                .frame(width: geometry.size.width * microphoneLevel)
-                        }
-                    }
-                    .frame(height: 8)
-                }
+                AudioLevelMeter(
+                    label: "Microphone",
+                    level: microphoneLevel
+                )
             }
+            .padding(Spacing.lg)
+            .background(
+                RoundedRectangle(cornerRadius: CornerRadius.large)
+                    .fill(colorScheme == .dark
+                        ? Color.white.opacity(0.03)
+                        : Color.black.opacity(0.02))
+            )
 
-            Divider()
+            Divider().opacity(0.5)
 
+            // Status/Instructions
             if isRunning {
-                VStack(alignment: .center, spacing: 12) {
-                    ProgressView()
-                        .scaleEffect(1.2)
+                HStack {
+                    Spacer()
+                    VStack(spacing: Spacing.md) {
+                        ProgressView()
+                            .scaleEffect(1.2)
 
-                    Text("Testing audio levels...")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        Text("Testing audio levels...")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
                 }
-                .frame(maxWidth: .infinity)
-                .padding(20)
+                .padding(.vertical, Spacing.lg)
             } else {
                 Text("Speak into your microphone or play audio from a video call. Both input sources should register above 30%.")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
 
-            HStack {
+            Spacer()
+
+            // Action Buttons
+            HStack(spacing: Spacing.md) {
                 Spacer()
                 Button("Cancel") {
                     isPresented = false
                 }
                 .keyboardShortcut(.cancelAction)
+                .glassButton(style: .secondary)
 
                 Button("Start Test") {
                     startAudioTest()
                 }
                 .keyboardShortcut(.defaultAction)
+                .glassButton(isActive: true, style: .primary)
+                .disabled(isRunning)
             }
         }
-        .padding(24)
-        .frame(width: 400, height: 300)
+        .padding(Spacing.xl)
+        .frame(width: 400, height: 350)
+        .glassSheet()
         .onDisappear {
             audioTestTimer?.invalidate()
             audioTestTimer = nil
@@ -309,7 +287,7 @@ struct AudioTestView: View {
         // Simulate audio testing with animation
         audioTestTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { timer in
             Task { @MainActor in
-                withAnimation {
+                withAnimation(.easeInOut(duration: 0.3)) {
                     self.systemAudioLevel = Double.random(in: 0.2 ... 0.8)
                     self.microphoneLevel = Double.random(in: 0.2 ... 0.8)
                 }
@@ -336,7 +314,63 @@ struct AudioTestView: View {
     }
 }
 
+// MARK: - Audio Level Meter
+
+struct AudioLevelMeter: View {
+    let label: String
+    let level: Double
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var levelColor: Color {
+        if level > 0.8 {
+            return .red
+        } else if level > 0.5 {
+            return .yellow
+        } else {
+            return .green
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            HStack {
+                Text(label)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                Spacer()
+                Text(String(format: "%.0f%%", level * 100))
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundColor(.secondary)
+            }
+
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    // Background track
+                    RoundedRectangle(cornerRadius: CornerRadius.small)
+                        .fill(colorScheme == .dark
+                            ? Color.white.opacity(0.1)
+                            : Color.black.opacity(0.08))
+
+                    // Level indicator
+                    RoundedRectangle(cornerRadius: CornerRadius.small)
+                        .fill(
+                            LinearGradient(
+                                colors: [levelColor.opacity(0.8), levelColor],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(width: geometry.size.width * level)
+                        .animation(.easeInOut(duration: 0.3), value: level)
+                }
+            }
+            .frame(height: 10)
+        }
+    }
+}
+
 #Preview {
     AudioSettingsView()
         .environmentObject(AppSettings())
+        .frame(width: 500, height: 600)
 }

@@ -20,7 +20,7 @@ struct TopicCoverageChart: View {
     @State private var selectedTopic: TopicStatus?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             // Header
             HStack {
                 Image(systemName: "list.bullet.clipboard.fill")
@@ -28,17 +28,17 @@ struct TopicCoverageChart: View {
                     .foregroundColor(.purple)
 
                 Text("Topic Coverage")
-                    .font(.headline)
+                    .font(Typography.heading3)
 
                 Spacer()
 
                 // Legend
-                HStack(spacing: 12) {
+                HStack(spacing: Spacing.md) {
                     LegendItem(status: .fullyCovered, label: "Covered")
                     LegendItem(status: .partialCoverage, label: "Partial")
                     LegendItem(status: .notCovered, label: "Not Covered")
                 }
-                .font(.caption)
+                .font(Typography.caption)
             }
             .accessibilityElement(children: .combine)
             .accessibilityAddTraits(.isHeader)
@@ -46,7 +46,7 @@ struct TopicCoverageChart: View {
             if topicStatuses.isEmpty {
                 emptyStateView
             } else {
-                VStack(spacing: 16) {
+                VStack(spacing: Spacing.lg) {
                     // Summary bar chart
                     TopicSummaryBar(
                         statuses: topicStatuses,
@@ -58,9 +58,8 @@ struct TopicCoverageChart: View {
                 }
             }
         }
-        .padding(16)
-        .background(Color(.controlBackgroundColor))
-        .cornerRadius(10)
+        .padding(Spacing.lg)
+        .glassCard(accentColor: .purple)
         .onAppear {
             if reduceMotion {
                 animateChart = true
@@ -75,28 +74,28 @@ struct TopicCoverageChart: View {
     // MARK: - Empty State
 
     private var emptyStateView: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: Spacing.sm) {
             Image(systemName: "doc.text.magnifyingglass")
                 .font(.largeTitle)
                 .foregroundColor(.secondary)
 
             Text("No Topics Defined")
-                .font(.subheadline)
+                .font(Typography.body)
                 .foregroundColor(.secondary)
 
             Text("This session did not have predefined topics to track.")
-                .font(.caption)
+                .font(Typography.caption)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 24)
+        .padding(.vertical, Spacing.xl)
     }
 
     // MARK: - Topic List
 
     private var topicListView: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: Spacing.sm) {
             ForEach(topicStatuses.sorted(by: { $0.topicName < $1.topicName }), id: \.id) { topic in
                 TopicCoverageRow(
                     topic: topic,
@@ -237,46 +236,47 @@ struct TopicCoverageRow: View {
 
     var body: some View {
         Button(action: onTap) {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 HStack {
                     // Status icon
                     Image(systemName: topic.status.icon)
                         .foregroundColor(colorForStatus(topic.status))
-                        .font(.body)
+                        .font(Typography.body)
 
                     // Topic name
                     Text(topic.topicName)
-                        .font(.subheadline)
+                        .font(Typography.body)
                         .foregroundColor(.primary)
 
                     Spacer()
 
                     // Status badge
                     Text(topic.status.displayName)
-                        .font(.caption)
+                        .font(Typography.caption)
                         .foregroundColor(colorForStatus(topic.status))
-                        .padding(.horizontal, 8)
+                        .padding(.horizontal, Spacing.sm)
                         .padding(.vertical, 2)
                         .background(colorForStatus(topic.status).opacity(0.15))
-                        .cornerRadius(4)
+                        .cornerRadius(CornerRadius.small)
                 }
 
                 // Notes (if selected and available)
                 if isSelected, let notes = topic.notes, !notes.isEmpty {
                     Text(notes)
-                        .font(.caption)
+                        .font(Typography.caption)
                         .foregroundColor(.secondary)
-                        .padding(.leading, 24)
-                        .padding(.top, 4)
+                        .padding(.leading, Spacing.xl)
+                        .padding(.top, Spacing.xs)
                 }
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(isSelected ? Color.accentColor.opacity(0.1) : Color.clear)
-            .cornerRadius(6)
-            .overlay(
-                RoundedRectangle(cornerRadius: 6)
-                    .stroke(isSelected ? Color.accentColor.opacity(0.3) : Color.clear, lineWidth: 1)
+            .padding(.horizontal, Spacing.md)
+            .padding(.vertical, Spacing.md)
+            .liquidGlass(
+                material: isSelected ? .thin : .ultraThin,
+                cornerRadius: CornerRadius.medium,
+                borderStyle: isSelected ? .accent(.accentColor) : .subtle,
+                enableHover: true,
+                enablePress: true
             )
         }
         .buttonStyle(.plain)
@@ -374,7 +374,7 @@ struct RadialTopicChart: View {
     }
 
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: Spacing.md) {
             ZStack {
                 // Background circle
                 Circle()
@@ -395,46 +395,47 @@ struct RadialTopicChart: View {
                 // Center text
                 VStack(spacing: 2) {
                     Text("\(Int(coveragePercentage * 100))%")
-                        .font(.title2)
-                        .fontWeight(.bold)
+                        .font(Typography.heading2)
 
                     Text("Covered")
-                        .font(.caption)
+                        .font(Typography.caption)
                         .foregroundColor(.secondary)
                 }
             }
             .frame(width: 100, height: 100)
 
             // Counts
-            HStack(spacing: 16) {
+            HStack(spacing: Spacing.lg) {
                 VStack {
                     Text("\(topicStatuses.filter { $0.isFullyCovered }.count)")
-                        .font(.headline)
+                        .font(Typography.heading3)
                         .foregroundColor(.green)
                     Text("Full")
-                        .font(.caption)
+                        .font(Typography.caption)
                         .foregroundColor(.secondary)
                 }
 
                 VStack {
                     Text("\(topicStatuses.filter { $0.status == .partialCoverage }.count)")
-                        .font(.headline)
+                        .font(Typography.heading3)
                         .foregroundColor(.orange)
                     Text("Partial")
-                        .font(.caption)
+                        .font(Typography.caption)
                         .foregroundColor(.secondary)
                 }
 
                 VStack {
                     Text("\(topicStatuses.filter { !$0.isCovered && !$0.isSkipped }.count)")
-                        .font(.headline)
+                        .font(Typography.heading3)
                         .foregroundColor(.gray)
                     Text("Pending")
-                        .font(.caption)
+                        .font(Typography.caption)
                         .foregroundColor(.secondary)
                 }
             }
         }
+        .padding(Spacing.lg)
+        .glassCard()
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Topic coverage \(Int(coveragePercentage * 100)) percent")
         .onAppear {
@@ -463,19 +464,16 @@ struct RadialTopicChart: View {
     ]
 
     ScrollView {
-        VStack(spacing: 20) {
+        VStack(spacing: Spacing.xl) {
             TopicCoverageChart(topicStatuses: topics)
 
             HStack {
                 RadialTopicChart(topicStatuses: topics)
-                    .padding()
-                    .background(Color(.controlBackgroundColor))
-                    .cornerRadius(10)
 
                 Spacer()
             }
         }
-        .padding()
+        .padding(Spacing.lg)
     }
     .frame(width: 500, height: 600)
 }

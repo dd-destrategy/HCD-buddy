@@ -356,7 +356,11 @@ final class TranscriptViewModel: ObservableObject {
         )
         utterance.session = session
 
-        dataManager.mainContext.insert(utterance)
+        guard let context = dataManager.mainContext else {
+            errorMessage = "Database unavailable - cannot save utterance"
+            return
+        }
+        context.insert(utterance)
 
         do {
             try dataManager.save()
@@ -366,11 +370,16 @@ final class TranscriptViewModel: ObservableObject {
     }
 
     private func updateUtteranceInDatabase(id: UUID, speaker: Speaker) {
+        guard let context = dataManager.mainContext else {
+            errorMessage = "Database unavailable - cannot update speaker"
+            return
+        }
+
         let predicate = #Predicate<Utterance> { $0.id == id }
         let descriptor = FetchDescriptor<Utterance>(predicate: predicate)
 
         do {
-            let results = try dataManager.mainContext.fetch(descriptor)
+            let results = try context.fetch(descriptor)
             if let utterance = results.first {
                 utterance.speaker = speaker
                 try dataManager.save()
