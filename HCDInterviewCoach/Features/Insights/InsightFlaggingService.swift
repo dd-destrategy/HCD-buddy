@@ -454,8 +454,7 @@ class InsightFlaggingService: ObservableObject {
             }
         }
 
-        if !keywords.isEmpty {
-            let keyword = keywords.first!
+        if let keyword = keywords.first {
             switch keyword {
             case "pain point", "frustrating", "difficult", "problem":
                 return "Pain Point"
