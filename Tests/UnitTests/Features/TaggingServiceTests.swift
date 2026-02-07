@@ -379,7 +379,7 @@ final class TaggingServiceTests: XCTestCase {
         taggingService.assignTag(tag.id, to: otherUtteranceId, sessionId: sessionId)
 
         // When: Getting assignments for the target utterance
-        let result = taggingService.getAssignments(for: targetUtteranceId)
+        let result = taggingService.getAssignments(forUtterance: targetUtteranceId)
 
         // Then: Should return only assignments for that utterance
         XCTAssertEqual(result.count, 2)
@@ -399,7 +399,7 @@ final class TaggingServiceTests: XCTestCase {
         taggingService.assignTag(otherTag.id, to: UUID(), sessionId: sessionId)
 
         // When: Getting assignments for the target tag
-        let result = taggingService.getAssignments(for: targetTag.id)
+        let result = taggingService.getAssignments(forTag: targetTag.id)
 
         // Then: Should return only assignments for that tag
         XCTAssertEqual(result.count, 2)
@@ -419,7 +419,7 @@ final class TaggingServiceTests: XCTestCase {
         taggingService.assignTag(tag.id, to: UUID(), sessionId: otherSessionId)
 
         // When: Getting assignments for the target session
-        let result = taggingService.getAssignments(for: targetSessionId)
+        let result = taggingService.getAssignments(forSession: targetSessionId)
 
         // Then: Should return only assignments in that session
         XCTAssertEqual(result.count, 2)

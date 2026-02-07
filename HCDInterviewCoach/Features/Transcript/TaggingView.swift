@@ -225,7 +225,7 @@ struct TaggingView: View {
     // MARK: - Filtered Utterances List
 
     private func filteredUtterancesList(tagId: UUID) -> some View {
-        let tagAssignments = taggingService.getAssignments(for: tagId)
+        let tagAssignments = taggingService.getAssignments(forTag: tagId)
             .filter { $0.sessionId == sessionId }
         let taggedUtteranceIds = Set(tagAssignments.map { $0.utteranceId })
         let filteredUtterances = utterances.filter { taggedUtteranceIds.contains($0.id) }
@@ -262,7 +262,7 @@ struct TaggingView: View {
                 .foregroundColor(.secondary)
                 .accessibilityAddTraits(.isHeader)
 
-            let sessionAssignments = taggingService.getAssignments(for: sessionId)
+            let sessionAssignments = taggingService.getAssignments(forSession: sessionId)
 
             if sessionAssignments.isEmpty {
                 Text("No tags applied to this session yet.")

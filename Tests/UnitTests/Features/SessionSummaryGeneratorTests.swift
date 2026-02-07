@@ -501,7 +501,7 @@ final class SessionSummaryGeneratorTests: XCTestCase {
 
     func testMarkdownExport_containsQualityScore() {
         // Given: A summary with a quality score
-        let summary = SessionSummary(sessionQualityScore: 82.5)
+        let summary = SessionSummary(sessionQualityScore: 82.6)
 
         // When: Export as markdown
         let markdown = generator.exportSummaryAsMarkdown(summary)

@@ -352,7 +352,7 @@ final class StudyManagerTests: XCTestCase {
         let session1 = Session(
             participantName: "User A",
             projectName: "Project",
-            sessionMode: .liveInterview,
+            sessionMode: .full,
             totalDurationSeconds: 1800 // 30 min
         )
         session1.utterances = [
@@ -366,7 +366,7 @@ final class StudyManagerTests: XCTestCase {
         let session2 = Session(
             participantName: "User B",
             projectName: "Project",
-            sessionMode: .liveInterview,
+            sessionMode: .full,
             totalDurationSeconds: 2700 // 45 min
         )
         session2.utterances = [
@@ -399,7 +399,7 @@ final class StudyManagerTests: XCTestCase {
         let session = Session(
             participantName: "User",
             projectName: "Project",
-            sessionMode: .liveInterview,
+            sessionMode: .full,
             totalDurationSeconds: 1800
         )
         session.insights = [
@@ -442,7 +442,7 @@ final class StudyManagerTests: XCTestCase {
         let session1 = Session(
             participantName: "User A",
             projectName: "Project",
-            sessionMode: .liveInterview,
+            sessionMode: .full,
             startedAt: laterDate,
             totalDurationSeconds: 1800
         )
@@ -457,7 +457,7 @@ final class StudyManagerTests: XCTestCase {
         let session2 = Session(
             participantName: "User B",
             projectName: "Project",
-            sessionMode: .liveInterview,
+            sessionMode: .full,
             startedAt: earlierDate,
             totalDurationSeconds: 900
         )
@@ -494,7 +494,7 @@ final class StudyManagerTests: XCTestCase {
         let session = Session(
             participantName: "User",
             projectName: "Project",
-            sessionMode: .liveInterview,
+            sessionMode: .full,
             totalDurationSeconds: 900
         )
         let analytics = CrossSessionAnalytics()
@@ -514,7 +514,7 @@ final class StudyManagerTests: XCTestCase {
         let session1 = Session(
             participantName: "User A",
             projectName: "Project",
-            sessionMode: .liveInterview,
+            sessionMode: .full,
             totalDurationSeconds: 1800
         )
         session1.topicStatuses = [
@@ -525,7 +525,7 @@ final class StudyManagerTests: XCTestCase {
         let session2 = Session(
             participantName: "User B",
             projectName: "Project",
-            sessionMode: .liveInterview,
+            sessionMode: .full,
             totalDurationSeconds: 1800
         )
         session2.topicStatuses = [
@@ -594,7 +594,7 @@ final class StudyManagerTests: XCTestCase {
         let session = Session(
             participantName: "User",
             projectName: "Project",
-            sessionMode: .liveInterview,
+            sessionMode: .full,
             totalDurationSeconds: 5400 // 90 min
         )
         let analytics = CrossSessionAnalytics()
@@ -609,7 +609,7 @@ final class StudyManagerTests: XCTestCase {
         let session = Session(
             participantName: "User",
             projectName: "Project",
-            sessionMode: .liveInterview,
+            sessionMode: .full,
             totalDurationSeconds: 2700 // 45 min
         )
         let analytics = CrossSessionAnalytics()

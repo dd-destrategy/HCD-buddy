@@ -15,7 +15,8 @@ final class FeatureIntegrationTests: XCTestCase {
     // MARK: - Feature 1 + Feature 4: Talk-Time with Focus Modes
 
     func testTalkTimeVisibilityFollowsFocusMode() {
-        let focusManager = FocusModeManager()
+        let testDefaults = UserDefaults(suiteName: "com.hcd.integrationtest.\(UUID().uuidString)")!
+        let focusManager = FocusModeManager(defaults: testDefaults)
         let talkTimeAnalyzer = TalkTimeAnalyzer()
 
         // Analysis mode: talk-time should be visible
@@ -142,7 +143,7 @@ final class FeatureIntegrationTests: XCTestCase {
         XCTAssertEqual(taggingService.assignments.count, 1)
 
         // Query back
-        let assignments = taggingService.getAssignments(for: utteranceId)
+        let assignments = taggingService.getAssignments(forUtterance: utteranceId)
         XCTAssertEqual(assignments.count, 1)
         XCTAssertEqual(assignments.first?.note, "Important workaround")
 
@@ -264,7 +265,8 @@ final class FeatureIntegrationTests: XCTestCase {
     // MARK: - Feature 4: Focus Mode Persistence
 
     func testFocusModeDefaultIsAnalysis() {
-        let manager = FocusModeManager()
+        let testDefaults = UserDefaults(suiteName: "com.hcd.integrationtest.\(UUID().uuidString)")!
+        let manager = FocusModeManager(defaults: testDefaults)
         XCTAssertEqual(manager.currentMode, .analysis)
         XCTAssertTrue(manager.panelVisibility.showTranscript)
         XCTAssertTrue(manager.panelVisibility.showTopics)
@@ -274,7 +276,8 @@ final class FeatureIntegrationTests: XCTestCase {
     }
 
     func testFocusModeInterviewHidesNonTranscript() {
-        let manager = FocusModeManager()
+        let testDefaults = UserDefaults(suiteName: "com.hcd.integrationtest.\(UUID().uuidString)")!
+        let manager = FocusModeManager(defaults: testDefaults)
         manager.setMode(.interview)
 
         XCTAssertTrue(manager.panelVisibility.showTranscript)

@@ -224,21 +224,21 @@ final class TaggingService: ObservableObject {
     /// Returns all assignments for a specific utterance.
     /// - Parameter utteranceId: The UUID of the utterance
     /// - Returns: An array of assignments for the utterance
-    func getAssignments(for utteranceId: UUID) -> [UtteranceTagAssignment] {
+    func getAssignments(forUtterance utteranceId: UUID) -> [UtteranceTagAssignment] {
         assignments.filter { $0.utteranceId == utteranceId }
     }
 
     /// Returns all assignments using a specific tag.
     /// - Parameter tagId: The UUID of the tag
     /// - Returns: An array of assignments using the tag
-    func getAssignments(for tagId: UUID) -> [UtteranceTagAssignment] {
+    func getAssignments(forTag tagId: UUID) -> [UtteranceTagAssignment] {
         assignments.filter { $0.tagId == tagId }
     }
 
     /// Returns all assignments within a specific session.
     /// - Parameter sessionId: The UUID of the session
     /// - Returns: An array of assignments in the session
-    func getAssignments(for sessionId: UUID) -> [UtteranceTagAssignment] {
+    func getAssignments(forSession sessionId: UUID) -> [UtteranceTagAssignment] {
         assignments.filter { $0.sessionId == sessionId }
     }
 
@@ -261,7 +261,7 @@ final class TaggingService: ObservableObject {
     ///   - utterances: The full list of utterances in the session
     /// - Returns: A Markdown-formatted string
     func exportTaggedSegments(sessionId: UUID, utterances: [Utterance]) -> String {
-        let sessionAssignments = getAssignments(for: sessionId)
+        let sessionAssignments = getAssignments(forSession: sessionId)
         guard !sessionAssignments.isEmpty else {
             return "# Tagged Segments\n\nNo tagged segments found for this session.\n"
         }
