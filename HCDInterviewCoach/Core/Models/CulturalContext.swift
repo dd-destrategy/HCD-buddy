@@ -218,10 +218,17 @@ final class CulturalContextManager: ObservableObject {
 
     /// Creates a manager using the default Application Support storage location.
     init() {
-        let appSupport = FileManager.default.urls(
+        let appSupport: URL
+        if let appSupportDir = FileManager.default.urls(
             for: .applicationSupportDirectory,
             in: .userDomainMask
-        ).first!.appendingPathComponent("HCDInterviewCoach")
+        ).first {
+            appSupport = appSupportDir.appendingPathComponent("HCDInterviewCoach")
+        } else {
+            AppLogger.shared.warning("Application Support directory unavailable, using temporary directory for cultural context")
+            appSupport = FileManager.default.temporaryDirectory
+                .appendingPathComponent("HCDInterviewCoach")
+        }
 
         // Ensure directory exists
         try? FileManager.default.createDirectory(

@@ -188,7 +188,7 @@ final class SentimentAnalyzer: ObservableObject {
         "crash": -0.7, "lag": -0.5, "laggy": -0.6, "awkward": -0.5,
         "unintuitive": -0.6, "cluttered": -0.5, "messy": -0.5, "dislike": -0.6,
         "horrible": -0.85, "dreadful": -0.8, "miserable": -0.7, "painful": -0.6,
-        "annoying": -0.7, "tiresome": -0.5, "boring": -0.4, "ugly": -0.6
+        "tiresome": -0.5, "boring": -0.4
     ]
 
     // MARK: - Intensifiers
