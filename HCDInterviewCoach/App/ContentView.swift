@@ -5,6 +5,8 @@ struct ContentView: View {
     @State private var activeSessionConfig: SessionConfiguration?
     @State private var showAudioSetupWizard = false
     @State private var isAudioSetupIncomplete = AudioSetupLaunchHelper.isAudioSetupSkipped
+    @State private var showDemoMode = false
+    @State private var showAnalyticsDashboard = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -24,8 +26,28 @@ struct ContentView: View {
             }
 
             Group {
-                if let sessionConfig = activeSessionConfig {
-                    // Active session view - placeholder for now
+                if showDemoMode {
+                    // Demo Mode (Feature 8)
+                    DemoModeView(
+                        onExit: {
+                            withAnimation {
+                                showDemoMode = false
+                            }
+                        }
+                    )
+                } else if showAnalyticsDashboard {
+                    // Cross-Session Analytics (Feature 3)
+                    CrossSessionAnalyticsView(
+                        studyManager: StudyManager(),
+                        analytics: CrossSessionAnalytics(),
+                        onDismiss: {
+                            withAnimation {
+                                showAnalyticsDashboard = false
+                            }
+                        }
+                    )
+                } else if let sessionConfig = activeSessionConfig {
+                    // Active session view with integrated features
                     ActiveSessionPlaceholderView(
                         sessionConfig: sessionConfig,
                         onEndSession: {
@@ -33,13 +55,48 @@ struct ContentView: View {
                         }
                     )
                 } else {
-                    // Session setup view
-                    SessionSetupView(
-                        templateManager: serviceContainer.templateManager,
-                        onStartSession: { template, mode in
-                            startSession(template: template, mode: mode)
+                    // Session setup view with demo + analytics entry points
+                    VStack(spacing: 0) {
+                        SessionSetupView(
+                            templateManager: serviceContainer.templateManager,
+                            onStartSession: { template, mode in
+                                startSession(template: template, mode: mode)
+                            }
+                        )
+
+                        // Quick actions bar
+                        HStack(spacing: Spacing.md) {
+                            Button(action: {
+                                withAnimation { showDemoMode = true }
+                            }) {
+                                HStack(spacing: Spacing.xs) {
+                                    Image(systemName: "play.circle")
+                                    Text("Try Demo")
+                                }
+                                .font(Typography.caption)
+                            }
+                            .buttonStyle(.bordered)
+                            .accessibilityLabel("Try demo mode")
+                            .accessibilityHint("Explore the app with sample interview data")
+
+                            Button(action: {
+                                withAnimation { showAnalyticsDashboard = true }
+                            }) {
+                                HStack(spacing: Spacing.xs) {
+                                    Image(systemName: "chart.bar")
+                                    Text("Analytics")
+                                }
+                                .font(Typography.caption)
+                            }
+                            .buttonStyle(.bordered)
+                            .accessibilityLabel("View cross-session analytics")
+                            .accessibilityHint("Opens the analytics dashboard for research studies")
+
+                            Spacer()
                         }
-                    )
+                        .padding(.horizontal, Spacing.lg)
+                        .padding(.vertical, Spacing.sm)
+                    }
                 }
             }
         }
@@ -87,102 +144,141 @@ struct SessionConfiguration: Identifiable {
 struct ActiveSessionPlaceholderView: View {
     let sessionConfig: SessionConfiguration
     let onEndSession: () -> Void
-    
+
     @State private var elapsedTime: TimeInterval = 0
     @State private var timer: Timer?
-    
+    @StateObject private var focusModeManager = FocusModeManager()
+    @StateObject private var talkTimeAnalyzer = TalkTimeAnalyzer()
+    @StateObject private var questionTypeAnalyzer = QuestionTypeAnalyzer()
+    @StateObject private var followUpSuggester = FollowUpSuggester()
+
     var body: some View {
-        VStack(spacing: 24) {
-            // Header
-            VStack(spacing: 8) {
-                Text("Active Session")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                
-                Text(sessionConfig.template.name)
-                    .font(.title2)
-                    .foregroundColor(.secondary)
-            }
-            
-            Spacer()
-            
-            // Session info
-            VStack(spacing: 16) {
-                HStack(spacing: 40) {
-                    VStack {
-                        Text("Mode")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Text(sessionConfig.mode.displayName)
-                            .font(.headline)
-                    }
-                    
-                    VStack {
-                        Text("Duration")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Text("\(sessionConfig.template.duration) min")
-                            .font(.headline)
-                    }
-                    
-                    VStack {
-                        Text("Elapsed")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Text(formatElapsedTime(elapsedTime))
-                            .font(.headline)
-                            .monospacedDigit()
-                    }
+        VStack(spacing: 0) {
+            // Toolbar: Focus Mode + Talk-Time + Session Controls
+            HStack(spacing: Spacing.md) {
+                // Focus Mode Picker (Feature 4)
+                FocusModePickerView(
+                    manager: focusModeManager,
+                    isCompact: true
+                )
+
+                Spacer()
+
+                // Talk-Time Indicator (Feature 1)
+                if focusModeManager.panelVisibility.showTalkTime {
+                    TalkTimeIndicatorView(
+                        analyzer: talkTimeAnalyzer,
+                        isExpanded: false
+                    )
+                    .frame(width: 200)
                 }
-                .padding(24)
-                .background(Color(.controlBackgroundColor))
-                .cornerRadius(12)
-                
-                // Topics
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Topics to Cover")
-                        .font(.headline)
-                    
-                    VStack(alignment: .leading, spacing: 8) {
-                        ForEach(sessionConfig.template.topics, id: \.self) { topic in
-                            HStack {
-                                Image(systemName: "circle")
-                                    .foregroundColor(.secondary)
-                                Text(topic)
-                            }
+
+                // Session info
+                HStack(spacing: Spacing.md) {
+                    Text(sessionConfig.template.name)
+                        .font(Typography.caption)
+                        .foregroundColor(.secondary)
+
+                    Text(formatElapsedTime(elapsedTime))
+                        .font(Typography.body)
+                        .fontWeight(.medium)
+                        .monospacedDigit()
+
+                    Button(action: {
+                        timer?.invalidate()
+                        onEndSession()
+                    }) {
+                        HStack(spacing: Spacing.xs) {
+                            Image(systemName: "stop.circle.fill")
+                            Text("End")
                         }
+                        .font(Typography.caption)
                     }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.red)
+                    .controlSize(.small)
+                    .accessibilityLabel("End session")
                 }
-                .frame(maxWidth: 500)
-                .padding(20)
-                .background(Color(.controlBackgroundColor))
-                .cornerRadius(12)
             }
-            
-            Spacer()
-            
-            // Controls
-            VStack(spacing: 12) {
-                Text("Session in progress...")
-                    .font(.body)
-                    .foregroundColor(.secondary)
-                
-                Button(action: {
-                    timer?.invalidate()
-                    onEndSession()
-                }) {
-                    HStack {
-                        Image(systemName: "stop.circle.fill")
-                        Text("End Session")
+            .padding(.horizontal, Spacing.lg)
+            .padding(.vertical, Spacing.sm)
+            .background(Color(.controlBackgroundColor))
+
+            // Main content area with conditional panels
+            HStack(spacing: 0) {
+                // Left: Transcript area (always visible in all modes)
+                VStack(spacing: Spacing.md) {
+                    Text("Transcript")
+                        .font(Typography.body)
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, Spacing.md)
+
+                    // Talk-Time expanded (Feature 1)
+                    if focusModeManager.panelVisibility.showTalkTime {
+                        TalkTimeIndicatorView(
+                            analyzer: talkTimeAnalyzer,
+                            isExpanded: true
+                        )
+                        .padding(.horizontal, Spacing.md)
                     }
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 12)
+
+                    // Question Type Analysis (Feature 2) - in coached/analysis modes
+                    if focusModeManager.panelVisibility.showCoaching {
+                        QuestionTypeView(analyzer: questionTypeAnalyzer)
+                            .padding(.horizontal, Spacing.md)
+                    }
+
+                    Spacer()
+
+                    Text("Session in progress \u{2014} transcript will appear here during live sessions")
+                        .font(Typography.caption)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(Spacing.lg)
+
+                    Spacer()
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(.red)
+                .frame(maxWidth: .infinity)
+
+                // Right sidebar: Topics + Insights + Follow-Up Suggestions
+                if focusModeManager.panelVisibility.showTopics || focusModeManager.panelVisibility.showInsights {
+                    Divider()
+
+                    VStack(spacing: Spacing.md) {
+                        // Topics panel
+                        if focusModeManager.panelVisibility.showTopics {
+                            VStack(alignment: .leading, spacing: Spacing.sm) {
+                                Text("Topics")
+                                    .font(Typography.caption)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.secondary)
+
+                                ForEach(sessionConfig.template.topics, id: \.self) { topic in
+                                    HStack(spacing: Spacing.xs) {
+                                        Image(systemName: "circle")
+                                            .font(.system(size: 8))
+                                            .foregroundColor(.secondary)
+                                        Text(topic)
+                                            .font(Typography.caption)
+                                    }
+                                }
+                            }
+                            .padding(Spacing.md)
+                        }
+
+                        // Follow-Up Suggestions (Feature 7) - in coaching modes
+                        if focusModeManager.panelVisibility.showCoaching {
+                            FollowUpSuggestionView(suggester: followUpSuggester)
+                                .padding(.horizontal, Spacing.sm)
+                        }
+
+                        Spacer()
+                    }
+                    .frame(width: 260)
+                }
             }
         }
-        .padding(40)
         .onAppear {
             startTimer()
         }
@@ -190,13 +286,13 @@ struct ActiveSessionPlaceholderView: View {
             timer?.invalidate()
         }
     }
-    
+
     private func startTimer() {
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
             elapsedTime += 1
         }
     }
-    
+
     private func formatElapsedTime(_ time: TimeInterval) -> String {
         let minutes = Int(time) / 60
         let seconds = Int(time) % 60
@@ -273,11 +369,16 @@ struct AudioSetupIncompleteBanner: View {
         mode: .full,
         startedAt: Date()
     )
-    
+
     return ActiveSessionPlaceholderView(
         sessionConfig: config,
         onEndSession: {}
     )
     .frame(minWidth: 800, minHeight: 600)
+}
+
+#Preview("Demo Mode") {
+    DemoModeView(onExit: {})
+        .frame(minWidth: 800, minHeight: 600)
 }
 
