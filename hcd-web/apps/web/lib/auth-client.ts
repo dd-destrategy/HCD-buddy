@@ -1,6 +1,15 @@
 "use client";
 
-import { useState, useEffect, useCallback, createContext, useContext } from "react";
+import { createAuthClient } from "better-auth/react";
+import { organizationClient } from "better-auth/client/plugins";
+import { useState, useEffect, useCallback } from "react";
+
+// ─── Better Auth Client ─────────────────────────────────────────────────────
+
+export const authClient = createAuthClient({
+  baseURL: process.env.NEXT_PUBLIC_APP_URL || "",
+  plugins: [organizationClient()],
+});
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -22,88 +31,37 @@ export interface AuthSession {
   };
 }
 
-interface AuthError {
-  message: string;
-  code?: string;
-}
-
-// ─── API Helpers ─────────────────────────────────────────────────────────────
-
-async function authFetch<T>(
-  endpoint: string,
-  options?: RequestInit
-): Promise<{ data: T | null; error: AuthError | null }> {
-  try {
-    const response = await fetch(`/api/auth${endpoint}`, {
-      headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
-      },
-      credentials: "include",
-      ...options,
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return {
-        data: null,
-        error: {
-          message: data.message || "An error occurred",
-          code: data.code,
-        },
-      };
-    }
-
-    return { data, error: null };
-  } catch (err) {
-    return {
-      data: null,
-      error: {
-        message: err instanceof Error ? err.message : "Network error",
-        code: "NETWORK_ERROR",
-      },
-    };
-  }
-}
-
 // ─── Auth Functions ──────────────────────────────────────────────────────────
+// Thin wrappers around authClient to maintain the same API surface.
 
 export async function signIn(email: string, password: string) {
-  return authFetch<AuthSession>("/sign-in/email", {
-    method: "POST",
-    body: JSON.stringify({ email, password }),
-  });
+  const result = await authClient.signIn.email({ email, password });
+  if (result.error) {
+    return {
+      data: null,
+      error: { message: result.error.message || "Sign in failed", code: result.error.code },
+    };
+  }
+  return { data: result.data as AuthSession | null, error: null };
 }
 
-export async function signUp(
-  name: string,
-  email: string,
-  password: string
-) {
-  return authFetch<AuthSession>("/sign-up/email", {
-    method: "POST",
-    body: JSON.stringify({ name, email, password }),
-  });
-}
-
-export async function signOut() {
-  return authFetch<{ success: boolean }>("/sign-out", {
-    method: "POST",
-  });
+export async function signUp(name: string, email: string, password: string) {
+  const result = await authClient.signUp.email({ name, email, password });
+  if (result.error) {
+    return {
+      data: null,
+      error: { message: result.error.message || "Sign up failed", code: result.error.code },
+    };
+  }
+  return { data: result.data as AuthSession | null, error: null };
 }
 
 export async function signInWithGoogle() {
-  // Redirect to Google OAuth flow
-  window.location.href = "/api/auth/sign-in/social?provider=google";
-}
-
-export async function getCurrentUser(): Promise<User | null> {
-  const { data } = await authFetch<{ user: User }>("/get-session");
-  return data?.user ?? null;
+  await authClient.signIn.social({ provider: "google" });
 }
 
 // ─── useAuth Hook ────────────────────────────────────────────────────────────
+// Uses Better Auth's useSession() under the hood but maintains our API surface.
 
 interface AuthState {
   user: User | null;
@@ -117,45 +75,33 @@ export function useAuth(): AuthState & {
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
 } {
-  const [state, setState] = useState<AuthState>({
-    user: null,
-    isLoading: true,
-    isAuthenticated: false,
-  });
+  const session = authClient.useSession();
 
-  const refresh = useCallback(async () => {
-    setState((prev) => ({ ...prev, isLoading: true }));
-    try {
-      const user = await getCurrentUser();
-      setState({
-        user,
-        isLoading: false,
-        isAuthenticated: !!user,
-      });
-    } catch {
-      setState({
-        user: null,
-        isLoading: false,
-        isAuthenticated: false,
-      });
-    }
-  }, []);
-
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
+  const user = session.data?.user
+    ? {
+        id: session.data.user.id,
+        name: session.data.user.name,
+        email: session.data.user.email,
+        image: session.data.user.image,
+        emailVerified: session.data.user.emailVerified,
+        createdAt: String(session.data.user.createdAt),
+      }
+    : null;
 
   const handleSignOut = useCallback(async () => {
-    await signOut();
-    setState({
-      user: null,
-      isLoading: false,
-      isAuthenticated: false,
-    });
+    await authClient.signOut();
+  }, []);
+
+  const refresh = useCallback(async () => {
+    // Better Auth's useSession auto-refreshes; this is a no-op for compatibility.
+    // Force a re-fetch by calling getSession.
+    await authClient.getSession();
   }, []);
 
   return {
-    ...state,
+    user,
+    isLoading: session.isPending,
+    isAuthenticated: !!session.data?.user,
     signIn,
     signUp,
     signOut: handleSignOut,

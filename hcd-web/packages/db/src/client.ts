@@ -1,6 +1,7 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as users from './schema/users';
+import * as authTables from './schema/auth';
 import * as sessions from './schema/sessions';
 import * as studies from './schema/studies';
 import * as participants from './schema/participants';
@@ -14,6 +15,7 @@ import * as preferences from './schema/preferences';
 
 const schema = {
   ...users,
+  ...authTables,
   ...sessions,
   ...studies,
   ...participants,

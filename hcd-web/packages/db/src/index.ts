@@ -1,4 +1,5 @@
 export * from './schema/users';
+export * from './schema/auth';
 export * from './schema/sessions';
 export * from './schema/studies';
 export * from './schema/participants';
