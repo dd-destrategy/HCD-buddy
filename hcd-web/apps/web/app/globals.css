@@ -1,0 +1,261 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Primary brand */
+    --primary: 222 47% 31%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Backgrounds */
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+
+    /* Cards */
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    /* Secondary */
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+
+    /* Muted */
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    /* Accent */
+    --accent: 210 40% 96%;
+    --accent-foreground: 222 47% 11%;
+
+    /* Destructive */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders */
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 222 47% 31%;
+
+    /* Semantic colors */
+    --success: 142 71% 45%;
+    --warning: 38 92% 50%;
+    --info: 217 91% 60%;
+
+    /* Sentiment colors */
+    --sentiment-positive: 142 71% 45%;
+    --sentiment-negative: 0 84% 60%;
+    --sentiment-neutral: 215 16% 47%;
+    --sentiment-mixed: 38 92% 50%;
+
+    /* Speaker colors */
+    --speaker-interviewer: 217 91% 60%;
+    --speaker-participant: 142 71% 45%;
+
+    /* Coaching */
+    --coaching-prompt: 262 83% 58%;
+    --coaching-background: 262 83% 97%;
+
+    /* Radius */
+    --radius: 0.75rem;
+
+    /* Spacing tokens */
+    --spacing-xxs: 0.125rem;
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 0.75rem;
+    --spacing-lg: 1rem;
+    --spacing-xl: 1.5rem;
+    --spacing-xxl: 2.5rem;
+
+    /* Sidebar */
+    --sidebar-width: 16rem;
+    --sidebar-collapsed-width: 4rem;
+    --header-height: 3.5rem;
+  }
+
+  .dark {
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 15%;
+    --card-foreground: 210 40% 98%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 217 33% 17%;
+    --accent-foreground: 210 40% 98%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+
+    --coaching-background: 262 83% 12%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply antialiased;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Focus styles for accessibility */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+}
+
+@layer components {
+  /* Glass effect utility classes matching LiquidGlass.swift */
+  .glass-ultra-thin {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .glass-thin {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .glass-regular {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .glass-thick {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+  }
+
+  .glass-ultra-thick {
+    background: rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  /* Dark mode glass variants */
+  .dark .glass-ultra-thin {
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  .dark .glass-thin {
+    background: rgba(0, 0, 0, 0.3);
+  }
+
+  .dark .glass-regular {
+    background: rgba(0, 0, 0, 0.35);
+  }
+
+  .dark .glass-thick {
+    background: rgba(0, 0, 0, 0.45);
+  }
+
+  .dark .glass-ultra-thick {
+    background: rgba(0, 0, 0, 0.55);
+  }
+
+  /* Glass panel (sidebar, toolbars) */
+  .glass-panel {
+    @apply backdrop-blur-lg bg-white/5 border border-white/10;
+  }
+
+  .dark .glass-panel {
+    @apply bg-black/20;
+  }
+
+  /* Glass card */
+  .glass-card {
+    @apply backdrop-blur-sm bg-white/15 border border-white/20 rounded-xl;
+  }
+
+  .dark .glass-card {
+    @apply bg-black/30;
+  }
+
+  /* Glass button */
+  .glass-button {
+    @apply backdrop-blur-md bg-white/20 hover:bg-white/30 rounded-lg border border-white/20 transition-colors;
+  }
+
+  .dark .glass-button {
+    @apply bg-black/20 hover:bg-black/30;
+  }
+
+  /* Glass toolbar */
+  .glass-toolbar {
+    @apply backdrop-blur-xl bg-white/30 border-b border-white/20;
+  }
+
+  .dark .glass-toolbar {
+    @apply bg-black/40;
+  }
+
+  /* Glass overlay */
+  .glass-overlay {
+    @apply backdrop-blur-2xl bg-black/40;
+  }
+
+  /* Auth page gradient background */
+  .auth-gradient {
+    background: linear-gradient(
+      135deg,
+      hsl(222 47% 31% / 0.05) 0%,
+      hsl(217 91% 60% / 0.08) 50%,
+      hsl(262 83% 58% / 0.05) 100%
+    );
+  }
+
+  .dark .auth-gradient {
+    background: linear-gradient(
+      135deg,
+      hsl(222 47% 31% / 0.2) 0%,
+      hsl(217 91% 60% / 0.15) 50%,
+      hsl(262 83% 58% / 0.1) 100%
+    );
+  }
+}
+
+@layer utilities {
+  /* Scrollbar styling */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/20 rounded-full;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/40;
+  }
+
+  /* Keyboard shortcut badge */
+  .kbd {
+    @apply inline-flex items-center justify-center rounded border border-border bg-muted px-1.5 py-0.5 text-xs font-mono text-muted-foreground;
+  }
+}

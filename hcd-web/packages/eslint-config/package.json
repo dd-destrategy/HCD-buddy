@@ -1,0 +1,10 @@
+{
+  "name": "@hcd/eslint-config",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./index.js",
+  "dependencies": {
+    "eslint-config-next": "^15.1.0",
+    "eslint-config-prettier": "^9.1.0"
+  }
+}
