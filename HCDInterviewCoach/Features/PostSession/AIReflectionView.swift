@@ -145,6 +145,16 @@ struct AIReflectionView: View {
 
             // Actions
             HStack(spacing: Spacing.sm) {
+                #if os(iOS)
+                ShareLink(item: reflection) {
+                    Label("Share", systemImage: "square.and.arrow.up")
+                        .font(Typography.caption)
+                        .padding(.horizontal, Spacing.md)
+                        .padding(.vertical, Spacing.sm)
+                }
+                .buttonStyle(.plain)
+                .glassButton(style: .secondary)
+                #else
                 Button(action: copyReflection) {
                     Label("Copy", systemImage: "doc.on.doc")
                         .font(Typography.caption)
@@ -153,6 +163,7 @@ struct AIReflectionView: View {
                 }
                 .buttonStyle(.plain)
                 .glassButton(style: .secondary)
+                #endif
 
                 Button(action: { Task { await viewModel.retryReflection() } }) {
                     Label("Regenerate", systemImage: "arrow.clockwise")
@@ -214,8 +225,7 @@ struct AIReflectionView: View {
 
     private func copyReflection() {
         guard let reflection = viewModel.reflectionState.reflection else { return }
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(reflection, forType: .string)
+        ClipboardService.copy(reflection)
     }
 }
 

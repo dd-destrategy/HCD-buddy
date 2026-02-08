@@ -77,8 +77,23 @@ struct UtteranceRowView: View {
         .overlay(focusOverlay)
         .contentShape(Rectangle())
         .onTapGesture { onSelect?() }
+        #if os(macOS)
         .onHover { isHovering = $0 }
+        #endif
         .contextMenu { contextMenuItems }
+        #if os(iOS)
+        .swipeActions(edge: .trailing) {
+            Button { onFlagInsight?() } label: {
+                Label("Flag", systemImage: "star.fill")
+            }
+            .tint(.purple)
+
+            Button { copyText() } label: {
+                Label("Copy", systemImage: "doc.on.doc")
+            }
+            .tint(.blue)
+        }
+        #endif
         .accessibilityElement(children: .combine)
         .accessibilityUtterance(
             speaker: utterance.speaker.displayName,
@@ -225,9 +240,13 @@ struct UtteranceRowView: View {
                     .background(actionButtonBackground)
                     .overlay(actionButtonBorder)
             }
+            #if os(macOS)
             .menuStyle(.borderlessButton)
+            #endif
             .frame(width: 26, height: 26)
+            #if os(macOS)
             .help("More options")
+            #endif
             .accessibilityLabel("More options")
             .accessibilityHint("Opens menu with additional actions")
         }
@@ -389,14 +408,12 @@ struct UtteranceRowView: View {
     }
 
     private func copyText() {
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(utterance.text, forType: .string)
+        ClipboardService.copy(utterance.text)
     }
 
     private func copyWithTimestamp() {
         let text = "[\(utterance.formattedTimestamp)] \(utterance.speaker.displayName): \(utterance.text)"
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(text, forType: .string)
+        ClipboardService.copy(text)
     }
 }
 
@@ -423,8 +440,10 @@ private struct ActionButton: View {
                 .overlay(buttonBorder)
         }
         .buttonStyle(.plain)
+        #if os(macOS)
         .onHover { isHovered = $0 }
         .help(help)
+        #endif
         .accessibilityLabel(accessibilityLabel)
     }
 
@@ -459,7 +478,9 @@ struct ConfidenceIndicator: View {
             Image(systemName: "waveform.badge.exclamationmark")
                 .font(.system(size: 10))
                 .foregroundColor(.orange)
+                #if os(macOS)
                 .help("Low confidence transcription (\(Int(confidence * 100))%)")
+                #endif
                 .accessibilityLabel("Low confidence transcription")
                 .accessibilityValue("\(Int(confidence * 100)) percent")
         }

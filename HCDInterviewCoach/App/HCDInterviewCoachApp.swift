@@ -1,21 +1,35 @@
 import SwiftUI
 import SwiftData
+#if canImport(AppKit)
+import AppKit
+#endif
 
 @main
 struct HCDInterviewCoachApp: App {
     @StateObject private var serviceContainer = ServiceContainer()
+    #if os(macOS)
     @State private var showAudioSetupFromMenu = false
+    #endif
+    @State private var showAboutSheet = false
 
     var body: some Scene {
         WindowGroup {
             contentView
+                #if os(macOS)
                 .audioSetupSheet(
                     isPresented: $showAudioSetupFromMenu,
                     onComplete: {
                         // Setup completed from Settings re-entry
                     }
                 )
+                #endif
+                #if os(iOS)
+                .sheet(isPresented: $showAboutSheet) {
+                    aboutSheetView
+                }
+                #endif
         }
+        #if os(macOS)
         .commands {
             CommandGroup(replacing: .appInfo) {
                 Button("About HCD Interview Coach") {
@@ -32,6 +46,7 @@ struct HCDInterviewCoachApp: App {
                 .keyboardShortcut("a", modifiers: [.command, .shift])
             }
         }
+        #endif
     }
 
     @ViewBuilder
@@ -46,6 +61,7 @@ struct HCDInterviewCoachApp: App {
         }
     }
 
+    #if os(macOS)
     private func showAboutWindow() {
         NSApplication.shared.orderFrontStandardAboutPanel(options: [
             .applicationName: "HCD Interview Coach",
@@ -60,4 +76,43 @@ struct HCDInterviewCoachApp: App {
             )
         ])
     }
+    #endif
+
+    #if os(iOS)
+    private var aboutSheetView: some View {
+        NavigationView {
+            VStack(spacing: 24) {
+                Image(systemName: "waveform.and.mic")
+                    .font(.system(size: 60))
+                    .foregroundColor(.accentColor)
+
+                Text("HCD Interview Coach")
+                    .font(.title)
+                    .fontWeight(.bold)
+
+                Text("Version \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0") (\(Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "1"))")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+
+                Text("A real-time interview coaching tool for HCD researchers.")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
+
+                Spacer()
+            }
+            .padding(.top, 40)
+            .navigationTitle("About")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
+                        showAboutSheet = false
+                    }
+                }
+            }
+        }
+    }
+    #endif
 }

@@ -66,7 +66,9 @@ struct QuoteLibraryView: View {
                 highlightListView
             }
         }
+        #if os(macOS)
         .frame(minWidth: 600, minHeight: 500)
+        #endif
         .background(Color.hcdBackground)
         .alert("Delete Highlight?", isPresented: $showDeleteConfirmation) {
             Button("Cancel", role: .cancel) {
@@ -280,7 +282,7 @@ struct QuoteLibraryView: View {
 
     private func highlightCard(_ highlight: Highlight) -> some View {
         let isExpanded = expandedHighlightId == highlight.id
-        let categoryColor = Color(nsColor: NSColor(hex: highlight.category.colorHex))
+        let categoryColor = PlatformColor.color(hex: highlight.category.colorHex)
 
         return VStack(alignment: .leading, spacing: Spacing.md) {
             // Card header
@@ -404,7 +406,7 @@ struct QuoteLibraryView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: Spacing.sm) {
                         ForEach(HighlightCategory.allCases, id: \.self) { category in
-                            let catColor = Color(nsColor: NSColor(hex: category.colorHex))
+                            let catColor = PlatformColor.color(hex: category.colorHex)
                             Button(action: { editingCategory = category }) {
                                 HStack(spacing: Spacing.xs) {
                                     Image(systemName: category.icon)
@@ -601,8 +603,7 @@ struct QuoteLibraryView: View {
     }
 
     private func copyExportToClipboard() {
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(exportedMarkdown, forType: .string)
+        ClipboardService.copy(exportedMarkdown)
     }
 
     private func clearFilters() {

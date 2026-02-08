@@ -60,6 +60,15 @@ enum GlassMaterial {
         case .chrome: return 0.25
         }
     }
+
+    /// Recommended default for mobile devices (lighter for performance)
+    static var mobileDefault: GlassMaterial {
+        #if os(iOS)
+        return .thin
+        #else
+        return .regular
+        #endif
+    }
 }
 
 // MARK: - Glass Border Styles
@@ -185,6 +194,7 @@ struct LiquidGlassModifier: ViewModifier {
             )
             .scaleEffect(pressScale)
             .animation(reduceMotion ? nil : .spring(response: 0.2, dampingFraction: 0.7), value: isPressed)
+            #if os(macOS)
             .onHover { hovering in
                 if enableHover {
                     withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) {
@@ -192,6 +202,7 @@ struct LiquidGlassModifier: ViewModifier {
                     }
                 }
             }
+            #endif
             .simultaneousGesture(
                 enablePress ? DragGesture(minimumDistance: 0)
                     .onChanged { _ in isPressed = true }
@@ -314,7 +325,13 @@ struct GlassCardModifier: ViewModifier {
                     : .subtle,
                 borderWidth: isSelected ? 1.5 : 1,
                 shadowRadius: isSelected ? 12 : 6,
-                enableHover: true,
+                enableHover: {
+                    #if os(macOS)
+                    return true
+                    #else
+                    return false
+                    #endif
+                }(),
                 enablePress: true
             ))
     }
@@ -426,7 +443,9 @@ struct GlassButtonModifier: ViewModifier {
             .opacity(isEnabled ? 1.0 : 0.5)
             .animation(.spring(response: 0.2, dampingFraction: 0.7), value: isPressed)
             .animation(.easeInOut(duration: 0.15), value: isHovered)
+            #if os(macOS)
             .onHover { isHovered = $0 }
+            #endif
             .simultaneousGesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { _ in if isEnabled { isPressed = true } }

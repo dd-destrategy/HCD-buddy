@@ -327,6 +327,7 @@ struct QuestionTypeView: View {
         .foregroundColor(colorForQuestionType(type))
         .padding(.horizontal, Spacing.sm)
         .padding(.vertical, 3)
+        .frame(minHeight: Spacing.touchTarget)
         .background(colorForQuestionType(type).opacity(0.12))
         .clipShape(Capsule())
         .accessibilityLabel("Type: \(type.displayName)")
@@ -343,7 +344,7 @@ struct QuestionTypeView: View {
         }
         .foregroundColor(.hcdWarning)
         .padding(.horizontal, 6)
-        .padding(.vertical, 2)
+        .padding(.vertical, 8)
         .background(Color.hcdWarning.opacity(0.12))
         .clipShape(Capsule())
         .accessibilityLabel("Anti-pattern: \(pattern.displayName)")
@@ -385,7 +386,7 @@ struct QuestionTypeView: View {
             Image(systemName: isCompact ? "chevron.down" : "chevron.up")
                 .font(.system(size: 11, weight: .medium))
                 .foregroundColor(.hcdTextTertiary)
-                .frame(width: 24, height: 24)
+                .frame(minWidth: Spacing.touchTarget, minHeight: Spacing.touchTarget)
                 .background(Color.hcdBackgroundSecondary)
                 .clipShape(Circle())
         }

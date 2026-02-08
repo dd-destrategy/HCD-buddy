@@ -142,7 +142,9 @@ struct TranscriptSearchView: View {
             .buttonStyle(.plain)
             .disabled(!hasResults)
             .keyboardShortcut(.upArrow, modifiers: .command)
+            #if os(macOS)
             .help("Previous match (Cmd+Up)")
+            #endif
             .accessibilityLabel("Previous match")
 
             Button(action: { onNext?() }) {
@@ -153,7 +155,9 @@ struct TranscriptSearchView: View {
             .buttonStyle(.plain)
             .disabled(!hasResults)
             .keyboardShortcut(.downArrow, modifiers: .command)
+            #if os(macOS)
             .help("Next match (Cmd+Down)")
+            #endif
             .accessibilityLabel("Next match")
         }
         .background(
@@ -171,7 +175,9 @@ struct TranscriptSearchView: View {
         }
         .buttonStyle(.plain)
         .keyboardShortcut(.escape, modifiers: [])
+        #if os(macOS)
         .help("Close search (Escape)")
+        #endif
         .accessibilityLabel("Close search")
     }
 
@@ -180,7 +186,7 @@ struct TranscriptSearchView: View {
             .fill(backgroundMaterial)
             .overlay(
                 Rectangle()
-                    .fill(Color(nsColor: .separatorColor))
+                    .fill(PlatformColor.separator)
                     .frame(height: 1),
                 alignment: .bottom
             )
@@ -227,7 +233,7 @@ struct TranscriptSearchView: View {
     }
 
     private var backgroundMaterial: Color {
-        Color(nsColor: .windowBackgroundColor)
+        PlatformColor.windowBackground
     }
 
     // MARK: - Actions

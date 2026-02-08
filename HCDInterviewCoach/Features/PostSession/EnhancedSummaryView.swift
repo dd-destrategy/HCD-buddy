@@ -472,9 +472,26 @@ struct EnhancedSummaryView: View {
     // MARK: - Export Button
 
     private func exportButton(summary: SessionSummary) -> some View {
-        HStack {
+        let markdownContent = generator.exportSummaryAsMarkdown(summary)
+
+        return HStack {
             Spacer()
 
+            #if os(iOS)
+            ShareLink(item: markdownContent) {
+                HStack(spacing: Spacing.sm) {
+                    Image(systemName: "square.and.arrow.up")
+                    Text("Share Summary")
+                        .font(Typography.bodyMedium)
+                }
+                .padding(.horizontal, Spacing.lg)
+                .padding(.vertical, Spacing.md)
+            }
+            .buttonStyle(.plain)
+            .glassButton(style: .secondary)
+            .accessibilityLabel("Share summary as markdown")
+            .accessibilityHint("Opens the share sheet with the summary in Markdown format")
+            #else
             Button(action: { exportToClipboard(summary: summary) }) {
                 HStack(spacing: Spacing.sm) {
                     Image(systemName: showCopyConfirmation ? "checkmark" : "doc.on.doc")
@@ -488,6 +505,7 @@ struct EnhancedSummaryView: View {
             .glassButton(isActive: showCopyConfirmation, style: showCopyConfirmation ? .primary : .secondary)
             .accessibilityLabel(showCopyConfirmation ? "Summary copied to clipboard" : "Copy summary as markdown")
             .accessibilityHint("Copies the entire summary in Markdown format to the clipboard")
+            #endif
 
             Spacer()
         }
@@ -533,8 +551,7 @@ struct EnhancedSummaryView: View {
 
     private func exportToClipboard(summary: SessionSummary) {
         let markdown = generator.exportSummaryAsMarkdown(summary)
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(markdown, forType: .string)
+        ClipboardService.copy(markdown)
 
         if reduceMotion {
             showCopyConfirmation = true

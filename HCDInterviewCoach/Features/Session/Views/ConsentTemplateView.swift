@@ -27,7 +27,7 @@ struct ConsentTemplateView: View {
                         .padding(12)
                 }
                 .frame(minHeight: 150)
-                .background(Color(.controlBackgroundColor))
+                .background(PlatformColor.controlBackground)
                 .cornerRadius(8)
                 .border(Color.secondary.opacity(0.3), width: 1)
             }

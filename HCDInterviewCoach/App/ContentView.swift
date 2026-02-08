@@ -95,7 +95,9 @@ struct ContentView: View {
                 }
             }
         }
+        #if os(macOS)
         .frame(minWidth: 800, minHeight: 600)
+        #endif
         .environmentObject(serviceContainer)
         .audioSetupSheet(
             isPresented: $showAudioSetupWizard,
@@ -116,7 +118,9 @@ struct ContentView: View {
                     showParticipantPicker = false
                 }
             )
+            #if os(macOS)
             .frame(minWidth: 500, minHeight: 400)
+            #endif
         }
         .sheet(isPresented: $showConsentFlow) {
             ConsentFlowView(
@@ -130,7 +134,9 @@ struct ContentView: View {
                     showConsentFlow = false
                 }
             )
+            #if os(macOS)
             .frame(minWidth: 600, minHeight: 500)
+            #endif
         }
     }
 
@@ -364,11 +370,15 @@ struct ActiveSessionPlaceholderView: View {
         }
         .sheet(isPresented: $showCoachingHistory) {
             CoachingHistoryView(timingSettings: coachingTimingSettings)
+                #if os(macOS)
                 .frame(minWidth: 400, minHeight: 350)
+                #endif
         }
         .sheet(isPresented: $showCulturalSettings) {
             CulturalSettingsView(culturalContext: culturalContextManager)
+                #if os(macOS)
                 .frame(minWidth: 500, minHeight: 450)
+                #endif
         }
         .sheet(isPresented: $showRedactionReview) {
             RedactionReviewView(
@@ -376,7 +386,9 @@ struct ActiveSessionPlaceholderView: View {
                 utterances: [],
                 sessionId: sessionConfig.id
             )
+            #if os(macOS)
             .frame(minWidth: 550, minHeight: 450)
+            #endif
         }
     }
 
@@ -460,7 +472,7 @@ struct ActiveSessionPlaceholderView: View {
         }
         .padding(.horizontal, Spacing.lg)
         .padding(.vertical, Spacing.sm)
-        .background(Color(.controlBackgroundColor))
+        .background(PlatformColor.controlBackground)
     }
 
     // MARK: - Transcript Area
@@ -566,7 +578,11 @@ struct ActiveSessionPlaceholderView: View {
 
             Spacer()
         }
+        #if os(macOS)
         .frame(width: 260)
+        #else
+        .frame(maxWidth: 300)
+        #endif
     }
 
     // MARK: - Helpers

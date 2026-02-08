@@ -202,7 +202,7 @@ struct HighlightCreatorView: View {
 
     private func categoryButton(_ category: HighlightCategory) -> some View {
         let isSelected = selectedCategory == category
-        let categoryColor = Color(nsColor: NSColor(hex: category.colorHex))
+        let categoryColor = PlatformColor.color(hex: category.colorHex)
 
         return Button(action: { selectedCategory = category }) {
             HStack(spacing: Spacing.xs) {

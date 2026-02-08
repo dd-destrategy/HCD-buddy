@@ -7,6 +7,9 @@
 //
 
 import SwiftUI
+#if os(iOS)
+import UIKit
+#endif
 
 // MARK: - Tagging Panel View
 
@@ -127,6 +130,7 @@ struct TaggingView: View {
                     .foregroundColor(.accentColor)
                     .padding(.horizontal, Spacing.sm)
                     .padding(.vertical, Spacing.xs)
+                    .frame(minHeight: Spacing.touchTarget)
                     .background(
                         Capsule()
                             .stroke(Color.accentColor.opacity(0.4), lineWidth: 1)
@@ -147,6 +151,43 @@ struct TaggingView: View {
 
     private var createTagForm: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
+            #if os(iOS)
+            VStack(spacing: Spacing.sm) {
+                TextField("Tag name", text: $newTagName)
+                    .textFieldStyle(.roundedBorder)
+                    .accessibilityLabel("New tag name")
+
+                HStack(spacing: Spacing.sm) {
+                    ColorPicker("Color", selection: $newTagColor, supportsOpacity: false)
+                        .labelsHidden()
+                        .frame(width: 30)
+                        .accessibilityLabel("Tag color picker")
+
+                    Spacer()
+
+                    Button("Cancel") {
+                        newTagName = ""
+                        isCreatingTag = false
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .accessibilityLabel("Cancel tag creation")
+
+                    Button("Add") {
+                        guard !newTagName.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+                        let hexColor = newTagColor.toHexString()
+                        taggingService.createTag(name: newTagName, colorHex: hexColor)
+                        newTagName = ""
+                        isCreatingTag = false
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
+                    .disabled(newTagName.trimmingCharacters(in: .whitespaces).isEmpty)
+                    .accessibilityLabel("Add tag")
+                    .accessibilityHint("Creates the new tag with the entered name and selected color")
+                }
+            }
+            #else
             HStack(spacing: Spacing.sm) {
                 TextField("Tag name", text: $newTagName)
                     .textFieldStyle(.roundedBorder)
@@ -179,6 +220,7 @@ struct TaggingView: View {
                 .controlSize(.small)
                 .accessibilityLabel("Cancel tag creation")
             }
+            #endif
         }
         .padding(Spacing.sm)
         .background(
@@ -249,6 +291,9 @@ struct TaggingView: View {
                     }
                 }
                 .frame(maxHeight: 200)
+                #if os(iOS)
+                .scrollDismissesKeyboard(.interactively)
+                #endif
             }
         }
     }
@@ -326,6 +371,9 @@ struct TaggingView: View {
                 }
             }
             .frame(maxHeight: 200)
+            #if os(iOS)
+            .scrollDismissesKeyboard(.interactively)
+            #endif
 
             HStack(spacing: Spacing.sm) {
                 Button("Apply Selected Tag") {
@@ -553,7 +601,9 @@ private struct FilteredUtteranceRow: View {
             )
         }
         .buttonStyle(.plain)
+        #if os(macOS)
         .onHover { isHovering = $0 }
+        #endif
         .accessibilityLabel("\(utterance.formattedTimestamp), \(utterance.speaker.displayName): \(utterance.text)")
         .accessibilityHint("Tap to navigate to this utterance in the transcript")
     }
@@ -693,9 +743,15 @@ extension Color {
 
     /// Converts a SwiftUI Color to a hex string (e.g., "#E74C3C").
     func toHexString() -> String {
+        #if os(macOS)
         guard let components = NSColor(self).cgColor.components else {
             return "#000000"
         }
+        #else
+        guard let components = UIColor(self).cgColor.components else {
+            return "#000000"
+        }
+        #endif
 
         let r = components.count > 0 ? components[0] : 0
         let g = components.count > 1 ? components[1] : 0

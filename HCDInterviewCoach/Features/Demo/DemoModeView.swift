@@ -214,6 +214,7 @@ struct DemoModeView: View {
     // MARK: - Main Content Area
 
     private var mainContent: some View {
+        #if os(macOS)
         HSplitView {
             // Transcript Panel
             transcriptPanel
@@ -223,6 +224,17 @@ struct DemoModeView: View {
             sidePanel
                 .frame(minWidth: 250, maxWidth: 300)
         }
+        #else
+        // On iOS, use a vertical layout with transcript on top and side panel below
+        VStack(spacing: 0) {
+            transcriptPanel
+
+            Divider()
+
+            sidePanel
+                .frame(maxHeight: 300)
+        }
+        #endif
     }
 
     // MARK: - Transcript Panel

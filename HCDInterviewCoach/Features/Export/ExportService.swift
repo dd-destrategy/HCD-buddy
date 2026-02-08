@@ -7,7 +7,12 @@
 //
 
 import Foundation
+#if canImport(AppKit)
 import AppKit
+#endif
+#if canImport(UIKit)
+import UIKit
+#endif
 import UniformTypeIdentifiers
 
 // MARK: - Export Format
@@ -238,7 +243,10 @@ final class ExportService: ObservableObject {
         }
     }
 
-    /// Saves content to a file at user-selected location
+    // MARK: - File Saving
+
+    #if os(macOS)
+    /// Saves content to a file at user-selected location (macOS)
     /// - Parameters:
     ///   - content: The content to save
     ///   - filename: The suggested filename
@@ -269,7 +277,7 @@ final class ExportService: ObservableObject {
         }
     }
 
-    /// Saves data to a file at user-selected location
+    /// Saves data to a file at user-selected location (macOS)
     /// - Parameters:
     ///   - data: The data to save
     ///   - filename: The suggested filename
@@ -299,13 +307,72 @@ final class ExportService: ObservableObject {
             }
         }
     }
+    #endif
+
+    #if os(iOS)
+    /// Returns export content as a string for use with UIActivityViewController or .fileExporter()
+    /// - Parameters:
+    ///   - content: The content to export
+    ///   - filename: The suggested filename
+    ///   - format: The export format
+    /// - Returns: The content string ready for sharing
+    func exportContent(_ content: String, filename: String, format: ExportFormat) -> String {
+        return content
+    }
+
+    /// Returns export data for use with UIActivityViewController or .fileExporter()
+    /// - Parameters:
+    ///   - data: The data to export
+    ///   - filename: The suggested filename
+    ///   - format: The export format
+    /// - Returns: The data ready for sharing
+    func exportData(_ data: Data, filename: String, format: ExportFormat) -> Data {
+        return data
+    }
+
+    /// Writes content to a temporary file and returns its URL for sharing
+    /// - Parameters:
+    ///   - content: The content to write
+    ///   - filename: The suggested filename
+    ///   - format: The export format
+    /// - Returns: A temporary file URL suitable for UIActivityViewController
+    /// - Throws: ExportError if write fails
+    func prepareShareURL(_ content: String, filename: String, format: ExportFormat) throws -> URL {
+        let tempDir = FileManager.default.temporaryDirectory
+        let fileURL = tempDir.appendingPathComponent("\(filename).\(format.fileExtension)")
+        do {
+            try content.write(to: fileURL, atomically: true, encoding: .utf8)
+            return fileURL
+        } catch {
+            throw ExportError.fileWriteFailed(error.localizedDescription)
+        }
+    }
+
+    /// Writes data to a temporary file and returns its URL for sharing
+    /// - Parameters:
+    ///   - data: The data to write
+    ///   - filename: The suggested filename
+    ///   - format: The export format
+    /// - Returns: A temporary file URL suitable for UIActivityViewController
+    /// - Throws: ExportError if write fails
+    func prepareShareURL(_ data: Data, filename: String, format: ExportFormat) throws -> URL {
+        let tempDir = FileManager.default.temporaryDirectory
+        let fileURL = tempDir.appendingPathComponent("\(filename).\(format.fileExtension)")
+        do {
+            try data.write(to: fileURL)
+            return fileURL
+        } catch {
+            throw ExportError.fileWriteFailed(error.localizedDescription)
+        }
+    }
+    #endif
+
+    // MARK: - Clipboard
 
     /// Copies content to the system clipboard
     /// - Parameter content: The content to copy
     func copyToClipboard(_ content: String) {
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(content, forType: .string)
+        ClipboardService.copy(content)
     }
 
     /// Exports a session with progress tracking

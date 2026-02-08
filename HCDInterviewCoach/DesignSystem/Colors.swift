@@ -92,14 +92,14 @@ extension Color {
         case "SecondaryLight": return Color.blue.opacity(0.7)
         case "SecondaryDark": return Color.blue.opacity(0.9)
 
-        // Background
-        case "Background": return Color(nsColor: .windowBackgroundColor)
-        case "BackgroundSecondary": return Color(nsColor: .controlBackgroundColor)
-        case "BackgroundTertiary": return Color(nsColor: .underPageBackgroundColor)
+        // Background — cross-platform via PlatformColor
+        case "Background": return PlatformColor.windowBackground
+        case "BackgroundSecondary": return PlatformColor.controlBackground
+        case "BackgroundTertiary": return PlatformColor.underPageBackground
 
-        // Surface
-        case "Surface": return Color(nsColor: .controlBackgroundColor)
-        case "SurfaceElevated": return Color(nsColor: .controlColor)
+        // Surface — cross-platform via PlatformColor
+        case "Surface": return PlatformColor.controlBackground
+        case "SurfaceElevated": return PlatformColor.controlColor
 
         // Text
         case "TextPrimary": return Color.primary
@@ -144,6 +144,9 @@ extension Color {
 
 // MARK: - NSColor Extension
 
+#if canImport(AppKit)
+import AppKit
+
 extension NSColor {
     /// Convenience method to create NSColor from hex
     convenience init(hex: String) {
@@ -170,3 +173,4 @@ extension NSColor {
         )
     }
 }
+#endif

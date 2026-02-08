@@ -8,7 +8,11 @@
 //
 
 import SwiftUI
+#if os(macOS)
 import AppKit
+#else
+import AVFoundation
+#endif
 
 // MARK: - Consent Flow Step
 
@@ -55,7 +59,12 @@ struct ConsentFlowView: View {
     @State private var template: ConsentTemplate = ConsentTemplate.defaultEnglish()
     @State private var participantName: String = ""
     @State private var isSpeaking: Bool = false
+
+    #if os(macOS)
     @State private var speechSynthesizer: NSSpeechSynthesizer?
+    #else
+    @State private var speechSynthesizer: AVSpeechSynthesizer?
+    #endif
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorScheme) private var colorScheme
@@ -86,7 +95,9 @@ struct ConsentFlowView: View {
                 .padding(.horizontal, Spacing.xl)
                 .padding(.vertical, Spacing.lg)
         }
+        #if os(macOS)
         .frame(minWidth: 600, minHeight: 500)
+        #endif
         .glassSheet()
         .onDisappear {
             stopSpeaking()
@@ -684,6 +695,7 @@ struct ConsentFlowView: View {
         }
     }
 
+    #if os(macOS)
     private func startSpeaking(text: String) {
         let synth = NSSpeechSynthesizer()
 
@@ -746,6 +758,59 @@ struct ConsentFlowView: View {
 
         return nil
     }
+    #else
+    private func startSpeaking(text: String) {
+        let synth = AVSpeechSynthesizer()
+        speechSynthesizer = synth
+
+        let utterance = AVSpeechUtterance(string: text)
+        utterance.rate = AVSpeechUtteranceDefaultSpeechRate
+
+        // Select a voice appropriate for the current language
+        let languageCode = languageCodeForLanguage(template.language)
+        if let voice = AVSpeechSynthesisVoice(language: languageCode) {
+            utterance.voice = voice
+        }
+
+        synth.speak(utterance)
+        isSpeaking = true
+
+        // Monitor for completion
+        monitorSpeechCompletion()
+    }
+
+    private func stopSpeaking() {
+        speechSynthesizer?.stopSpeaking(at: .immediate)
+        speechSynthesizer = nil
+        isSpeaking = false
+    }
+
+    private func monitorSpeechCompletion() {
+        Task { @MainActor in
+            // Poll periodically to detect when speech ends
+            while isSpeaking, let synth = speechSynthesizer {
+                try? await Task.sleep(nanoseconds: 250_000_000) // 0.25 seconds
+                if !synth.isSpeaking {
+                    isSpeaking = false
+                    speechSynthesizer = nil
+                    break
+                }
+            }
+        }
+    }
+
+    /// Returns a BCP 47 language code for the given consent language.
+    private func languageCodeForLanguage(_ language: ConsentLanguage) -> String {
+        switch language {
+        case .english: return "en-US"
+        case .spanish: return "es-ES"
+        case .french: return "fr-FR"
+        case .german: return "de-DE"
+        case .japanese: return "ja-JP"
+        case .chinese: return "zh-CN"
+        }
+    }
+    #endif
 }
 
 // MARK: - Preview
@@ -759,7 +824,9 @@ struct ConsentFlowView_Previews: PreviewProvider {
             onComplete: { status in },
             onDismiss: { }
         )
+        #if os(macOS)
         .frame(width: 700, height: 600)
+        #endif
     }
 }
 #endif

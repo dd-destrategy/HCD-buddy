@@ -24,6 +24,10 @@ struct ExportView: View {
     @State private var showError = false
     @State private var errorMessage = ""
     @State private var showCopiedFeedback = false
+    #if os(iOS)
+    @State private var shareItems: [Any] = []
+    @State private var showShareSheet = false
+    #endif
 
     @Environment(\.dismiss) private var dismiss
 
@@ -58,8 +62,12 @@ struct ExportView: View {
             // Actions
             actionSection
         }
+        #if os(macOS)
         .frame(minWidth: 500, minHeight: 600)
         .background(Color(.windowBackgroundColor))
+        #else
+        .background(Color(.systemGroupedBackground))
+        #endif
         .sheet(isPresented: $showProgress) {
             ExportProgressView(
                 progress: exportService.currentProgress,
@@ -68,6 +76,13 @@ struct ExportView: View {
                 }
             )
         }
+        #if os(iOS)
+        .sheet(isPresented: $showShareSheet) {
+            if !shareItems.isEmpty {
+                ActivityViewController(activityItems: shareItems)
+            }
+        }
+        #endif
         .alert("Export Error", isPresented: $showError) {
             Button("OK") { }
         } message: {
@@ -104,7 +119,11 @@ struct ExportView: View {
             .buttonStyle(.plain)
         }
         .padding(20)
+        #if os(macOS)
         .background(Color(.controlBackgroundColor))
+        #else
+        .background(Color(.secondarySystemGroupedBackground))
+        #endif
     }
 
     // MARK: - Session Info Section
@@ -155,7 +174,11 @@ struct ExportView: View {
             }
         }
         .padding(16)
+        #if os(macOS)
         .background(Color(.controlBackgroundColor))
+        #else
+        .background(Color(.secondarySystemGroupedBackground))
+        #endif
         .cornerRadius(8)
     }
 
@@ -232,7 +255,11 @@ struct ExportView: View {
                     .foregroundColor(.secondary)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
+                    #if os(macOS)
                     .background(Color(.controlBackgroundColor))
+                    #else
+                    .background(Color(.secondarySystemGroupedBackground))
+                    #endif
                     .cornerRadius(4)
             }
             .padding(12)
@@ -240,7 +267,7 @@ struct ExportView: View {
                 RoundedRectangle(cornerRadius: 8)
                     .fill(selectedFormat == format
                           ? Color.accentColor.opacity(0.1)
-                          : Color(.controlBackgroundColor))
+                          : platformControlBackground)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
@@ -275,11 +302,19 @@ struct ExportView: View {
                     .padding(12)
             }
             .frame(height: 200)
+            #if os(macOS)
             .background(Color(.textBackgroundColor))
+            #else
+            .background(Color(.systemBackground))
+            #endif
             .cornerRadius(8)
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
+                    #if os(macOS)
                     .stroke(Color(.separatorColor), lineWidth: 1)
+                    #else
+                    .stroke(Color(.separator), lineWidth: 1)
+                    #endif
             )
         }
     }
@@ -313,15 +348,23 @@ struct ExportView: View {
             .buttonStyle(.bordered)
             .disabled(isExporting)
 
-            // Save to file
+            // Save to file / Share
             Button(action: saveToFile) {
+                #if os(macOS)
                 Label("Save File", systemImage: "square.and.arrow.down")
+                #else
+                Label("Share", systemImage: "square.and.arrow.up")
+                #endif
             }
             .buttonStyle(.borderedProminent)
             .disabled(isExporting)
         }
         .padding(20)
+        #if os(macOS)
         .background(Color(.controlBackgroundColor))
+        #else
+        .background(Color(.secondarySystemGroupedBackground))
+        #endif
     }
 
     // MARK: - Copied Feedback Banner
@@ -337,11 +380,25 @@ struct ExportView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
+        #if os(macOS)
         .background(Color(.controlBackgroundColor))
+        #else
+        .background(Color(.secondarySystemGroupedBackground))
+        #endif
         .cornerRadius(8)
         .shadow(radius: 4)
         .padding(.bottom, 80)
         .transition(.move(edge: .bottom).combined(with: .opacity))
+    }
+
+    // MARK: - Platform Helpers
+
+    private var platformControlBackground: Color {
+        #if os(macOS)
+        return Color(.controlBackgroundColor)
+        #else
+        return Color(.secondarySystemGroupedBackground)
+        #endif
     }
 
     // MARK: - Actions
@@ -383,7 +440,7 @@ struct ExportView: View {
                     content = String(data: data, encoding: .utf8) ?? ""
                 }
 
-                exportService.copyToClipboard(content)
+                ClipboardService.copy(content)
 
                 withAnimation {
                     showCopiedFeedback = true
@@ -422,6 +479,7 @@ struct ExportView: View {
 
                 let filename = exportService.suggestedFilename(for: session, format: selectedFormat)
 
+                #if os(macOS)
                 switch selectedFormat {
                 case .markdown:
                     _ = try await exportService.saveToFile(result.content, filename: filename, format: selectedFormat)
@@ -433,6 +491,23 @@ struct ExportView: View {
 
                 showProgress = false
                 dismiss()
+                #else
+                // On iOS, prepare a temporary file and present the share sheet
+                showProgress = false
+                let shareURL: URL
+                switch selectedFormat {
+                case .markdown:
+                    shareURL = try exportService.prepareShareURL(result.content, filename: filename, format: selectedFormat)
+                case .json:
+                    if let data = result.content.data(using: .utf8) {
+                        shareURL = try exportService.prepareShareURL(data, filename: filename, format: selectedFormat)
+                    } else {
+                        shareURL = try exportService.prepareShareURL(result.content, filename: filename, format: selectedFormat)
+                    }
+                }
+                shareItems = [shareURL]
+                showShareSheet = true
+                #endif
             } catch ExportError.cancelled {
                 // User cancelled, just close progress
                 showProgress = false
@@ -456,6 +531,25 @@ struct ExportView: View {
         TimeFormatting.formatDuration(seconds)
     }
 }
+
+// MARK: - Activity View Controller (iOS)
+
+#if os(iOS)
+/// UIActivityViewController wrapper for SwiftUI share sheet
+struct ActivityViewController: UIViewControllerRepresentable {
+    let activityItems: [Any]
+    var applicationActivities: [UIActivity]? = nil
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(
+            activityItems: activityItems,
+            applicationActivities: applicationActivities
+        )
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
+#endif
 
 // MARK: - Export Button
 
@@ -530,7 +624,7 @@ struct ExportMenuButton: View {
                     content = String(data: data, encoding: .utf8) ?? ""
                 }
 
-                exportService.copyToClipboard(content)
+                ClipboardService.copy(content)
             } catch let error as ExportError {
                 errorMessage = error.localizedDescription ?? "Export failed"
                 showError = true
@@ -555,5 +649,7 @@ struct ExportMenuButton: View {
     )
 
     return ExportView(session: session)
+        #if os(macOS)
         .frame(width: 550, height: 700)
+        #endif
 }

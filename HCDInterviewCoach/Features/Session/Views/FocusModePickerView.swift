@@ -107,12 +107,14 @@ private struct FocusModeButton: View {
             }
         }
         .buttonStyle(.plain)
+        #if os(macOS)
         .onHover { hovering in
             withAnimation(.easeInOut(duration: AnimationTiming.fast)) {
                 isHovered = hovering
             }
         }
         .help("\(mode.displayName): \(mode.description)")
+        #endif
         .accessibilityLabel(mode.displayName)
         .accessibilityHint(isSelected
             ? "Currently selected. \(mode.description)"
@@ -143,7 +145,7 @@ private struct FocusModeButton: View {
     private var compactContent: some View {
         Image(systemName: mode.icon)
             .font(Typography.caption)
-            .frame(width: 28, height: 24)
+            .frame(minWidth: Spacing.touchTarget, minHeight: Spacing.touchTarget)
             .background(buttonBackground)
             .clipShape(RoundedRectangle(cornerRadius: CornerRadius.small, style: .continuous))
     }
