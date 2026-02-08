@@ -2,9 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@hcd/db';
 import { tags } from '@hcd/db';
 import { eq, and, isNull } from 'drizzle-orm';
+import { requireAuth, isAuthError } from '@/lib/auth-middleware';
 
 // GET /api/tags — List all tags for an organization (with hierarchy)
 export async function GET(request: NextRequest) {
+  const authResult = await requireAuth(request);
+  if (isAuthError(authResult)) return authResult;
+  const { user } = authResult;
+
   try {
     const { searchParams } = new URL(request.url);
     const organizationId = searchParams.get('organizationId');
@@ -53,6 +58,10 @@ export async function GET(request: NextRequest) {
 
 // POST /api/tags — Create a new tag
 export async function POST(request: NextRequest) {
+  const authResult = await requireAuth(request);
+  if (isAuthError(authResult)) return authResult;
+  const { user } = authResult;
+
   try {
     const body = await request.json();
     const { name, color, parentId, organizationId } = body;

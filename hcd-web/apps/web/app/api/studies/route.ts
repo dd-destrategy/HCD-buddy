@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@hcd/db';
 import { studies, sessions } from '@hcd/db';
-import { eq, desc, sql } from 'drizzle-orm';
+import { eq, and, desc, sql } from 'drizzle-orm';
+import { requireAuth, isAuthError } from '@/lib/auth-middleware';
 
 // ─── GET /api/studies ───────────────────────────────────────────────────────
 // List studies for an organization
 export async function GET(request: NextRequest) {
+  const authResult = await requireAuth(request);
+  if (isAuthError(authResult)) return authResult;
+  const { user } = authResult;
+
   try {
     const { searchParams } = new URL(request.url);
     const organizationId = searchParams.get('organizationId');
@@ -23,11 +28,7 @@ export async function GET(request: NextRequest) {
       conditions.push(eq(studies.ownerId, ownerId));
     }
 
-    const whereClause = conditions.length > 0
-      ? conditions.length === 1
-        ? conditions[0]
-        : sql`${conditions[0]} AND ${conditions[1]}`
-      : undefined;
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
     const results = await db
       .select({
@@ -69,13 +70,17 @@ export async function GET(request: NextRequest) {
 // ─── POST /api/studies ──────────────────────────────────────────────────────
 // Create a new study
 export async function POST(request: NextRequest) {
+  const authResult = await requireAuth(request);
+  if (isAuthError(authResult)) return authResult;
+  const { user } = authResult;
+
   try {
     const body = await request.json();
-    const { title, description, ownerId, organizationId } = body;
+    const { title, description, organizationId } = body;
 
-    if (!title || !ownerId) {
+    if (!title) {
       return NextResponse.json(
-        { error: 'title and ownerId are required' },
+        { error: 'title is required' },
         { status: 400 }
       );
     }
@@ -85,7 +90,7 @@ export async function POST(request: NextRequest) {
       .values({
         title,
         description: description || null,
-        ownerId,
+        ownerId: user.id,
         organizationId: organizationId || null,
       })
       .returning();

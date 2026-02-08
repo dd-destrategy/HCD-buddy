@@ -12,16 +12,21 @@ import {
   consentRecords,
 } from '@hcd/db';
 import { eq, and } from 'drizzle-orm';
+import { requireAuth, isAuthError } from '@/lib/auth-middleware';
 
 // =============================================================================
 // GET /api/sessions/[id] — Fetch full session with related data
 // =============================================================================
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requireAuth(request);
+    if (isAuthError(authResult)) return authResult;
+    const { user } = authResult;
+
     const { id } = await params;
 
     // Fetch session with study and participant info
@@ -132,8 +137,20 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requireAuth(request);
+    if (isAuthError(authResult)) return authResult;
+    const { user } = authResult;
+
     const { id } = await params;
     const body = await request.json();
+
+    // Validate title is not empty string
+    if (body.title !== undefined && typeof body.title === 'string' && body.title.trim().length === 0) {
+      return NextResponse.json(
+        { error: 'Title cannot be empty' },
+        { status: 400 }
+      );
+    }
 
     // Only allow updating safe fields
     const allowedFields: Record<string, unknown> = {};
@@ -198,10 +215,14 @@ export async function PATCH(
 // =============================================================================
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requireAuth(request);
+    if (isAuthError(authResult)) return authResult;
+    const { user } = authResult;
+
     const { id } = await params;
 
     // The cascade rules on the DB schema handle deleting related records

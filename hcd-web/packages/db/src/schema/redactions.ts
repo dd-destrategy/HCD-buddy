@@ -10,6 +10,7 @@ export const redactions = pgTable('redactions', {
   originalText: text('original_text').notNull(),
   replacement: text('replacement').default('[REDACTED]'),
   decision: text('decision').notNull().default('pending'),
-  decidedBy: uuid('decided_by').references(() => users.id),
+  decidedBy: uuid('decided_by').references(() => users.id, { onDelete: 'set null' }),
   decidedAt: timestamp('decided_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });

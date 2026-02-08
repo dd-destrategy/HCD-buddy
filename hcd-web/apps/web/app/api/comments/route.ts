@@ -2,11 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@hcd/db';
 import { comments, users } from '@hcd/db';
 import { eq, and, desc, sql } from 'drizzle-orm';
+import { requireAuth, isAuthError } from '@/lib/auth-middleware';
 
 // ─── GET /api/comments ──────────────────────────────────────────────────────
 // List comments for a session (with author info)
 export async function GET(request: NextRequest) {
   try {
+    const authResult = await requireAuth(request);
+    if (isAuthError(authResult)) return authResult;
+    const { user } = authResult;
+
     const { searchParams } = new URL(request.url);
     const sessionId = searchParams.get('sessionId');
     const utteranceId = searchParams.get('utteranceId');
@@ -74,12 +79,16 @@ export async function GET(request: NextRequest) {
 // Create a comment
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { sessionId, utteranceId, authorId, text, timestamp } = body;
+    const authResult = await requireAuth(request);
+    if (isAuthError(authResult)) return authResult;
+    const { user } = authResult;
 
-    if (!sessionId || !authorId || !text) {
+    const body = await request.json();
+    const { sessionId, utteranceId, text, timestamp } = body;
+
+    if (!sessionId || !text) {
       return NextResponse.json(
-        { error: 'sessionId, authorId, and text are required' },
+        { error: 'sessionId and text are required' },
         { status: 400 }
       );
     }
@@ -89,7 +98,7 @@ export async function POST(request: NextRequest) {
       .values({
         sessionId,
         utteranceId: utteranceId || null,
-        authorId,
+        authorId: user.id,
         text,
         timestamp: timestamp || null,
       })
@@ -99,7 +108,7 @@ export async function POST(request: NextRequest) {
     const [author] = await db
       .select({ name: users.name, email: users.email, image: users.image })
       .from(users)
-      .where(eq(users.id, authorId))
+      .where(eq(users.id, user.id))
       .limit(1);
 
     return NextResponse.json(
@@ -107,8 +116,8 @@ export async function POST(request: NextRequest) {
         comment: {
           ...comment,
           author: author
-            ? { id: authorId, name: author.name, email: author.email, image: author.image }
-            : { id: authorId, name: 'Unknown', email: null, image: null },
+            ? { id: user.id, name: author.name, email: author.email, image: author.image }
+            : { id: user.id, name: 'Unknown', email: null, image: null },
         },
       },
       { status: 201 }
@@ -126,8 +135,12 @@ export async function POST(request: NextRequest) {
 // Update comment text
 export async function PATCH(request: NextRequest) {
   try {
+    const authResult = await requireAuth(request);
+    if (isAuthError(authResult)) return authResult;
+    const { user } = authResult;
+
     const body = await request.json();
-    const { id, text, authorId } = body;
+    const { id, text } = body;
 
     if (!id || !text) {
       return NextResponse.json(
@@ -136,20 +149,18 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    // Verify ownership if authorId provided
-    if (authorId) {
-      const [existing] = await db
-        .select()
-        .from(comments)
-        .where(and(eq(comments.id, id), eq(comments.authorId, authorId)))
-        .limit(1);
+    // Verify ownership using authenticated user
+    const [existing] = await db
+      .select()
+      .from(comments)
+      .where(and(eq(comments.id, id), eq(comments.authorId, user.id)))
+      .limit(1);
 
-      if (!existing) {
-        return NextResponse.json(
-          { error: 'Comment not found or you do not have permission to edit it' },
-          { status: 403 }
-        );
-      }
+    if (!existing) {
+      return NextResponse.json(
+        { error: 'Comment not found or you do not have permission to edit it' },
+        { status: 403 }
+      );
     }
 
     const [updated] = await db
@@ -182,9 +193,12 @@ export async function PATCH(request: NextRequest) {
 // Delete a comment
 export async function DELETE(request: NextRequest) {
   try {
+    const authResult = await requireAuth(request);
+    if (isAuthError(authResult)) return authResult;
+    const { user } = authResult;
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
-    const authorId = searchParams.get('authorId');
 
     if (!id) {
       return NextResponse.json(
@@ -193,20 +207,18 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Verify ownership if authorId provided
-    if (authorId) {
-      const [existing] = await db
-        .select()
-        .from(comments)
-        .where(and(eq(comments.id, id), eq(comments.authorId, authorId)))
-        .limit(1);
+    // Verify ownership using authenticated user
+    const [existing] = await db
+      .select()
+      .from(comments)
+      .where(and(eq(comments.id, id), eq(comments.authorId, user.id)))
+      .limit(1);
 
-      if (!existing) {
-        return NextResponse.json(
-          { error: 'Comment not found or you do not have permission to delete it' },
-          { status: 403 }
-        );
-      }
+    if (!existing) {
+      return NextResponse.json(
+        { error: 'Comment not found or you do not have permission to delete it' },
+        { status: 403 }
+      );
     }
 
     const [deleted] = await db

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, sessions, studies, participants } from '@hcd/db';
 import { eq, desc, asc, and, gte, lte, ilike, sql, count } from 'drizzle-orm';
+import { requireAuth, isAuthError } from '@/lib/auth-middleware';
 
 // =============================================================================
 // GET /api/sessions — List sessions with pagination, filters, and sorting
@@ -8,6 +9,10 @@ import { eq, desc, asc, and, gte, lte, ilike, sql, count } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
   try {
+    const authResult = await requireAuth(request);
+    if (isAuthError(authResult)) return authResult;
+    const { user } = authResult;
+
     const { searchParams } = new URL(request.url);
 
     // Pagination
@@ -29,6 +34,9 @@ export async function GET(request: NextRequest) {
 
     // Build where conditions
     const conditions = [];
+
+    // Scope to authenticated user
+    conditions.push(eq(sessions.ownerId, user.id));
 
     if (status) {
       conditions.push(eq(sessions.status, status));
@@ -130,6 +138,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const authResult = await requireAuth(request);
+    if (isAuthError(authResult)) return authResult;
+    const { user } = authResult;
+
     const body = await request.json();
 
     const {
@@ -150,8 +162,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // For now use a placeholder ownerId — in production this comes from the auth session
-    const ownerId = body.ownerId || '00000000-0000-0000-0000-000000000000';
+    const ownerId = user.id;
 
     const [newSession] = await db
       .insert(sessions)

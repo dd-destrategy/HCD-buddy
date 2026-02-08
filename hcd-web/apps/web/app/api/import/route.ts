@@ -7,6 +7,7 @@ import {
   topicStatuses,
   coachingEvents,
 } from '@hcd/db';
+import { requireAuth, isAuthError } from '@/lib/auth-middleware';
 
 // =============================================================================
 // POST /api/import — Import a session from macOS app JSON export
@@ -77,6 +78,10 @@ interface ImportPayload {
 
 export async function POST(request: NextRequest) {
   try {
+    const authResult = await requireAuth(request);
+    if (isAuthError(authResult)) return authResult;
+    const { user } = authResult;
+
     const contentType = request.headers.get('content-type') || '';
 
     let payload: ImportPayload;
@@ -122,8 +127,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Placeholder ownerId — in production from auth
-    const ownerId = '00000000-0000-0000-0000-000000000000';
+    const ownerId = user.id;
 
     // Insert session
     const [newSession] = await db

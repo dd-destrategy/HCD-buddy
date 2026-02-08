@@ -12,6 +12,7 @@ import {
   studies,
 } from '@hcd/db';
 import { eq } from 'drizzle-orm';
+import { requireAuth, isAuthError } from '@/lib/auth-middleware';
 
 // =============================================================================
 // GET /api/export/[id] — Export session in Markdown, JSON, or CSV
@@ -22,6 +23,10 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requireAuth(request);
+    if (isAuthError(authResult)) return authResult;
+    const { user } = authResult;
+
     const { id } = await params;
     const { searchParams } = new URL(request.url);
 

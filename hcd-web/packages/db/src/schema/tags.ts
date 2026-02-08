@@ -1,4 +1,4 @@
-import { pgTable, uuid, text } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, uniqueIndex } from 'drizzle-orm/pg-core';
 import { organizations } from './users';
 import { utterances } from './sessions';
 
@@ -14,4 +14,6 @@ export const utteranceTags = pgTable('utterance_tags', {
   id: uuid('id').primaryKey().defaultRandom(),
   utteranceId: uuid('utterance_id').notNull().references(() => utterances.id, { onDelete: 'cascade' }),
   tagId: uuid('tag_id').notNull().references(() => tags.id, { onDelete: 'cascade' }),
-});
+}, (table) => ({
+  uniqueUtteranceTag: uniqueIndex('utterance_tag_unique').on(table.utteranceId, table.tagId),
+}));

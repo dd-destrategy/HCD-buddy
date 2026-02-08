@@ -19,20 +19,27 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const signature = request.headers.get('x-recall-signature') || '';
   const rawBody = await request.text();
 
-  if (process.env.RECALL_WEBHOOK_SECRET) {
-    const isValid = RecallClient.verifyWebhookSignature(
-      rawBody,
-      signature,
-      process.env.RECALL_WEBHOOK_SECRET
+  const webhookSecret = process.env.RECALL_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    console.error('[Webhook/Recall] RECALL_WEBHOOK_SECRET not configured');
+    return NextResponse.json(
+      { error: 'Webhook not configured' },
+      { status: 503 }
     );
+  }
 
-    if (!isValid) {
-      console.warn('[Webhook/Recall] Invalid webhook signature');
-      return NextResponse.json(
-        { error: 'Invalid signature' },
-        { status: 401 }
-      );
-    }
+  const isValid = RecallClient.verifyWebhookSignature(
+    rawBody,
+    signature,
+    webhookSecret
+  );
+
+  if (!isValid) {
+    console.warn('[Webhook/Recall] Invalid webhook signature');
+    return NextResponse.json(
+      { error: 'Invalid signature' },
+      { status: 401 }
+    );
   }
 
   // ---------------------------------------------------------------------------

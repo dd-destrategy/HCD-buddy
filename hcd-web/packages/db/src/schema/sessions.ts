@@ -2,18 +2,19 @@ import { pgTable, uuid, text, timestamp, integer, boolean, jsonb, real } from 'd
 import { users } from './users';
 import { studies } from './studies';
 import { participants } from './participants';
+import { templates } from './templates';
 
 export const sessions = pgTable('sessions', {
   id: uuid('id').primaryKey().defaultRandom(),
   studyId: uuid('study_id').references(() => studies.id, { onDelete: 'set null' }),
-  ownerId: uuid('owner_id').notNull().references(() => users.id),
+  ownerId: uuid('owner_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   title: text('title').notNull(),
   sessionMode: text('session_mode').notNull().default('interview'),
   status: text('status').notNull().default('draft'),
   startedAt: timestamp('started_at', { withTimezone: true }),
   endedAt: timestamp('ended_at', { withTimezone: true }),
   durationSeconds: integer('duration_seconds'),
-  templateId: uuid('template_id'),
+  templateId: uuid('template_id').references(() => templates.id, { onDelete: 'set null' }),
   participantId: uuid('participant_id').references(() => participants.id, { onDelete: 'set null' }),
   consentStatus: text('consent_status').default('not_obtained'),
   coachingEnabled: boolean('coaching_enabled').default(false),

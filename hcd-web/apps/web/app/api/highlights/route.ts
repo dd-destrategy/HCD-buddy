@@ -3,11 +3,16 @@ import { db } from '@hcd/db';
 import { highlights } from '@hcd/db';
 import { sessions } from '@hcd/db';
 import { eq, and, desc, ilike, sql } from 'drizzle-orm';
+import { requireAuth, isAuthError } from '@/lib/auth-middleware';
 
 // ─── GET /api/highlights ────────────────────────────────────────────────────
 // List highlights with filters: sessionId, category, starred, search, studyId, dateFrom, dateTo
 export async function GET(request: NextRequest) {
   try {
+    const authResult = await requireAuth(request);
+    if (isAuthError(authResult)) return authResult;
+    const { user } = authResult;
+
     const { searchParams } = new URL(request.url);
     const sessionId = searchParams.get('sessionId');
     const category = searchParams.get('category');
@@ -114,10 +119,24 @@ export async function GET(request: NextRequest) {
       .offset(offset);
 
     // Get total count for pagination
-    const countResult = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(highlights)
-      .where(conditions.length > 0 ? and(...conditions) : undefined);
+    let countResult;
+    if (studyId) {
+      countResult = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(highlights)
+        .innerJoin(sessions, eq(highlights.sessionId, sessions.id))
+        .where(
+          and(
+            eq(sessions.studyId, studyId),
+            ...(conditions.length > 0 ? conditions : [])
+          )
+        );
+    } else {
+      countResult = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(highlights)
+        .where(conditions.length > 0 ? and(...conditions) : undefined);
+    }
 
     return NextResponse.json({
       highlights: results,
@@ -138,8 +157,12 @@ export async function GET(request: NextRequest) {
 // Create a new highlight
 export async function POST(request: NextRequest) {
   try {
+    const authResult = await requireAuth(request);
+    if (isAuthError(authResult)) return authResult;
+    const { user } = authResult;
+
     const body = await request.json();
-    const { sessionId, utteranceId, ownerId, title, category, textSelection, notes, isStarred } = body;
+    const { sessionId, utteranceId, title, category, textSelection, notes, isStarred } = body;
 
     if (!sessionId || !title || !category || !textSelection) {
       return NextResponse.json(
@@ -169,7 +192,7 @@ export async function POST(request: NextRequest) {
       .values({
         sessionId,
         utteranceId: utteranceId || null,
-        ownerId: ownerId || null,
+        ownerId: user.id,
         title,
         category,
         textSelection,
@@ -192,6 +215,10 @@ export async function POST(request: NextRequest) {
 // Update a highlight (star, notes, category)
 export async function PATCH(request: NextRequest) {
   try {
+    const authResult = await requireAuth(request);
+    if (isAuthError(authResult)) return authResult;
+    const { user } = authResult;
+
     const body = await request.json();
     const { id, isStarred, notes, category, title } = body;
 
@@ -242,6 +269,10 @@ export async function PATCH(request: NextRequest) {
 // Delete a highlight
 export async function DELETE(request: NextRequest) {
   try {
+    const authResult = await requireAuth(request);
+    if (isAuthError(authResult)) return authResult;
+    const { user } = authResult;
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     const ids = searchParams.get('ids'); // comma-separated for bulk delete

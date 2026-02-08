@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@hcd/db';
 import { redactions, utterances } from '@hcd/db';
 import { eq, and, sql } from 'drizzle-orm';
+import { requireAuth, isAuthError } from '@/lib/auth-middleware';
 
 // ─── PII Detection Patterns ────────────────────────────────────────────────
 // Local PII detection (fallback when @hcd/engine PIIDetector is not available)
@@ -42,6 +43,10 @@ function detectPII(text: string): Array<{ type: string; label: string; originalT
 // List redactions for a session
 export async function GET(request: NextRequest) {
   try {
+    const authResult = await requireAuth(request);
+    if (isAuthError(authResult)) return authResult;
+    const { user } = authResult;
+
     const { searchParams } = new URL(request.url);
     const sessionId = searchParams.get('sessionId');
 
@@ -86,10 +91,14 @@ export async function GET(request: NextRequest) {
           detections: [],
         };
       }
+      // Mask originalText for redacted detections — only show actual text for pending/keep
+      const maskedOriginalText = row.decision === 'redact'
+        ? '[REDACTED]'
+        : row.originalText;
       grouped[uid].detections.push({
         id: row.id,
         piiType: row.piiType,
-        originalText: row.originalText,
+        originalText: maskedOriginalText,
         replacement: row.replacement,
         decision: row.decision,
         decidedBy: row.decidedBy,
@@ -128,6 +137,10 @@ export async function GET(request: NextRequest) {
 // Create redaction decisions (batch) or run PII scan
 export async function POST(request: NextRequest) {
   try {
+    const authResult = await requireAuth(request);
+    if (isAuthError(authResult)) return authResult;
+    const { user } = authResult;
+
     const body = await request.json();
 
     // PII Scan mode
@@ -259,6 +272,10 @@ export async function POST(request: NextRequest) {
 // Update a single redaction decision
 export async function PATCH(request: NextRequest) {
   try {
+    const authResult = await requireAuth(request);
+    if (isAuthError(authResult)) return authResult;
+    const { user } = authResult;
+
     const body = await request.json();
     const { id, decision, replacement, decidedBy } = body;
 

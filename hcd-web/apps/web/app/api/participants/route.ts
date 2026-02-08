@@ -2,10 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@hcd/db';
 import { participants, sessions, consentRecords } from '@hcd/db';
 import { eq, and, ilike, sql, desc } from 'drizzle-orm';
+import { requireAuth, isAuthError } from '@/lib/auth-middleware';
 
 // ─── GET /api/participants ──────────────────────────────────────────────────
 // List participants with search, filter by org
 export async function GET(request: NextRequest) {
+  const authResult = await requireAuth(request);
+  if (isAuthError(authResult)) return authResult;
+  const { user } = authResult;
+
   try {
     const { searchParams } = new URL(request.url);
     const organizationId = searchParams.get('organizationId');
@@ -82,6 +87,10 @@ export async function GET(request: NextRequest) {
 // ─── POST /api/participants ─────────────────────────────────────────────────
 // Create a new participant
 export async function POST(request: NextRequest) {
+  const authResult = await requireAuth(request);
+  if (isAuthError(authResult)) return authResult;
+  const { user } = authResult;
+
   try {
     const body = await request.json();
     const { name, email, role, department, experienceLevel, metadata, organizationId } = body;

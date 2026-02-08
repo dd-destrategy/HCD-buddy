@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@hcd/db';
-import { participants, sessions, consentRecords, utterances, highlights, redactions } from '@hcd/db';
+import { participants, sessions, consentRecords, utterances, highlights, redactions, insights, topicStatuses, coachingEvents, comments } from '@hcd/db';
 import { eq, desc, sql } from 'drizzle-orm';
+import { requireAuth, isAuthError } from '@/lib/auth-middleware';
 
 // ─── GET /api/participants/[id] ─────────────────────────────────────────────
 // Get participant with session history
@@ -9,6 +10,10 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authResult = await requireAuth(request);
+  if (isAuthError(authResult)) return authResult;
+  const { user } = authResult;
+
   try {
     const { id } = await params;
 
@@ -68,6 +73,10 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authResult = await requireAuth(request);
+  if (isAuthError(authResult)) return authResult;
+  const { user } = authResult;
+
   try {
     const { id } = await params;
     const body = await request.json();
@@ -113,6 +122,10 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authResult = await requireAuth(request);
+  if (isAuthError(authResult)) return authResult;
+  const { user } = authResult;
+
   try {
     const { id } = await params;
 
@@ -141,8 +154,12 @@ export async function DELETE(
       .from(sessions)
       .where(eq(sessions.participantId, id));
 
-    // For each session, delete utterances, highlights, redactions
+    // For each session, delete related data
     for (const session of participantSessions) {
+      await db.delete(insights).where(eq(insights.sessionId, session.id));
+      await db.delete(topicStatuses).where(eq(topicStatuses.sessionId, session.id));
+      await db.delete(coachingEvents).where(eq(coachingEvents.sessionId, session.id));
+      await db.delete(comments).where(eq(comments.sessionId, session.id));
       await db.delete(utterances).where(eq(utterances.sessionId, session.id));
       await db.delete(highlights).where(eq(highlights.sessionId, session.id));
       await db.delete(redactions).where(eq(redactions.sessionId, session.id));
